@@ -6,6 +6,7 @@ import { UserEntity } from './../user/model/user.entity';
 import { JwtAuthGuard } from './guard/jwt-auth-guard';
 import { JwtStrategy } from './guard/jwt-strategy';
 import { RolesGuard } from './guard/roles-guard';
+import { UserIsUserGuard } from './guard/user-is-user-guard';
 import { AuthService } from './service/auth.service';
 import { UserSecurityService } from './service/user-security.service';
 
@@ -21,7 +22,14 @@ import { UserSecurityService } from './service/user-security.service';
             })
         })
     ],
-    providers: [AuthService, RolesGuard, JwtAuthGuard, JwtStrategy, UserSecurityService],
+    providers: [
+        AuthService,
+        RolesGuard,
+        JwtAuthGuard,
+        JwtStrategy,
+        UserSecurityService,
+        UserIsUserGuard
+    ],
     exports: [UserSecurityService]
 })
 export class AuthModule { }

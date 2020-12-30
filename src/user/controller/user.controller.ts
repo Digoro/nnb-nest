@@ -3,11 +3,12 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Roles } from 'src/auth/decorator/roles.decorator';
-import { JwtAuthGuard } from 'src/auth/guard/jwt-auth-guard';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { UserSecurityService } from 'src/auth/service/user-security.service';
 import { Role, User } from '../model/user.interface';
 import { UserService } from '../service/user.service';
+import { JwtAuthGuard } from './../../auth/guard/jwt-auth-guard';
+import { UserIsUserGuard } from './../../auth/guard/user-is-user-guard';
 
 @Controller('users')
 export class UserController {
@@ -45,9 +46,18 @@ export class UserController {
     index(
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 10,
+        @Query('name') name: string
     ): Observable<Pagination<User>> {
         limit = limit > 100 ? 100 : limit;
-        return this.userService.paginate({ page: +page, limit: +limit, route: 'http://localhost:3000/users' });
+
+        if (name === null || name === undefined) {
+            return this.userService.paginate({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' });
+        } else {
+            return this.userService.paginateFilterByUsername(
+                { page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' },
+                { name }
+            )
+        }
     }
 
     @Delete('/:id')
@@ -55,6 +65,7 @@ export class UserController {
         return this.userService.deleteOne(+id);
     }
 
+    @UseGuards(JwtAuthGuard, UserIsUserGuard)
     @Put(':id')
     updateOne(@Param('id') id, @Body() user: User): Observable<any> {
         return this.userService.updateOne(+id, user);
