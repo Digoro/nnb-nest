@@ -1,6 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./user.interface";
-const bcrypt = require('bcrypt');
 
 @Entity({ name: 'user' })
 export class UserEntity {
@@ -16,6 +15,6 @@ export class UserEntity {
     @Column()
     password: string;
 
-    @Column({ default: Role.User })
+    @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
 }

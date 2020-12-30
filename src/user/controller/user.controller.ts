@@ -37,7 +37,7 @@ export class UserController {
 
     @Get(':id')
     findOne(@Param('id') id): Observable<User> {
-        return this.userSecurityService.findById(id);
+        return this.userSecurityService.findById(+id);
     }
 
     @Roles(Role.Admin)
@@ -54,6 +54,13 @@ export class UserController {
 
     @Put(':id')
     updateOne(@Param('id') id, @Body() user: User): Observable<any> {
-        return this.userService.updateOne(id, user);
+        return this.userService.updateOne(+id, user);
+    }
+
+    @Roles(Role.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Put(':id/role')
+    updateRoleOfUser(@Param('id') id: string, @Body() user: User): Observable<User> {
+        return this.userService.updateRoleOfUser(+id, user);
     }
 }

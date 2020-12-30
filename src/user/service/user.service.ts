@@ -42,4 +42,8 @@ export class UserService {
         delete user.role;
         return from(this.userRepository.update(id, user));
     }
+
+    updateRoleOfUser(id: number, user: User): Observable<any> {
+        return from(this.userRepository.update(id, user));
+    }
 }

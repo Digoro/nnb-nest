@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { UserEntity } from 'src/user/model/user.entity';
-import { User } from 'src/user/model/user.interface';
+import { Role, User } from 'src/user/model/user.interface';
 import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 
@@ -21,12 +21,13 @@ export class UserSecurityService {
 
     create(user: User): Observable<User> {
         const passwordHash = this.authService.hashPassword(user.password);
-        console.log(passwordHash);
         const newUser = new UserEntity();
         newUser.name = user.name;
         newUser.email = user.email;
         newUser.role = user.role;
         newUser.password = passwordHash;
+        newUser.role = Role.USER;
+
         return from(this.userRepository.save(newUser)).pipe(
             map(this.withoutPassword),
             catchError(err => throwError(err))
