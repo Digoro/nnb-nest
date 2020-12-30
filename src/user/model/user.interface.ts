@@ -1,10 +1,12 @@
+import { Meeting } from "src/meeting/model/meeting.interface";
 
 export interface User {
     id?: number;
     name?: string;
     email?: string;
     password?: string;
-    role?: Role
+    role?: Role;
+    meetings?: Meeting[];
 }
 
 export enum Role {

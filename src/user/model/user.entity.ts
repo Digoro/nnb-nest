@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { MeetingEntity } from './../../meeting/model/meeting.entity';
 import { Role } from "./user.interface";
 
 @Entity({ name: 'user' })
@@ -17,4 +18,7 @@ export class UserEntity {
 
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
+
+    @OneToMany(type => MeetingEntity, meetingEntity => meetingEntity.host)
+    meetings: MeetingEntity[];
 }
