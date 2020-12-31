@@ -1,10 +1,9 @@
 import { User } from 'src/user/model/user.interface';
-export interface Meeting {
+
+export class Product {
     id?: number;
     title?: string;
     price?: number;
-    program?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    host: User;
+    programs?: string;
+    host?: User;
 }

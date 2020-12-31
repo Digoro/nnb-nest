@@ -1,8 +1,8 @@
-import { UserEntity } from 'src/user/model/user.entity';
-import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserEntity } from "src/user/model/user.entity";
+import { BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity({ name: 'meeting' })
-export class MeetingEntity {
+@Entity({ name: 'product' })
+export class ProductEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -13,7 +13,7 @@ export class MeetingEntity {
     price: number;
 
     @Column()
-    program: string;
+    programs: string;
 
     @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;
@@ -21,11 +21,11 @@ export class MeetingEntity {
     @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
     updatedAt: Date;
 
-    @BeforeInsert()
+    @BeforeUpdate()
     updateTimestamp() {
         this.updatedAt = new Date;
     }
 
-    @ManyToOne(type => UserEntity, userEntity => userEntity.meetings)
+    @ManyToOne(type => UserEntity, userEntity => userEntity.products)
     host: UserEntity;
 }

@@ -4,7 +4,7 @@ import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { UserEntity } from 'src/user/model/user.entity';
 import { Role, User } from 'src/user/model/user.interface';
-import { Repository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 
 @Injectable()
@@ -13,11 +13,6 @@ export class UserSecurityService {
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
         private authService: AuthService
     ) { }
-
-    withoutPassword(user: User): User {
-        delete user.password;
-        return user;
-    }
 
     create(user: User): Observable<User> {
         const passwordHash = this.authService.hashPassword(user.password);
@@ -29,15 +24,15 @@ export class UserSecurityService {
         newUser.role = Role.USER;
 
         return from(this.userRepository.save(newUser)).pipe(
-            map(this.withoutPassword),
+            switchMap(() => {
+                return this.findById(user.id)
+            }),
             catchError(err => throwError(err))
         )
     }
 
     findById(id: number): Observable<User> {
-        return from(this.userRepository.findOne(id)).pipe(
-            map(this.withoutPassword)
-        );
+        return from(this.userRepository.findOne(id));
     }
 
     login(user: User): Observable<string> {
@@ -54,16 +49,41 @@ export class UserSecurityService {
     }
 
     validateUser(email: string, password: string): Observable<User> {
-        return from(this.userRepository.findOne({ email })).pipe(
+        return from(getRepository(UserEntity)
+            .createQueryBuilder("user")
+            .addSelect('user.password')
+            .where("user.email = :email", { email })
+            .getOne()
+        ).pipe(
             switchMap((user: User) => this.authService.comparePassword(password, user.password).pipe(
                 map((match: boolean) => {
                     if (match) {
-                        return this.withoutPassword(user);
+                        return user;
                     } else {
                         throw Error;
                     }
                 })
             ))
         )
+    }
+
+    update(id: number, userForUpdate: User) {
+        return this.findById(id).pipe(
+            switchMap(user => {
+                return this.userRepository.save(Object.assign(user, userForUpdate))
+            })
+        )
+    }
+
+    updateOne(id: number, user: User): Observable<any> {
+        delete user.id;
+        delete user.email;
+        delete user.password;
+        delete user.role;
+        return this.update(id, user)
+    }
+
+    updateRoleOfUser(id: number, user: User): Observable<any> {
+        return this.update(id, user);
     }
 }

@@ -20,7 +20,9 @@ export class UserController {
     @Post()
     create(@Body() user: User): Observable<User | Object> {
         return this.userSecurityService.create(user).pipe(
-            map((user: User) => user),
+            map((user: User) => {
+                return user
+            }),
             catchError(err => of({ error: err.message }))
         );
     }
@@ -51,15 +53,16 @@ export class UserController {
         limit = limit > 100 ? 100 : limit;
 
         if (name === null || name === undefined) {
-            return this.userService.paginate({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' });
+            return this.userService.paginateAll({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' });
         } else {
-            return this.userService.paginateFilterByUsername(
+            return this.userService.paginateByUsername(
                 { page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' },
                 { name }
             )
         }
     }
 
+    @UseGuards(JwtAuthGuard, UserIsUserGuard)
     @Delete('/:id')
     deleteOne(@Param('id') id: string): Observable<any> {
         return this.userService.deleteOne(+id);
@@ -68,13 +71,13 @@ export class UserController {
     @UseGuards(JwtAuthGuard, UserIsUserGuard)
     @Put(':id')
     updateOne(@Param('id') id, @Body() user: User): Observable<any> {
-        return this.userService.updateOne(+id, user);
+        return this.userSecurityService.updateOne(+id, user);
     }
 
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Put(':id/role')
     updateRoleOfUser(@Param('id') id: string, @Body() user: User): Observable<User> {
-        return this.userService.updateRoleOfUser(+id, user);
+        return this.userSecurityService.updateRoleOfUser(+id, user);
     }
 }

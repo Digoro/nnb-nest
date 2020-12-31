@@ -1,5 +1,4 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { User } from "src/user/model/user.interface";
@@ -14,12 +13,12 @@ export class UserIsUserGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const request = context.switchToHttp().getRequest();
-        const params = request.params;
-        const user: User = request.user.user;
+        const userId = +request.params.id;
+        const user: User = request.user;
         return this.userSecurityService.findById(user.id).pipe(
             map((user: User) => {
                 let hasPermission = false;
-                if (user.id === +params.id) {
+                if (user.id === userId) {
                     hasPermission = true
                 }
                 return !!user && hasPermission;

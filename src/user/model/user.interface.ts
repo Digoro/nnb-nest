@@ -1,12 +1,11 @@
-import { Meeting } from "src/meeting/model/meeting.interface";
-
+import { Product } from './../../product/model/product.interface';
 export interface User {
     id?: number;
     name?: string;
     email?: string;
     password?: string;
     role?: Role;
-    meetings?: Meeting[];
+    products?: Product[];
 }
 
 export enum Role {
