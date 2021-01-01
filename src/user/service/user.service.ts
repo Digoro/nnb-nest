@@ -17,10 +17,10 @@ export class UserService {
         return from(paginate<User>(this.userRepository, options))
     }
 
-    paginateByUsername(options: IPaginationOptions, user: User): Observable<Pagination<User>> {
+    paginateByUsername(options: IPaginationOptions, name: string): Observable<Pagination<User>> {
         return from(paginate(this.userRepository, options, {
             where: [
-                { name: Like(`%${user.name}%`) }
+                { name: Like(`%${name}%`) }
             ]
         }))
     }

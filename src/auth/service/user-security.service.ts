@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { from, Observable, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
+import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { UserEntity } from 'src/user/model/user.entity';
 import { Role, User } from 'src/user/model/user.interface';
 import { getRepository, Repository } from 'typeorm';
@@ -14,17 +15,16 @@ export class UserSecurityService {
         private authService: AuthService
     ) { }
 
-    create(user: User): Observable<User> {
+    create(user: UserCreateDto): Observable<User> {
         const passwordHash = this.authService.hashPassword(user.password);
         const newUser = new UserEntity();
         newUser.name = user.name;
         newUser.email = user.email;
-        newUser.role = user.role;
         newUser.password = passwordHash;
         newUser.role = Role.USER;
 
         return from(this.userRepository.save(newUser)).pipe(
-            switchMap(() => {
+            switchMap((user: User) => {
                 return this.findById(user.id)
             }),
             catchError(err => throwError(err))
@@ -35,7 +35,7 @@ export class UserSecurityService {
         return from(this.userRepository.findOne(id));
     }
 
-    login(user: User): Observable<string> {
+    login(user: UserLoginDto): Observable<string> {
         return this.validateUser(user.email, user.password).pipe(
             switchMap((user: User) => {
                 if (user) {
@@ -67,7 +67,7 @@ export class UserSecurityService {
         )
     }
 
-    update(id: number, userForUpdate: User) {
+    update<T>(id: number, userForUpdate: T) {
         return this.findById(id).pipe(
             switchMap(user => {
                 return this.userRepository.save(Object.assign(user, userForUpdate))
@@ -75,15 +75,11 @@ export class UserSecurityService {
         )
     }
 
-    updateOne(id: number, user: User): Observable<any> {
-        delete user.id;
-        delete user.email;
-        delete user.password;
-        delete user.role;
+    updateOne(id: number, user: UserUpdateDto): Observable<any> {
         return this.update(id, user)
     }
 
-    updateRoleOfUser(id: number, user: User): Observable<any> {
+    updateRoleOfUser(id: number, user: UserUpdateRoleDto): Observable<any> {
         return this.update(id, user);
     }
 }

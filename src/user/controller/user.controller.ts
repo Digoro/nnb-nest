@@ -5,6 +5,7 @@ import { catchError, map } from 'rxjs/operators';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { UserSecurityService } from 'src/auth/service/user-security.service';
+import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from '../model/user.dto';
 import { Role, User } from '../model/user.interface';
 import { UserService } from '../service/user.service';
 import { JwtAuthGuard } from './../../auth/guard/jwt-auth-guard';
@@ -18,7 +19,7 @@ export class UserController {
     ) { }
 
     @Post()
-    create(@Body() user: User): Observable<User | Object> {
+    create(@Body() user: UserCreateDto): Observable<User | Object> {
         return this.userSecurityService.create(user).pipe(
             map((user: User) => {
                 return user
@@ -28,7 +29,7 @@ export class UserController {
     }
 
     @Post('login')
-    login(@Body() user: User): Observable<Object> {
+    login(@Body() user: UserLoginDto): Observable<Object> {
         return this.userSecurityService.login(user).pipe(
             map((jwt: string) => {
                 return { access_token: jwt };
@@ -40,8 +41,8 @@ export class UserController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id): Observable<User> {
-        return this.userSecurityService.findById(+id);
+    findOne(@Param('id') id: number): Observable<User> {
+        return this.userSecurityService.findById(id);
     }
 
     @Get()
@@ -57,27 +58,27 @@ export class UserController {
         } else {
             return this.userService.paginateByUsername(
                 { page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/users' },
-                { name }
+                name
             )
         }
     }
 
     @UseGuards(JwtAuthGuard, UserIsUserGuard)
     @Delete('/:id')
-    deleteOne(@Param('id') id: string): Observable<any> {
-        return this.userService.deleteOne(+id);
+    deleteOne(@Param('id') id: number): Observable<any> {
+        return this.userService.deleteOne(id);
     }
 
     @UseGuards(JwtAuthGuard, UserIsUserGuard)
     @Put(':id')
-    updateOne(@Param('id') id, @Body() user: User): Observable<any> {
-        return this.userSecurityService.updateOne(+id, user);
+    updateOne(@Param('id') id: number, @Body() user: UserUpdateDto): Observable<any> {
+        return this.userSecurityService.updateOne(id, user);
     }
 
     @Roles(Role.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Put(':id/role')
-    updateRoleOfUser(@Param('id') id: string, @Body() user: User): Observable<User> {
-        return this.userSecurityService.updateRoleOfUser(+id, user);
+    updateRoleOfUser(@Param('id') id: number, @Body() user: UserUpdateRoleDto): Observable<User> {
+        return this.userSecurityService.updateRoleOfUser(id, user);
     }
 }
