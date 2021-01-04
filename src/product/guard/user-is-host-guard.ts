@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { map, switchMap } from "rxjs/operators";
-import { UserSecurityService } from 'src/auth/service/user-security.service';
+import { AuthService } from 'src/auth/service/auth.service';
 import { User } from "src/user/model/user.interface";
 import { Product } from './../model/product.interface';
 import { ProductService } from './../service/product.service';
@@ -11,7 +11,7 @@ import { ProductService } from './../service/product.service';
 export class UserIsHostGuard implements CanActivate {
     constructor(
         private productservice: ProductService,
-        private userService: UserSecurityService
+        private userService: AuthService
     ) { }
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {

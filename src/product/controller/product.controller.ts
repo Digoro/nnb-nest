@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Observable } from 'rxjs';
 import { UserIsHostGuard } from '../guard/user-is-host-guard';
 import { ProductCreateDto } from '../model/product.dto';
 import { ProductService } from '../service/product.service';
-import { JwtAuthGuard } from './../../auth/guard/jwt-auth-guard';
 import { Product } from './../../product/model/product.interface';
 import { ProductUpdateDto } from './../model/product.dto';
 
@@ -12,7 +12,7 @@ import { ProductUpdateDto } from './../model/product.dto';
 export class ProductController {
   constructor(private readonly productService: ProductService) { }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() product: ProductCreateDto, @Request() request) {
     const user = request.user;
@@ -38,13 +38,13 @@ export class ProductController {
     return this.productService.findById(id);
   }
 
-  @UseGuards(JwtAuthGuard, UserIsHostGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsHostGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() product: ProductUpdateDto) {
     return this.productService.updateOne(id, product);
   }
 
-  @UseGuards(JwtAuthGuard, UserIsHostGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsHostGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.productService.deleteOne(id);

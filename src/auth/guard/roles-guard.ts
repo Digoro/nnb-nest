@@ -4,14 +4,14 @@ import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { User } from "src/user/model/user.interface";
 import { ROLES_KEY } from "../decorator/roles.decorator";
-import { UserSecurityService } from "../service/user-security.service";
+import { AuthService } from "../service/auth.service";
 
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
-        private userSecurityService: UserSecurityService
+        private authService: AuthService
     ) { }
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
@@ -21,7 +21,7 @@ export class RolesGuard implements CanActivate {
         }
         const request = context.switchToHttp().getRequest();
         const user: User = request.user;
-        return this.userSecurityService.findById(user.id).pipe(
+        return this.authService.findById(user.id).pipe(
             map((user: User) => {
                 const hasRole = roles.find(role => role === user.role);
                 return user && !!hasRole;

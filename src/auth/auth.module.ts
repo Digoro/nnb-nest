@@ -3,12 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './../user/model/user.entity';
-import { JwtAuthGuard } from './guard/jwt-auth-guard';
-import { JwtStrategy } from './guard/jwt-strategy';
 import { RolesGuard } from './guard/roles-guard';
+import { FacebookStrategy } from './guard/strategy/facebook-strategy';
+import { GoogleStrategy } from './guard/strategy/google-strategy';
+import { JwtStrategy } from './guard/strategy/jwt-strategy';
+import { KakaoStrategy } from './guard/strategy/kakao-strategy';
+import { NaverStrategy } from './guard/strategy/naver-strategy';
 import { UserIsUserGuard } from './guard/user-is-user-guard';
 import { AuthService } from './service/auth.service';
-import { UserSecurityService } from './service/user-security.service';
 
 @Module({
     imports: [
@@ -25,11 +27,14 @@ import { UserSecurityService } from './service/user-security.service';
     providers: [
         AuthService,
         RolesGuard,
-        JwtAuthGuard,
+        AuthService,
+        UserIsUserGuard,
+        FacebookStrategy,
+        GoogleStrategy,
         JwtStrategy,
-        UserSecurityService,
-        UserIsUserGuard
+        KakaoStrategy,
+        NaverStrategy
     ],
-    exports: [UserSecurityService]
+    exports: [AuthService]
 })
 export class AuthModule { }
