@@ -1,13 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { UserEntity } from 'src/user/model/user.entity';
-import { Role } from 'src/user/model/user.interface';
-import { getRepository, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './../../user/model/user.interface';
 const bcrypt = require('bcrypt');
 
@@ -22,114 +19,58 @@ export enum Provider {
 export class AuthService {
     constructor(
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
-        private configService: ConfigService,
         private jwtService: JwtService,
     ) { }
 
-    create(user: UserCreateDto): Observable<User> {
-        const passwordHash = this.hashPassword(user.password);
-        const newUser = new UserEntity();
-        newUser.name = user.name;
-        newUser.email = user.email;
-        newUser.password = passwordHash;
-        newUser.role = Role.USER;
-
-        return from(this.userRepository.save(newUser)).pipe(
-            switchMap((user: User) => {
-                return this.findById(user.id)
-            }),
-            catchError(err => throwError(err))
-        )
+    async create(userDto: UserCreateDto): Promise<User> {
+        const find = await this.findByEmail(userDto.email);
+        if (find) throw new BadRequestException('already exist email');
+        const user = await this.userRepository.save(this.userRepository.create(userDto));
+        return await this.findById(user.id)
     }
 
-    findById(id: number): Observable<User> {
-        return from(this.userRepository.findOne(id));
+    async findById(id: number): Promise<User> {
+        return await this.userRepository.findOne(id);
     }
 
-    findByEmail(email: string): Observable<User> {
-        return from(this.userRepository.findOne({ email })).pipe(
-            map((user: User) => {
-                if (user) return user;
-                else throw new UnauthorizedException();
-            })
-        );
+    async findByEmail(email: string): Promise<UserEntity> {
+        return await this.userRepository.findOne({ email });
     }
 
-    findWithPasswordByEmail(email: string): Observable<User> {
-        return from(getRepository(UserEntity)
-            .createQueryBuilder("user")
-            .addSelect('user.password')
-            .where("user.email = :email", { email })
-            .getOne()
-        ).pipe(
-            map((user: User) => {
-                if (user) {
-                    delete user.password;
-                    return user;
-                }
-                else throw new UnauthorizedException();
-            })
-        )
+    async login(userDto: UserLoginDto): Promise<string> {
+        const user = await this.findByEmail(userDto.email);
+        if (!user) throw new UnauthorizedException();
+        const match = await this.comparePassword(userDto.password, user.password);
+        if (!match) throw new UnauthorizedException();
+        return await this.generateJWT(user);
     }
 
-    login(user: UserLoginDto): Observable<string> {
-        return this.validateUser(user.email, user.password).pipe(
-            switchMap((user: User) => {
-                return this.generateJWT(user);
-            })
-        )
+    async validateOAuthLogin(email: string, thirdPartyId: string, provider: Provider): Promise<string> {
+        const user = await this.findByEmail(email);
+        return this.generateJWT(user);
     }
 
-    validateUser(email: string, password: string): Observable<User> {
-        return this.findWithPasswordByEmail(email).pipe(
-            switchMap((user: User) => {
-                return this.comparePassword(password, user.password).pipe(
-                    map((match: boolean) => {
-                        if (match) {
-                            return user;
-                        } else {
-                            throw new UnauthorizedException();
-                        }
-                    })
-                )
-            })
-        )
+    async update<T>(id: number, userForUpdate: T) {
+        const user = await this.findById(id);
+        return this.userRepository.save(Object.assign(user, userForUpdate))
     }
 
-    validateOAuthLogin(email: string, thirdPartyId: string, provider: Provider): Observable<string> {
-        return this.findWithPasswordByEmail(email).pipe(
-            switchMap((user: User) => {
-                return this.generateJWT(user);
-            })
-        )
+    async updateOne(id: number, user: UserUpdateDto): Promise<any> {
+        // const find = await this.findByEmail(user.email);
+        // if (find) throw new BadRequestException('already exist email');
+        return await this.update(id, user)
     }
 
-    update<T>(id: number, userForUpdate: T) {
-        return this.findById(id).pipe(
-            switchMap(user => {
-                return this.userRepository.save(Object.assign(user, userForUpdate))
-            })
-        )
+    async updateRoleOfUser(id: number, user: UserUpdateRoleDto): Promise<any> {
+        return await this.update(id, user);
     }
 
-    updateOne(id: number, user: UserUpdateDto): Observable<any> {
-        return this.update(id, user)
+    async generateJWT({ id, email }: User): Promise<string> {
+        return await this.jwtService.signAsync({ ...{ id, email } });
     }
 
-    updateRoleOfUser(id: number, user: UserUpdateRoleDto): Observable<any> {
-        return this.update(id, user);
-    }
-
-    generateJWT(user: User): Observable<string> {
-        return from(this.jwtService.signAsync({ user }));
-    }
-
-    hashPassword(password: string): string {
-        return bcrypt.hashSync(password, 12)
-    }
-
-    comparePassword(newPassword: string, passwordHash: string): Observable<any | boolean> {
-        return from<any | boolean>(bcrypt.compare(newPassword, passwordHash));
+    async comparePassword(newPassword: string, passwordHash: string): Promise<boolean> {
+        return await bcrypt.compare(newPassword, passwordHash);
     }
 
     checkJWT(req): Observable<any> {

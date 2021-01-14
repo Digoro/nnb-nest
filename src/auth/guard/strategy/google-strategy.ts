@@ -2,9 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { User } from 'src/user/model/user.interface';
 import { AuthService, Provider } from '../../service/auth.service';
 
 @Injectable()
@@ -21,19 +18,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, Provider.GOOGLE) 
         })
     }
 
-    validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Observable<any> {
+    async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const email = profile.emails[0].value;
-        return this.authService.findWithPasswordByEmail(email).pipe(
-            switchMap((user: User) => {
-                return this.authService.generateJWT(user).pipe(
-                    map(jwt => {
-                        return { user, access_token: jwt }
-                    })
-                )
-            }),
-            catchError(err => {
-                return throwError(new UnauthorizedException())
-            })
-        )
+        const jwt = await this.authService.validateOAuthLogin(email, profile.id, Provider.GOOGLE);
+        if (jwt) done(null, jwt);
+        else {
+            done(null, false);
+            throw new UnauthorizedException()
+        }
     }
 }

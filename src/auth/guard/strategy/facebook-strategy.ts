@@ -2,8 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-facebook';
-import { throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
 import { Provider } from 'src/auth/service/auth.service';
 import { AuthService } from './../../service/auth.service';
 
@@ -23,14 +21,11 @@ export class FacebookStrategy extends PassportStrategy(Strategy, Provider.FACEBO
 
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const email = profile.emails[0].value;
-        return this.authService.validateOAuthLogin(email, profile.id, Provider.GOOGLE).pipe(
-            map(jwt => {
-                done(null, jwt);
-            }),
-            catchError(err => {
-                done(err, false);
-                return throwError(new UnauthorizedException())
-            })
-        )
+        const jwt = await this.authService.validateOAuthLogin(email, profile.id, Provider.FACEBOOK);
+        if (jwt) done(null, jwt);
+        else {
+            done(null, false);
+            throw new UnauthorizedException()
+        }
     }
 }

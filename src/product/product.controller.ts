@@ -1,12 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Observable } from 'rxjs';
-import { UserIsHostGuard } from '../guard/user-is-host-guard';
-import { ProductCreateDto } from '../model/product.dto';
-import { ProductService } from '../service/product.service';
-import { Product } from './../../product/model/product.interface';
-import { ProductUpdateDto } from './../model/product.dto';
+import { ProductCreateDto, ProductUpdateDto } from './model/product.dto';
+import { Product } from './model/product.interface';
+import { ProductService } from './product.service';
+import { UserIsHostGuard } from './user-is-host-guard';
 
 @Controller('products')
 export class ProductController {
@@ -14,17 +12,13 @@ export class ProductController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() product: ProductCreateDto, @Request() request) {
+  create(@Body() product: ProductCreateDto, @Request() request): Promise<Product> {
     const user = request.user;
     return this.productService.create(user, product);
   }
 
   @Get()
-  index(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('hostId') hostId: number
-  ): Observable<Pagination<Product>> {
+  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<Product>> {
     limit = limit > 100 ? 100 : limit;
     if (hostId === null || hostId === undefined) {
       return this.productService.paginateAll({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/products' });

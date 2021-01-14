@@ -1,11 +1,9 @@
 import { UserEntity } from "src/user/model/user.entity";
-import { BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
+import { BasicEntity } from './../../shared/model/basic.entity';
 
-@Entity({ name: 'product' })
-export class ProductEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+@Entity({ name: 'products' })
+export class ProductEntity extends BasicEntity {
     @Column()
     title: string;
 
@@ -15,17 +13,7 @@ export class ProductEntity {
     @Column()
     programs: string;
 
-    @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
-    createdAt: Date;
-
-    @Column({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP" })
-    updatedAt: Date;
-
-    @BeforeUpdate()
-    updateTimestamp() {
-        this.updatedAt = new Date;
-    }
-
     @ManyToOne(type => UserEntity, userEntity => userEntity.products)
+    @JoinColumn({ name: 'host_id' })
     host: UserEntity;
 }
