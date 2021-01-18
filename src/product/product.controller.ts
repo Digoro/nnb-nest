@@ -6,7 +6,7 @@ import { Product } from './model/product.interface';
 import { ProductService } from './product.service';
 import { UserIsHostGuard } from './user-is-host-guard';
 
-@Controller('products')
+@Controller('api/products')
 export class ProductController {
   constructor(private readonly productService: ProductService) { }
 

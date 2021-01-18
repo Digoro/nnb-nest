@@ -65,8 +65,9 @@ export class AuthService {
         return await this.update(id, user);
     }
 
-    async generateJWT({ id, email }: User): Promise<string> {
-        return await this.jwtService.signAsync({ ...{ id, email } });
+    async generateJWT(user: User): Promise<string> {
+        delete user.password;
+        return await this.jwtService.signAsync({ ...user });
     }
 
     async comparePassword(newPassword: string, passwordHash: string): Promise<boolean> {

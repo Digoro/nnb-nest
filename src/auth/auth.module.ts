@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './../user/model/user.entity';
+import { AuthController } from './auth.controller';
 import { RolesGuard } from './guard/roles-guard';
 import { FacebookStrategy } from './guard/strategy/facebook-strategy';
 import { GoogleStrategy } from './guard/strategy/google-strategy';
@@ -35,6 +36,7 @@ import { AuthService } from './service/auth.service';
         KakaoStrategy,
         NaverStrategy
     ],
-    exports: [AuthService]
+    exports: [AuthService],
+    controllers: [AuthController]
 })
 export class AuthModule { }
