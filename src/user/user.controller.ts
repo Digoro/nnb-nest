@@ -3,10 +3,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
+import { UserIsUserGuard } from 'src/auth/guard/user-is-user-guard';
 import { AuthService } from 'src/auth/service/auth.service';
-import { UserIsUserGuard } from '../auth/guard/user-is-user-guard';
-import { UserCreateDto, UserUpdateDto, UserUpdateRoleDto } from './model/user.dto';
-import { Role, User } from './model/user.interface';
+import { UserCreateDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
+import { UserEntity } from 'src/user/model/user.entity';
+import { Role } from './model/user.interface';
 import { UserService } from './user.service';
 
 @Controller('api/users')
@@ -17,19 +18,19 @@ export class UserController {
     ) { }
 
     @Post('')
-    create(@Body() user: UserCreateDto): Promise<User> {
+    create(@Body() user: UserCreateDto): Promise<UserEntity> {
         return this.authService.create(user);
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: number): Promise<User> {
+    async findOne(@Param('id') id: number): Promise<UserEntity> {
         const user = await this.authService.findById(id);
         if (!user) throw new NotFoundException()
         return user;
     }
 
     @Get('')
-    index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('name') name: string): Promise<Pagination<User>> {
+    index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('name') name: string): Promise<Pagination<UserEntity>> {
         limit = limit > 100 ? 100 : limit;
         if (name === null || name === undefined) {
             return this.userService.paginateAll({ page, limit });
@@ -57,7 +58,7 @@ export class UserController {
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Put(':id/role')
-    updateRoleOfUser(@Param('id') id: number, @Body() user: UserUpdateRoleDto): Promise<User> {
+    updateRoleOfUser(@Param('id') id: number, @Body() user: UserUpdateRoleDto): Promise<UserEntity> {
         return this.authService.updateRoleOfUser(id, user);
     }
 }

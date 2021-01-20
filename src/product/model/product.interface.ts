@@ -1,9 +1,15 @@
-import { User } from 'src/user/model/user.interface';
+export enum ProductStatus {
+    ALL = 'ALL',
+    CREATED = 'CREATED',
+    INSPACTED = 'INSPACTED',
+    ENTERED = 'ENTERED',
+    UPDATED = 'UPDATED',
+    DISABLED = 'DISABLED',
+    COMPLETED = 'COMPLETED',
+    DELETED = 'DELETED',
+}
 
-export class Product {
-    id: number;
-    title: string;
-    price: number;
-    programs: string;
-    host: User;
+export enum HashtagType {
+    PRODUCT = 'PRODUCT',
+    USER = 'USER'
 }

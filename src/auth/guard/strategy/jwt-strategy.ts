@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(payload, done: Function) {
         try {
-            console.log(payload);
+            // console.log(payload);
 
             // You could add a function to the authService to verify the claims of the token:
             // i.e. does the user still have the roles that are claimed by the token

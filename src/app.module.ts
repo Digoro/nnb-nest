@@ -22,7 +22,7 @@ import { UserModule } from './user/user.module';
     }),
     UserModule,
     AuthModule,
-    ProductModule,
+    ProductModule
   ],
   controllers: [AppController],
   providers: [

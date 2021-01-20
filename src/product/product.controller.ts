@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ProductCreateDto, ProductUpdateDto } from './model/product.dto';
-import { Product } from './model/product.interface';
+import { ProductEntity } from './model/product.entity';
 import { ProductService } from './product.service';
 import { UserIsHostGuard } from './user-is-host-guard';
 
@@ -12,24 +12,26 @@ export class ProductController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() product: ProductCreateDto, @Request() request): Promise<Product> {
-    const user = request.user;
-    return this.productService.create(user, product);
+  create(@Body() product: ProductCreateDto, @Request() request): Promise<ProductEntity> {
+    const userId = request.user.id;
+    return this.productService.create(userId, product);
   }
 
   @Get()
-  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<Product>> {
+  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<ProductEntity>> {
     limit = limit > 100 ? 100 : limit;
-    if (hostId === null || hostId === undefined) {
-      return this.productService.paginateAll({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/products' });
+    if (!hostId) {
+      return this.productService.paginateAll({ page: Number(page), limit: Number(limit) });
     } else {
-      return this.productService.paginateByHost({ page: Number(page), limit: Number(limit), route: 'http://localhost:3000/api/products' }, hostId);
+      return this.productService.paginateByHost({ page: Number(page), limit: Number(limit) }, hostId);
     }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.productService.findById(id);
+  async findOne(@Param('id') id: number) {
+    const product = await this.productService.findById(id);
+    if (!product) throw new NotFoundException()
+    return product;
   }
 
   @UseGuards(AuthGuard('jwt'), UserIsHostGuard)

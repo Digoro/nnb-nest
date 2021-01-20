@@ -14,6 +14,6 @@ export class UserIsUserGuard implements CanActivate {
         const requestCurrentUser = request.user;
         const currentUser = await this.authService.findById(requestCurrentUser.id);
         if (!currentUser) return false;
-        return currentUser.id === requestUserId;;
+        return currentUser.id === requestUserId;
     }
 }

@@ -5,7 +5,7 @@ import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
 
-@Entity({ name: 'users' })
+@Entity({ name: 'user' })
 export class UserEntity extends BasicEntity {
     @Column({ unique: true, length: 254 })
     email: string;
@@ -27,7 +27,7 @@ export class UserEntity extends BasicEntity {
     thirdpartyId: string;
 
     @Column({ default: 0 })
-    points: number;
+    point: number;
 
     @Column({ nullable: true })
     birthday: Date;
@@ -50,7 +50,7 @@ export class UserEntity extends BasicEntity {
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
 
-    @OneToMany(type => ProductEntity, productEntity => productEntity.host)
+    @OneToMany(() => ProductEntity, productEntity => productEntity.host)
     products: ProductEntity[];
 
     @BeforeInsert()

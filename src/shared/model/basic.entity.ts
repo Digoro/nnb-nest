@@ -4,10 +4,10 @@ export class BasicEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", name: 'crated_at' })
+    @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP", name: 'updated_at' })
+    @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
     updatedAt: Date;
 
     @BeforeUpdate()

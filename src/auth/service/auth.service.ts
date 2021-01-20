@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { UserEntity } from 'src/user/model/user.entity';
 import { Repository } from 'typeorm';
-import { User } from './../../user/model/user.interface';
 const bcrypt = require('bcrypt');
 
 export enum Provider {
@@ -22,14 +21,14 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
-    async create(userDto: UserCreateDto): Promise<User> {
+    async create(userDto: UserCreateDto): Promise<UserEntity> {
         const find = await this.findByEmail(userDto.email);
         if (find) throw new BadRequestException('already exist email');
         const user = await this.userRepository.save(this.userRepository.create(userDto));
         return await this.findById(user.id)
     }
 
-    async findById(id: number): Promise<User> {
+    async findById(id: number): Promise<UserEntity> {
         return await this.userRepository.findOne(id);
     }
 
@@ -65,7 +64,7 @@ export class AuthService {
         return await this.update(id, user);
     }
 
-    async generateJWT(user: User): Promise<string> {
+    async generateJWT(user: UserEntity): Promise<string> {
         delete user.password;
         return await this.jwtService.signAsync({ ...user });
     }
