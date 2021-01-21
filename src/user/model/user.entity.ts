@@ -1,6 +1,6 @@
 import { Exclude } from "class-transformer";
 import { ProductEntity } from "src/product/model/product.entity";
-import { BeforeInsert, Column, Entity, OneToMany } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
@@ -53,6 +53,14 @@ export class UserEntity extends BasicEntity {
     @OneToMany(() => ProductEntity, productEntity => productEntity.host)
     products: ProductEntity[];
 
+    @ManyToMany(() => CouponEntity)
+    @JoinTable({
+        name: 'user_coupon_map',
+        joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'coupon_id', referencedColumnName: 'id' }
+    })
+    coupons: CouponEntity[];
+
     @BeforeInsert()
     async hashPassword() {
         this.password = await bcrypt.hash(this.password, 12);
@@ -61,4 +69,19 @@ export class UserEntity extends BasicEntity {
     comparePassword(attempPassword: string): boolean {
         return bcrypt.compare(attempPassword, this.password);
     }
+}
+
+@Entity({ name: 'coupon' })
+export class CouponEntity extends BasicEntity {
+    @Column({ length: 254 })
+    name: string;
+
+    @Column({ length: 254 })
+    contents: string;
+
+    @Column()
+    price: number;
+
+    @Column()
+    expireDuration: Date;
 }
