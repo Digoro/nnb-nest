@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthService } from 'src/auth/service/auth.service';
-import { UserEntity } from 'src/user/model/user.entity';
+import { User } from 'src/user/model/user.entity';
 import { ProductService } from './product.service';
 
 
@@ -15,7 +15,7 @@ export class UserIsHostGuard implements CanActivate {
         try {
             const request = context.switchToHttp().getRequest();
             const productId = +request.params.id;
-            const requestUser: UserEntity = request.user;
+            const requestUser: User = request.user;
             const user = await this.userService.findById(requestUser.id);
             const product = await this.productservice.findById(productId);
             let hasPermission = false;

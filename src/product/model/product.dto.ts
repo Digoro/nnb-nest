@@ -1,9 +1,9 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AnalysisHashtagEntity, HashtagEntity, ProductEntity } from 'src/product/model/product.entity';
-import { UserEntity } from 'src/user/model/user.entity';
-import { CategoryEntity, ProductOptionEntity, ProductRepresentationPhotoEntity } from './product.entity';
+import { AnalysisHashtag, Hashtag, Product } from 'src/product/model/product.entity';
+import { User } from 'src/user/model/user.entity';
+import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { HashtagType, ProductStatus } from './product.interface';
 
 export class ProductCreateDto {
@@ -71,12 +71,12 @@ export class ProductCreateDto {
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type(() => ProductRepresentationPhotoCreateDto)
-    representationPhotos: ProductRepresentationPhotoEntity[];
+    representationPhotos: ProductRepresentationPhoto[];
 
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type(() => ProductOptionCreateDto)
-    options: ProductOptionEntity[];
+    options: ProductOption[];
 
     @ArrayMinSize(1)
     categoryIds: number[];
@@ -84,14 +84,14 @@ export class ProductCreateDto {
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type(() => HashtagCreateDto)
-    hashtags: HashtagEntity[];
+    hashtags: Hashtag[];
 
     @ValidateNested({ each: true })
     @Type(() => HashtagCreateDto)
-    analysisHashtags: AnalysisHashtagEntity[];
+    analysisHashtags: AnalysisHashtag[];
 
-    toEntity(user: UserEntity, categories: CategoryEntity[], hashtags: HashtagEntity[], analysisHashtags?: AnalysisHashtagEntity[]): ProductEntity {
-        const product = new ProductEntity();
+    toEntity(user: User, categories: Category[], hashtags: Hashtag[], analysisHashtags?: AnalysisHashtag[]): Product {
+        const product = new Product();
         product.host = user;
         product.title = this.title;
         product.point = this.point;

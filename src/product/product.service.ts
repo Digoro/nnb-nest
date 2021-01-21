@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
-import { AnalysisHashtagEntity, ProductEntity } from 'src/product/model/product.entity';
+import { AnalysisHashtag, Product } from 'src/product/model/product.entity';
 import { Repository } from 'typeorm';
 import { ProductCreateDto, ProductUpdateDto } from './model/product.dto';
-import { CategoryEntity, HashtagEntity, ProductOptionEntity, ProductRepresentationPhotoEntity } from './model/product.entity';
+import { Category, Hashtag, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 
 @Injectable()
 export class ProductService {
@@ -13,15 +13,15 @@ export class ProductService {
 
   constructor(
     private authService: AuthService,
-    @InjectRepository(ProductEntity) private productRepository: Repository<ProductEntity>,
-    @InjectRepository(ProductRepresentationPhotoEntity) private representationPhotoRepository: Repository<ProductRepresentationPhotoEntity>,
-    @InjectRepository(ProductOptionEntity) private optionRepository: Repository<ProductOptionEntity>,
-    @InjectRepository(CategoryEntity) private categoryRepository: Repository<CategoryEntity>,
-    @InjectRepository(HashtagEntity) private hashtagRepository: Repository<HashtagEntity>,
-    @InjectRepository(AnalysisHashtagEntity) private analysisHashtagRepository: Repository<AnalysisHashtagEntity>
+    @InjectRepository(Product) private productRepository: Repository<Product>,
+    @InjectRepository(ProductRepresentationPhoto) private representationPhotoRepository: Repository<ProductRepresentationPhoto>,
+    @InjectRepository(ProductOption) private optionRepository: Repository<ProductOption>,
+    @InjectRepository(Category) private categoryRepository: Repository<Category>,
+    @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
+    @InjectRepository(AnalysisHashtag) private analysisHashtagRepository: Repository<AnalysisHashtag>
   ) { }
 
-  async create(userId: number, productDto: ProductCreateDto): Promise<ProductEntity> {
+  async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
     const user = await this.authService.findById(userId);
 
     const categories = [];
@@ -34,7 +34,7 @@ export class ProductService {
 
     const hashtags = [];
     for (let i = 0; i < productDto.hashtags.length; i++) {
-      let hashtag: HashtagEntity;
+      let hashtag: Hashtag;
       hashtag = await this.hashtagRepository.findOne({ name: productDto.hashtags[i].name });
       if (!hashtag) {
         hashtag = await this.hashtagRepository.save(productDto.hashtags[i]);
@@ -47,7 +47,7 @@ export class ProductService {
     const analysisHashtags = [];
     if (productDto.analysisHashtags) {
       for (let i = 0; i < productDto.analysisHashtags.length; i++) {
-        let analysisHashtag: AnalysisHashtagEntity;
+        let analysisHashtag: AnalysisHashtag;
         analysisHashtag = await this.analysisHashtagRepository.findOne({ name: productDto.analysisHashtags[i].name });
         if (!analysisHashtag) {
           analysisHashtag = await this.analysisHashtagRepository.save(productDto.analysisHashtags[i]);
@@ -74,15 +74,15 @@ export class ProductService {
     return newProduct;
   }
 
-  async paginateAll(options: IPaginationOptions): Promise<Pagination<ProductEntity>> {
-    return await paginate<ProductEntity>(this.productRepository, options, { relations: this.productRelations })
+  async paginateAll(options: IPaginationOptions): Promise<Pagination<Product>> {
+    return await paginate<Product>(this.productRepository, options, { relations: this.productRelations })
   }
 
-  async paginateByHost(options: IPaginationOptions, hostId: number): Promise<Pagination<ProductEntity>> {
-    return await paginate<ProductEntity>(this.productRepository, options, { where: [{ host: hostId }], relations: this.productRelations })
+  async paginateByHost(options: IPaginationOptions, hostId: number): Promise<Pagination<Product>> {
+    return await paginate<Product>(this.productRepository, options, { where: [{ host: hostId }], relations: this.productRelations })
   }
 
-  async findById(id: number): Promise<ProductEntity> {
+  async findById(id: number): Promise<Product> {
     return await this.productRepository.findOne({ id }, { relations: this.productRelations });
   }
 

@@ -3,21 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Like, Repository } from 'typeorm';
 import { UserLikeDto } from './model/user.dto';
-import { UserEntity, UserProductLikeEntity, UserUserLikeEntity } from './model/user.entity';
+import { User, UserProductLike, UserUserLike } from './model/user.entity';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
-        @InjectRepository(UserProductLikeEntity) private userProductLikeRepository: Repository<UserProductLikeEntity>,
-        @InjectRepository(UserUserLikeEntity) private userUserLikeRepository: Repository<UserUserLikeEntity>
+        @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
+        @InjectRepository(UserUserLike) private userUserLikeRepository: Repository<UserUserLike>
     ) { }
 
-    async paginateAll(options: IPaginationOptions): Promise<Pagination<UserEntity>> {
-        return await paginate<UserEntity>(this.userRepository, options)
+    async paginateAll(options: IPaginationOptions): Promise<Pagination<User>> {
+        return await paginate<User>(this.userRepository, options)
     }
 
-    async paginateByUsername(options: IPaginationOptions, name: string): Promise<Pagination<UserEntity>> {
+    async paginateByUsername(options: IPaginationOptions, name: string): Promise<Pagination<User>> {
         return await paginate(this.userRepository, options, { where: [{ name: Like(`%${name}%`) }] })
     }
 

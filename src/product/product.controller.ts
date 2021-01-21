@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Que
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ProductCreateDto, ProductUpdateDto } from './model/product.dto';
-import { ProductEntity } from './model/product.entity';
+import { Product } from './model/product.entity';
 import { ProductService } from './product.service';
 import { UserIsHostGuard } from './user-is-host-guard';
 
@@ -12,13 +12,13 @@ export class ProductController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() product: ProductCreateDto, @Request() request): Promise<ProductEntity> {
+  create(@Body() product: ProductCreateDto, @Request() request): Promise<Product> {
     const userId = request.user.id;
     return this.productService.create(userId, product);
   }
 
   @Get()
-  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<ProductEntity>> {
+  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<Product>> {
     limit = limit > 100 ? 100 : limit;
     if (!hostId) {
       return this.productService.paginateAll({ page: Number(page), limit: Number(limit) });

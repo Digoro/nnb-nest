@@ -1,7 +1,7 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
 import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
-import { CouponEntity } from './user.entity';
+import { Coupon } from './user.entity';
 import { Gender } from './user.interface';
 
 export class UserCreateDto {
@@ -94,8 +94,8 @@ export class CouponCreateDto {
     @IsDateString()
     expireDuration: Date;
 
-    toEntity(): CouponEntity {
-        const coupon = new CouponEntity();
+    toEntity(): Coupon {
+        const coupon = new Coupon();
         coupon.name = this.name;
         coupon.contents = this.contents;
         coupon.price = this.price;

@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
-import { AnalysisHashtagEntity, CategoryEntity, HashtagEntity, ProductEntity, ProductOptionEntity, ProductRepresentationPhotoEntity } from './model/product.entity';
+import { AnalysisHashtag, Category, Hashtag, Product, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      ProductEntity,
-      ProductRepresentationPhotoEntity,
-      CategoryEntity,
-      ProductOptionEntity,
-      HashtagEntity,
-      AnalysisHashtagEntity
+      Product,
+      ProductRepresentationPhoto,
+      Category,
+      ProductOption,
+      Hashtag,
+      AnalysisHashtag
     ]),
     AuthModule
   ],

@@ -1,12 +1,12 @@
 import { Exclude } from "class-transformer";
-import { ProductEntity } from "src/product/model/product.entity";
+import { Product } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
 
 @Entity({ name: 'user' })
-export class UserEntity extends BasicEntity {
+export class User extends BasicEntity {
     @Column({ unique: true, length: 254 })
     email: string;
 
@@ -50,25 +50,25 @@ export class UserEntity extends BasicEntity {
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
 
-    @OneToMany(() => ProductEntity, productEntity => productEntity.host)
-    products: ProductEntity[];
+    @OneToMany(() => Product, productEntity => productEntity.host)
+    products: Product[];
 
-    @ManyToMany(() => CouponEntity)
+    @ManyToMany(() => Coupon)
     @JoinTable({
         name: 'user_coupon_map',
         joinColumn: { name: 'user_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'coupon_id', referencedColumnName: 'id' }
     })
-    coupons: CouponEntity[];
+    coupons: Coupon[];
 
-    @OneToMany(() => UserProductLikeEntity, entity => entity.userId)
-    productLikes: UserProductLikeEntity[];
+    @OneToMany(() => UserProductLike, entity => entity.userId)
+    productLikes: UserProductLike[];
 
-    @OneToMany(() => UserUserLikeEntity, entity => entity.followingId)
-    followingLikes: UserUserLikeEntity[];
+    @OneToMany(() => UserUserLike, entity => entity.followingId)
+    followingLikes: UserUserLike[];
 
-    @OneToMany(() => UserUserLikeEntity, entity => entity.followedId)
-    followedLikes: UserUserLikeEntity[];
+    @OneToMany(() => UserUserLike, entity => entity.followedId)
+    followedLikes: UserUserLike[];
 
     @BeforeInsert()
     async hashPassword() {
@@ -81,7 +81,7 @@ export class UserEntity extends BasicEntity {
 }
 
 @Entity({ name: 'coupon' })
-export class CouponEntity extends BasicEntity {
+export class Coupon extends BasicEntity {
     @Column({ length: 254 })
     name: string;
 
@@ -96,29 +96,29 @@ export class CouponEntity extends BasicEntity {
 }
 
 @Entity({ name: 'user_user_like' })
-export class UserUserLikeEntity extends BaseEntity {
+export class UserUserLike extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => UserEntity, entitiy => entitiy.followingLikes)
+    @ManyToOne(() => User, entitiy => entitiy.followingLikes)
     @JoinColumn({ name: 'following_id' })
     followingId: number;
 
-    @ManyToOne(() => UserEntity, entitiy => entitiy.followedLikes)
+    @ManyToOne(() => User, entitiy => entitiy.followedLikes)
     @JoinColumn({ name: 'followed_id' })
     followedId: number;
 }
 
 @Entity({ name: 'user_product_like' })
-export class UserProductLikeEntity extends BaseEntity {
+export class UserProductLike extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => UserEntity, entitiy => entitiy.productLikes)
+    @ManyToOne(() => User, entitiy => entitiy.productLikes)
     @JoinColumn({ name: 'user_id' })
     userId: number;
 
-    @ManyToOne(() => ProductEntity, entity => entity.userLikes)
+    @ManyToOne(() => Product, entity => entity.userLikes)
     @JoinColumn({ name: 'product_id' })
     productId: number;
 }

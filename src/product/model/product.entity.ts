@@ -1,13 +1,13 @@
-import { UserEntity, UserProductLikeEntity } from "src/user/model/user.entity";
+import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
 import { HashtagType, ProductStatus } from './product.interface';
 
 @Entity({ name: 'product' })
-export class ProductEntity extends BasicEntity {
-    @ManyToOne(() => UserEntity, userEntity => userEntity.products)
+export class Product extends BasicEntity {
+    @ManyToOne(() => User, userEntity => userEntity.products)
     @JoinColumn({ name: 'host_id' })
-    host: UserEntity;
+    host: User;
 
     @Column({ length: 254 })
     title: string;
@@ -60,48 +60,48 @@ export class ProductEntity extends BasicEntity {
     @Column({ nullable: true, name: 'sort_order' })
     sortOrder: number;
 
-    @OneToMany(() => ProductRepresentationPhotoEntity, entity => entity.product)
-    representationPhotos: ProductRepresentationPhotoEntity[];
+    @OneToMany(() => ProductRepresentationPhoto, entity => entity.product)
+    representationPhotos: ProductRepresentationPhoto[];
 
-    @ManyToMany(() => CategoryEntity, { onUpdate: 'CASCADE', onDelete: 'CASCADE', })
+    @ManyToMany(() => Category, { onUpdate: 'CASCADE', onDelete: 'CASCADE', })
     @JoinTable({
         name: 'product_category_map',
         joinColumn: { name: 'product_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' }
     })
-    categories: CategoryEntity[];
+    categories: Category[];
 
-    @OneToMany(() => ProductOptionEntity, entity => entity.product)
-    options: ProductOptionEntity[];
+    @OneToMany(() => ProductOption, entity => entity.product)
+    options: ProductOption[];
 
-    @ManyToMany(() => HashtagEntity)
+    @ManyToMany(() => Hashtag)
     @JoinTable({
         name: 'product_hashtag_map',
         joinColumn: { name: 'product_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'hashtag_id', referencedColumnName: 'id' }
     })
-    hashtags: HashtagEntity[];
+    hashtags: Hashtag[];
 
-    @ManyToMany(() => AnalysisHashtagEntity)
+    @ManyToMany(() => AnalysisHashtag)
     @JoinTable({
         name: 'product_analysis_hashtag_map',
         joinColumn: { name: 'product_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'analysis_hashtag_id', referencedColumnName: 'id' }
     })
-    analysisHashtags: HashtagEntity[];
+    analysisHashtags: Hashtag[];
 
-    @OneToMany(() => UserProductLikeEntity, entity => entity.productId)
-    userLikes: UserProductLikeEntity[];
+    @OneToMany(() => UserProductLike, entity => entity.productId)
+    userLikes: UserProductLike[];
 }
 
 @Entity({ name: 'product_representation_photo' })
-export class ProductRepresentationPhotoEntity extends BaseEntity {
+export class ProductRepresentationPhoto extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => ProductEntity, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @ManyToOne(() => Product, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'product_id' },)
-    product: ProductEntity;
+    product: Product;
 
     @Column({ length: 254 })
     photo: string;
@@ -111,7 +111,7 @@ export class ProductRepresentationPhotoEntity extends BaseEntity {
 }
 
 @Entity({ name: 'category' })
-export class CategoryEntity extends BaseEntity {
+export class Category extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -120,13 +120,13 @@ export class CategoryEntity extends BaseEntity {
 }
 
 @Entity({ name: 'product_option' })
-export class ProductOptionEntity extends BaseEntity {
+export class ProductOption extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => ProductEntity, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @ManyToOne(() => Product, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'product_id' },)
-    product: ProductEntity;
+    product: Product;
 
     @Column({ length: 254 })
     name: string;
@@ -148,7 +148,7 @@ export class ProductOptionEntity extends BaseEntity {
 }
 
 @Entity({ name: 'hashtag' })
-export class HashtagEntity extends BaseEntity {
+export class Hashtag extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -160,7 +160,7 @@ export class HashtagEntity extends BaseEntity {
 }
 
 @Entity({ name: 'analysis_hashtag' })
-export class AnalysisHashtagEntity extends BaseEntity {
+export class AnalysisHashtag extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 

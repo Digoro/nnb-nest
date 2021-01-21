@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
-import { CouponEntity } from 'src/user/model/user.entity';
+import { Coupon } from 'src/user/model/user.entity';
 import { CouponService } from './coupon.service';
 import { CouponCreateDto, CouponUpdateDto } from './model/user.dto';
 import { Role } from './model/user.interface';
@@ -17,14 +17,14 @@ export class CouponController {
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Post('')
-    create(@Body() coupon: CouponCreateDto): Promise<CouponEntity> {
+    create(@Body() coupon: CouponCreateDto): Promise<Coupon> {
         return this.couponService.create(coupon);
     }
 
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Get(':id')
-    async findOne(@Param('id') id: number): Promise<CouponEntity> {
+    async findOne(@Param('id') id: number): Promise<Coupon> {
         const coupon = await this.couponService.findById(id);
         if (!coupon) throw new NotFoundException()
         return coupon;
@@ -33,7 +33,7 @@ export class CouponController {
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Get('')
-    index(@Query('page') page: number = 1, @Query('limit') limit: number = 10): Promise<Pagination<CouponEntity>> {
+    index(@Query('page') page: number = 1, @Query('limit') limit: number = 10): Promise<Pagination<Coupon>> {
         limit = limit > 100 ? 100 : limit;
         return this.couponService.paginateAll({ page, limit });
     }

@@ -3,25 +3,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 import { CouponCreateDto, CouponUpdateDto } from './model/user.dto';
-import { CouponEntity } from './model/user.entity';
+import { Coupon } from './model/user.entity';
 
 @Injectable()
 export class CouponService {
     constructor(
-        @InjectRepository(CouponEntity) private couponRepository: Repository<CouponEntity>
+        @InjectRepository(Coupon) private couponRepository: Repository<Coupon>
     ) { }
 
-    async create(couponDto: CouponCreateDto): Promise<CouponEntity> {
+    async create(couponDto: CouponCreateDto): Promise<Coupon> {
         const coupon = couponDto.toEntity();
         const newCoupon = await this.couponRepository.save(coupon);
         return newCoupon;
     }
 
-    async paginateAll(options: IPaginationOptions): Promise<Pagination<CouponEntity>> {
-        return await paginate<CouponEntity>(this.couponRepository, options)
+    async paginateAll(options: IPaginationOptions): Promise<Pagination<Coupon>> {
+        return await paginate<Coupon>(this.couponRepository, options)
     }
 
-    async findById(id: number): Promise<CouponEntity> {
+    async findById(id: number): Promise<Coupon> {
         return await this.couponRepository.findOne({ id });
     }
 

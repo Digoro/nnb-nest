@@ -3,17 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
-import { CouponEntity, UserEntity, UserProductLikeEntity, UserUserLikeEntity } from './model/user.entity';
+import { Coupon, User, UserProductLike, UserUserLike } from './model/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            UserEntity,
-            CouponEntity,
-            UserProductLikeEntity,
-            UserUserLikeEntity
+            User,
+            Coupon,
+            UserProductLike,
+            UserUserLike
         ]),
         AuthModule
     ],
