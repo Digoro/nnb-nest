@@ -9,7 +9,7 @@ import { CategoryEntity, HashtagEntity, ProductOptionEntity, ProductRepresentati
 
 @Injectable()
 export class ProductService {
-  productRelations = ['host', 'representationPhotos', 'categories', 'options', 'hashtags', 'analysisTags'];
+  productRelations = ['host', 'representationPhotos', 'categories', 'options', 'hashtags'];
 
   constructor(
     private authService: AuthService,
@@ -44,7 +44,7 @@ export class ProductService {
       }
     }
 
-    let analysisHashtags = [];
+    const analysisHashtags = [];
     if (productDto.analysisHashtags) {
       for (let i = 0; i < productDto.analysisHashtags.length; i++) {
         let analysisHashtag: AnalysisHashtagEntity;
@@ -83,16 +83,17 @@ export class ProductService {
   }
 
   async findById(id: number): Promise<ProductEntity> {
-    return await (this.productRepository.findOne({ id }, { relations: this.productRelations }));
+    return await this.productRepository.findOne({ id }, { relations: this.productRelations });
   }
 
-  async update<T>(id: number, productForUpdate: T): Promise<any> {
-    const user = await this.findById(id);
-    return await this.productRepository.save(Object.assign(user, productForUpdate))
+  private async update<T>(id: number, productForUpdate: T): Promise<any> {
+    const product = await this.findById(id);
+    return await this.productRepository.save(Object.assign(product, productForUpdate))
   }
 
-  async updateOne(id: number, product: ProductUpdateDto): Promise<any> {
-    return await this.update(id, product);
+  async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
+    //TODO: ManyToMany relations(category, hashtag, analysistag)
+    return await this.update(id, productDto);
   }
 
   async deleteOne(id: number): Promise<any> {

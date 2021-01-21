@@ -12,17 +12,19 @@ export class UserIsHostGuard implements CanActivate {
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const request = context.switchToHttp().getRequest();
-        const productId = +request.params.id;
-        const requestUser: UserEntity = request.user;
-
-        const user = await this.userService.findById(requestUser.id);
-        const product = await this.productservice.findById(productId);
-
-        let hasPermission = false;
-        if (user.id === product.host.id) {
-            hasPermission = true
+        try {
+            const request = context.switchToHttp().getRequest();
+            const productId = +request.params.id;
+            const requestUser: UserEntity = request.user;
+            const user = await this.userService.findById(requestUser.id);
+            const product = await this.productservice.findById(productId);
+            let hasPermission = false;
+            if (user.id === product.host.id) {
+                hasPermission = true
+            }
+            return !!user && hasPermission;
+        } catch {
+            return false;
         }
-        return !!user && hasPermission;
     }
 }

@@ -9,11 +9,15 @@ export class UserIsUserGuard implements CanActivate {
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const request = context.switchToHttp().getRequest();
-        const requestUserId = +request.params.id;
-        const requestCurrentUser = request.user;
-        const currentUser = await this.authService.findById(requestCurrentUser.id);
-        if (!currentUser) return false;
-        return currentUser.id === requestUserId;
+        try {
+            const request = context.switchToHttp().getRequest();
+            const requestUserId = +request.params.id;
+            const requestCurrentUser = request.user;
+            const currentUser = await this.authService.findById(requestCurrentUser.id);
+            if (!currentUser) return false;
+            return currentUser.id === requestUserId;
+        } catch {
+            return false;
+        }
     }
 }
