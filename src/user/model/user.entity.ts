@@ -1,6 +1,6 @@
 import { Exclude } from "class-transformer";
 import { ProductEntity } from "src/product/model/product.entity";
-import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
@@ -61,6 +61,15 @@ export class UserEntity extends BasicEntity {
     })
     coupons: CouponEntity[];
 
+    @OneToMany(() => UserProductLikeEntity, entity => entity.userId)
+    productLikes: UserProductLikeEntity[];
+
+    @OneToMany(() => UserUserLikeEntity, entity => entity.followingId)
+    followingLikes: UserUserLikeEntity[];
+
+    @OneToMany(() => UserUserLikeEntity, entity => entity.followedId)
+    followedLikes: UserUserLikeEntity[];
+
     @BeforeInsert()
     async hashPassword() {
         this.password = await bcrypt.hash(this.password, 12);
@@ -84,4 +93,32 @@ export class CouponEntity extends BasicEntity {
 
     @Column()
     expireDuration: Date;
+}
+
+@Entity({ name: 'user_user_like' })
+export class UserUserLikeEntity extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => UserEntity, entitiy => entitiy.followingLikes)
+    @JoinColumn({ name: 'following_id' })
+    followingId: number;
+
+    @ManyToOne(() => UserEntity, entitiy => entitiy.followedLikes)
+    @JoinColumn({ name: 'followed_id' })
+    followedId: number;
+}
+
+@Entity({ name: 'user_product_like' })
+export class UserProductLikeEntity extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => UserEntity, entitiy => entitiy.productLikes)
+    @JoinColumn({ name: 'user_id' })
+    userId: number;
+
+    @ManyToOne(() => ProductEntity, entity => entity.userLikes)
+    @JoinColumn({ name: 'product_id' })
+    productId: number;
 }

@@ -1,5 +1,5 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
-import { IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
 import { CouponEntity } from './user.entity';
 import { Gender } from './user.interface';
@@ -70,6 +70,15 @@ export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider',
 export class UserUpdateRoleDto {
     @IsEnum(Role)
     role: Role;
+}
+
+
+export class UserLikeDto {
+    @IsInt()
+    id: number;
+
+    @IsBoolean()
+    isLike: boolean;
 }
 
 export class CouponCreateDto {

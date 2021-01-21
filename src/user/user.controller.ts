@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { UserIsUserGuard } from 'src/auth/guard/user-is-user-guard';
 import { AuthService } from 'src/auth/service/auth.service';
-import { UserCreateDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
+import { UserCreateDto, UserLikeDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { UserEntity } from 'src/user/model/user.entity';
 import { Role } from './model/user.interface';
 import { UserService } from './user.service';
@@ -20,6 +20,20 @@ export class UserController {
     @Post('')
     create(@Body() user: UserCreateDto): Promise<UserEntity> {
         return this.authService.create(user);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/likes/user')
+    likeUser(@Body() likeDto: UserLikeDto, @Request() request): Promise<UserEntity> {
+        const userId = request.user.id;
+        return this.userService.likeUser(userId, likeDto);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/likes/product')
+    likeProduct(@Body() likeDto: UserLikeDto, @Request() request): Promise<UserEntity> {
+        const userId = request.user.id;
+        return this.userService.likeProduct(userId, likeDto);
     }
 
     @Get(':id')

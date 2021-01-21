@@ -1,5 +1,5 @@
-import { UserEntity } from "src/user/model/user.entity";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { UserEntity, UserProductLikeEntity } from "src/user/model/user.entity";
+import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
 import { HashtagType, ProductStatus } from './product.interface';
 
@@ -89,10 +89,13 @@ export class ProductEntity extends BasicEntity {
         inverseJoinColumn: { name: 'analysis_hashtag_id', referencedColumnName: 'id' }
     })
     analysisHashtags: HashtagEntity[];
+
+    @OneToMany(() => UserProductLikeEntity, entity => entity.productId)
+    userLikes: UserProductLikeEntity[];
 }
 
 @Entity({ name: 'product_representation_photo' })
-export class ProductRepresentationPhotoEntity {
+export class ProductRepresentationPhotoEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -108,7 +111,7 @@ export class ProductRepresentationPhotoEntity {
 }
 
 @Entity({ name: 'category' })
-export class CategoryEntity {
+export class CategoryEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -117,7 +120,7 @@ export class CategoryEntity {
 }
 
 @Entity({ name: 'product_option' })
-export class ProductOptionEntity {
+export class ProductOptionEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -145,7 +148,7 @@ export class ProductOptionEntity {
 }
 
 @Entity({ name: 'hashtag' })
-export class HashtagEntity {
+export class HashtagEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -157,7 +160,7 @@ export class HashtagEntity {
 }
 
 @Entity({ name: 'analysis_hashtag' })
-export class AnalysisHashtagEntity {
+export class AnalysisHashtagEntity extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
