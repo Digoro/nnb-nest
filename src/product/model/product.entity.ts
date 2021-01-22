@@ -1,7 +1,7 @@
 import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
-import { HashtagType, ProductStatus } from './product.interface';
+import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 @Entity({ name: 'product' })
 export class Product extends BasicEntity {
@@ -196,4 +196,34 @@ export class RequestProduct extends BasicEntity {
 
     @Column({ nullable: true, name: 'checked_at' })
     checkedAt: Date;
+}
+
+@Entity({ name: 'event' })
+export class Event extends BasicEntity {
+    @Column({ length: 254 })
+    title: string;
+
+    @Column({ length: 254 })
+    subtitle: string;
+
+    @Column({ type: 'enum', enum: EventType, default: EventType.PROMOTION })
+    type: EventType;
+
+    @Column({ type: 'enum', enum: EventStatus, default: EventStatus.CREATED })
+    status: EventStatus;
+
+    @Column({ nullable: true, length: 254 })
+    photo: string;
+
+    @Column({ length: 254 })
+    contents: string;
+
+    @Column({ name: 'comment_enable' })
+    commentEnable: boolean;
+
+    @Column({ name: 'start_at' })
+    startAt: Date;
+
+    @Column({ name: 'end_at' })
+    endAt: Date;
 }

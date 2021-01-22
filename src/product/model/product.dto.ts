@@ -1,11 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AnalysisHashtag, Hashtag, Product, RequestProduct } from 'src/product/model/product.entity';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { AnalysisHashtag, Event, Hashtag, Product, RequestProduct } from 'src/product/model/product.entity';
 import { Dto } from 'src/shared/model/dto';
 import { User } from 'src/user/model/user.entity';
 import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
-import { HashtagType, ProductStatus } from './product.interface';
+import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 export class ProductCreateDto implements Dto<Product>{
     @IsOptional()
@@ -201,4 +201,68 @@ export class RequestProductCreateDto implements Dto<RequestProduct> {
         requestProduct.checkedAt = this.checkedAt;
         return requestProduct;
     }
+}
+
+export class EventCreateDto implements Dto<Event> {
+    @IsString()
+    title: string;
+
+    @IsString()
+    subtitle: string;
+
+    @IsEnum(EventType)
+    type: EventType;
+
+    @IsEnum(EventStatus)
+    status: EventStatus;
+
+    @IsOptional()
+    @IsString()
+    photo: string;
+
+    @IsString()
+    contents: string;
+
+    @IsBoolean()
+    commentEnable: boolean;
+
+    @IsDateString()
+    startAt: Date;
+
+    @IsDateString()
+    endAt: Date;
+
+    toEntity(): Event {
+        const event = new Event();
+        event.title = this.title;
+        event.subtitle = this.subtitle;
+        event.type = this.type;
+        event.status = this.status;
+        event.photo = this.photo;
+        event.contents = this.contents;
+        event.commentEnable = this.commentEnable;
+        event.startAt = this.startAt;
+        event.endAt = this.endAt;
+        return event;
+    }
+}
+
+export class EventUpdateDto extends PartialType(EventCreateDto) { }
+
+export class EventSearchDto {
+    @IsOptional()
+    @IsNumberString()
+    page: number;
+
+    @IsOptional()
+    @IsNumberString()
+    limit: number;
+
+    @IsOptional()
+    @IsEnum(EventStatus)
+    status: EventStatus;
+
+    @IsOptional()
+    @IsEnum(EventType)
+    type: EventType;
 }

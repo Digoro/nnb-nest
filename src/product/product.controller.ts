@@ -24,9 +24,9 @@ export class ProductController {
   index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<Product>> {
     limit = limit > 100 ? 100 : limit;
     if (!hostId) {
-      return this.productService.paginateAll({ page: Number(page), limit: Number(limit) });
+      return this.productService.paginateAll({ page, limit });
     } else {
-      return this.productService.paginateByHost({ page: Number(page), limit: Number(limit) }, hostId);
+      return this.productService.paginateByHost({ page, limit }, hostId);
     }
   }
 
