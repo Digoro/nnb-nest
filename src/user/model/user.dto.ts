@@ -1,6 +1,7 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
 import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
+import { Dto } from './../../shared/model/dto';
 import { Coupon } from './user.entity';
 import { Gender } from './user.interface';
 
@@ -81,7 +82,7 @@ export class UserLikeDto {
     isLike: boolean;
 }
 
-export class CouponCreateDto {
+export class CouponCreateDto implements Dto<Coupon>{
     @IsString()
     name: string;
 

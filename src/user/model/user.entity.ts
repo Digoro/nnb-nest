@@ -1,5 +1,5 @@
 import { Exclude } from "class-transformer";
-import { Product } from "src/product/model/product.entity";
+import { Product, RequestProduct } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
@@ -69,6 +69,9 @@ export class User extends BasicEntity {
 
     @OneToMany(() => UserUserLike, entity => entity.followedId)
     followedLikes: UserUserLike[];
+
+    @OneToMany(() => RequestProduct, entity => entity.user)
+    requestProducts: RequestProduct[];
 
     @BeforeInsert()
     async hashPassword() {

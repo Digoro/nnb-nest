@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
-import { AnalysisHashtag, Product } from 'src/product/model/product.entity';
+import { AnalysisHashtag, Product, RequestProduct } from 'src/product/model/product.entity';
 import { Repository } from 'typeorm';
-import { ProductCreateDto, ProductUpdateDto } from './model/product.dto';
+import { ProductCreateDto, ProductUpdateDto, RequestProductCreateDto } from './model/product.dto';
 import { Category, Hashtag, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 
 @Injectable()
@@ -18,7 +18,8 @@ export class ProductService {
     @InjectRepository(ProductOption) private optionRepository: Repository<ProductOption>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
-    @InjectRepository(AnalysisHashtag) private analysisHashtagRepository: Repository<AnalysisHashtag>
+    @InjectRepository(AnalysisHashtag) private analysisHashtagRepository: Repository<AnalysisHashtag>,
+    @InjectRepository(RequestProduct) private requestProductRepository: Repository<RequestProduct>
   ) { }
 
   async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
@@ -86,17 +87,38 @@ export class ProductService {
     return await this.productRepository.findOne({ id }, { relations: this.productRelations });
   }
 
-  private async update<T>(id: number, productForUpdate: T): Promise<any> {
-    const product = await this.findById(id);
-    return await this.productRepository.save(Object.assign(product, productForUpdate))
-  }
-
   async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
     //TODO: ManyToMany relations(category, hashtag, analysistag)
-    return await this.update(id, productDto);
+    const product = await this.findById(id);
+    return await this.productRepository.save(Object.assign(product, productDto))
   }
 
   async deleteOne(id: number): Promise<any> {
     return await this.productRepository.delete(id);
+  }
+
+  async requestProduct(userId: number, requestProductDto: RequestProductCreateDto): Promise<RequestProduct> {
+    const user = await this.authService.findById(userId);
+    const product = await this.productRepository.findOne(requestProductDto.productId);
+    if (user && product) {
+      const requestProduct = requestProductDto.toEntity(user, product);
+      const newRequestProduct = await this.requestProductRepository.save(requestProduct)
+      return newRequestProduct;
+    } else {
+      throw new BadRequestException()
+    }
+  }
+
+  async findRequestProductById(id: number): Promise<RequestProduct> {
+    return await this.requestProductRepository.findOne({ id });
+  }
+
+  async checkRequestProduct(id: number, isChecked: boolean): Promise<any> {
+    const requestProduct = await this.findRequestProductById(id);
+    if (!requestProduct) throw new BadRequestException();
+    requestProduct.isChecked = isChecked;
+    if (isChecked) requestProduct.checkedAt = new Date();
+    const original = await this.findRequestProductById(id);
+    return await this.requestProductRepository.save(Object.assign(original, requestProduct))
   }
 }

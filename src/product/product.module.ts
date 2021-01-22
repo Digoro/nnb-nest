@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
-import { AnalysisHashtag, Category, Hashtag, Product, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
+import { AnalysisHashtag, Category, Hashtag, Product, ProductOption, ProductRepresentationPhoto, RequestProduct } from './model/product.entity';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
@@ -13,7 +13,8 @@ import { ProductService } from './product.service';
       Category,
       ProductOption,
       Hashtag,
-      AnalysisHashtag
+      AnalysisHashtag,
+      RequestProduct
     ]),
     AuthModule
   ],

@@ -1,12 +1,13 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AnalysisHashtag, Hashtag, Product } from 'src/product/model/product.entity';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { AnalysisHashtag, Hashtag, Product, RequestProduct } from 'src/product/model/product.entity';
+import { Dto } from 'src/shared/model/dto';
 import { User } from 'src/user/model/user.entity';
 import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { HashtagType, ProductStatus } from './product.interface';
 
-export class ProductCreateDto {
+export class ProductCreateDto implements Dto<Product>{
     @IsOptional()
     @IsInt()
     hostId: number;
@@ -171,4 +172,33 @@ export class HashtagCreateDto {
 
     @IsEnum(HashtagType)
     type: HashtagType;
+}
+
+export class RequestProductCreateDto implements Dto<RequestProduct> {
+    @IsInt()
+    productId: number;
+
+    @IsInt()
+    numberOfPeople: number;
+
+    @IsString()
+    message: string;
+
+    @IsBoolean()
+    isChecked: boolean;
+
+    @IsOptional()
+    @IsDateString()
+    checkedAt: Date;
+
+    toEntity(user: User, product: Product): RequestProduct {
+        const requestProduct = new RequestProduct();
+        requestProduct.user = user;
+        requestProduct.product = product;
+        requestProduct.numberOfPeople = this.numberOfPeople;
+        requestProduct.message = this.message;
+        requestProduct.isChecked = this.isChecked;
+        requestProduct.checkedAt = this.checkedAt;
+        return requestProduct;
+    }
 }

@@ -92,6 +92,9 @@ export class Product extends BasicEntity {
 
     @OneToMany(() => UserProductLike, entity => entity.productId)
     userLikes: UserProductLike[];
+
+    @OneToMany(() => RequestProduct, entity => entity.product)
+    requestProducts: RequestProduct[];
 }
 
 @Entity({ name: 'product_representation_photo' })
@@ -169,4 +172,28 @@ export class AnalysisHashtag extends BaseEntity {
 
     @Column({ type: 'enum', enum: HashtagType, default: HashtagType.PRODUCT })
     type: HashtagType;
+}
+
+
+@Entity({ name: 'request_product' })
+export class RequestProduct extends BasicEntity {
+    @ManyToOne(() => Product, entity => entity.requestProducts)
+    @JoinColumn({ name: 'product_id' })
+    product: Product;
+
+    @ManyToOne(() => User, entity => entity.requestProducts)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @Column({ name: 'number_of_people' })
+    numberOfPeople: number;
+
+    @Column({ length: 254 })
+    message: string;
+
+    @Column({ name: 'is_checked' })
+    isChecked: boolean;
+
+    @Column({ nullable: true, name: 'checked_at' })
+    checkedAt: Date;
 }
