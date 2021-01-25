@@ -3,7 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
-import { AnalysisHashtag, Category, Event, Hashtag, Product, ProductOption, ProductRepresentationPhoto, RequestProduct } from './model/product.entity';
+import { AnalysisHashtag, Category, Event, Hashtag, Product, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
+import { ProductReviewController } from './product-review.controller';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
@@ -16,14 +17,16 @@ import { ProductService } from './product.service';
       ProductOption,
       Hashtag,
       AnalysisHashtag,
-      RequestProduct,
-      Event
+      ProductRequest,
+      Event,
+      ProductReview
     ]),
     AuthModule
   ],
   controllers: [
     ProductController,
-    EventController
+    EventController,
+    ProductReviewController
   ],
   providers: [
     ProductService,

@@ -19,7 +19,8 @@ import { UserModule } from './user/user.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_DB,
       autoLoadEntities: true,
-      synchronize: true
+      synchronize: true,
+      charset: "utf8mb4"
     }),
     UserModule,
     AuthModule,

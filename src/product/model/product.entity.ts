@@ -93,8 +93,11 @@ export class Product extends BasicEntity {
     @OneToMany(() => UserProductLike, entity => entity.productId)
     userLikes: UserProductLike[];
 
-    @OneToMany(() => RequestProduct, entity => entity.product)
-    requestProducts: RequestProduct[];
+    @OneToMany(() => ProductRequest, entity => entity.product)
+    productRequests: ProductRequest[];
+
+    @OneToMany(() => ProductReview, entity => entity.product)
+    productReviews: ProductReview[];
 }
 
 @Entity({ name: 'product_representation_photo' })
@@ -175,13 +178,13 @@ export class AnalysisHashtag extends BaseEntity {
 }
 
 
-@Entity({ name: 'request_product' })
-export class RequestProduct extends BasicEntity {
-    @ManyToOne(() => Product, entity => entity.requestProducts)
+@Entity({ name: 'product_request' })
+export class ProductRequest extends BasicEntity {
+    @ManyToOne(() => Product, entity => entity.productRequests)
     @JoinColumn({ name: 'product_id' })
     product: Product;
 
-    @ManyToOne(() => User, entity => entity.requestProducts)
+    @ManyToOne(() => User, entity => entity.productRequests)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
@@ -226,4 +229,31 @@ export class Event extends BasicEntity {
 
     @Column({ name: 'end_at' })
     endAt: Date;
+}
+
+
+@Entity({ name: 'product_review' })
+export class ProductReview extends BasicEntity {
+    @ManyToOne(() => User, entity => entity.productReviews)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @ManyToOne(() => Product, entity => entity.productReviews)
+    @JoinColumn({ name: 'product_id' })
+    product: Product;
+
+    @Column()
+    score: number;
+
+    @Column({ length: 254 })
+    comment: string;
+
+    @Column({ nullable: true, length: 254 })
+    photo: string;
+
+    @ManyToOne(() => ProductReview, entity => entity.children)
+    parent: ProductReview;
+
+    @OneToMany(() => ProductReview, entity => entity.parent)
+    children: ProductReview[];
 }

@@ -1,9 +1,9 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AnalysisHashtag, Event, Hashtag, Product, RequestProduct } from 'src/product/model/product.entity';
-import { Dto } from 'src/shared/model/dto';
+import { AnalysisHashtag, Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
+import { Dto } from '../../shared/model/dto';
 import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
@@ -174,7 +174,7 @@ export class HashtagCreateDto {
     type: HashtagType;
 }
 
-export class RequestProductCreateDto implements Dto<RequestProduct> {
+export class ProductRequestCreateDto implements Dto<ProductRequest> {
     @IsInt()
     productId: number;
 
@@ -191,15 +191,15 @@ export class RequestProductCreateDto implements Dto<RequestProduct> {
     @IsDateString()
     checkedAt: Date;
 
-    toEntity(user: User, product: Product): RequestProduct {
-        const requestProduct = new RequestProduct();
-        requestProduct.user = user;
-        requestProduct.product = product;
-        requestProduct.numberOfPeople = this.numberOfPeople;
-        requestProduct.message = this.message;
-        requestProduct.isChecked = this.isChecked;
-        requestProduct.checkedAt = this.checkedAt;
-        return requestProduct;
+    toEntity(user: User, product: Product): ProductRequest {
+        const productRequest = new ProductRequest();
+        productRequest.user = user;
+        productRequest.product = product;
+        productRequest.numberOfPeople = this.numberOfPeople;
+        productRequest.message = this.message;
+        productRequest.isChecked = this.isChecked;
+        productRequest.checkedAt = this.checkedAt;
+        return productRequest;
     }
 }
 
@@ -265,4 +265,53 @@ export class EventSearchDto {
     @IsOptional()
     @IsEnum(EventType)
     type: EventType;
+}
+
+export class ProductReviewCreateDto implements Dto<ProductReview> {
+    @IsInt()
+    userId: number;
+
+    @IsInt()
+    productId: number;
+
+    @IsInt()
+    score: number;
+
+    @IsString()
+    comment: string;
+
+    @IsOptional()
+    @IsInt()
+    parentId: number;
+
+    @IsOptional()
+    @IsString()
+    photo: string;
+
+    toEntity(user: User, product: Product, parent?: ProductReview): ProductReview {
+        const review = new ProductReview();
+        review.user = user;
+        review.product = product;
+        review.score = this.score;
+        review.comment = this.comment;
+        review.parent = parent;
+        review.photo = this.photo;
+        return review;
+    }
+}
+
+export class ProductReviewUpdateDto extends PartialType(ProductReviewCreateDto) { }
+
+export class ProductReviewSearchDto {
+    @IsOptional()
+    @IsNumberString()
+    page: number;
+
+    @IsOptional()
+    @IsNumberString()
+    limit: number;
+
+    @IsOptional()
+    @IsNumberString()
+    productId: number;
 }

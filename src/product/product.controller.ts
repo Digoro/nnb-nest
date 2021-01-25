@@ -4,10 +4,10 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Role } from 'src/user/model/user.interface';
-import { ProductCreateDto, ProductUpdateDto, RequestProductCreateDto } from './model/product.dto';
-import { Product, RequestProduct } from './model/product.entity';
+import { ProductCreateDto, ProductRequestCreateDto as ProductRequestCreateDto, ProductUpdateDto } from './model/product.dto';
+import { Product, ProductRequest } from './model/product.entity';
 import { ProductService } from './product.service';
-import { UserIsHostGuard } from './user-is-host-guard';
+import { UserIsProductHostGuard } from './user-is-product-host-guard';
 
 @Controller('api/products')
 export class ProductController {
@@ -37,29 +37,29 @@ export class ProductController {
     return product;
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsHostGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsProductHostGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() product: ProductUpdateDto) {
     return this.productService.updateOne(id, product);
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsHostGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsProductHostGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.productService.deleteOne(id);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('request')
-  requestProduct(@Body() requestProductDto: RequestProductCreateDto, @Request() request): Promise<RequestProduct> {
+  @Post('requests')
+  productRequest(@Body() productRequestDto: ProductRequestCreateDto, @Request() request): Promise<ProductRequest> {
     const userId = request.user.id;
-    return this.productService.requestProduct(userId, requestProductDto);
+    return this.productService.productRequest(userId, productRequestDto);
   }
 
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Put('request/:id')
-  checkRequestProduct(@Param('id') id: number, @Body() isChecked: boolean): Promise<RequestProduct> {
-    return this.productService.checkRequestProduct(id, isChecked);
+  @Put('requests/:id')
+  checkProductRequest(@Param('id') id: number, @Body() isChecked: boolean): Promise<ProductRequest> {
+    return this.productService.checkProductRequest(id, isChecked);
   }
 }

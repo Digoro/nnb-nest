@@ -5,7 +5,7 @@ import { ProductService } from './product.service';
 
 
 @Injectable()
-export class UserIsHostGuard implements CanActivate {
+export class UserIsProductHostGuard implements CanActivate {
     constructor(
         private productservice: ProductService,
         private userService: AuthService
