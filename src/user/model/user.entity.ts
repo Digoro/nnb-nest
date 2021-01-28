@@ -2,6 +2,7 @@ import { Exclude } from "class-transformer";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
+import { Magazine } from './../../magazine/model/magazine.entity';
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
 
@@ -75,6 +76,9 @@ export class User extends BasicEntity {
 
     @OneToMany(() => ProductReview, entity => entity.user)
     productReviews: ProductReview[];
+
+    @OneToMany(() => Magazine, entity => entity.author)
+    magazine: Magazine[];
 
     @BeforeInsert()
     async hashPassword() {

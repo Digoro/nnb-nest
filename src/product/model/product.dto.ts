@@ -4,6 +4,7 @@ import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumbe
 import { AnalysisHashtag, Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
+import { PaginationSearchDto } from './../../shared/model/dto';
 import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
@@ -18,7 +19,6 @@ export class ProductCreateDto implements Dto<Product>{
     @IsString()
     point: string;
 
-    @IsOptional()
     @IsString()
     recommend: string;
 
@@ -63,6 +63,7 @@ export class ProductCreateDto implements Dto<Product>{
     @IsInt()
     refundPolicy0: number;
 
+    @IsOptional()
     @IsEnum(ProductStatus)
     status: ProductStatus;
 
@@ -91,10 +92,12 @@ export class ProductCreateDto implements Dto<Product>{
     @Type(() => HashtagCreateDto)
     analysisHashtags: AnalysisHashtag[];
 
-    toEntity(user: User, categories: Category[], hashtags: Hashtag[], analysisHashtags?: AnalysisHashtag[]): Product {
+    toEntity(user: User, categories: Category[], cheapestPrice: number, cheapestDiscountPrice: number, hashtags: Hashtag[], analysisHashtags?: AnalysisHashtag[]): Product {
         const product = new Product();
         product.host = user;
         product.title = this.title;
+        product.cheapestPrice = cheapestPrice;
+        product.cheapestDiscountPrice = cheapestDiscountPrice;
         product.point = this.point;
         product.recommend = this.recommend;
         product.description = this.description;
@@ -120,6 +123,25 @@ export class ProductCreateDto implements Dto<Product>{
 
 export class ProductUpdateDto extends PartialType(ProductCreateDto) { }
 
+export class ProductSearchDto extends PaginationSearchDto {
+    @IsOptional()
+    @IsEnum(ProductStatus)
+    status: ProductStatus;
+
+    @IsOptional()
+    @IsNumberString()
+    host: number;
+}
+
+export class ProductSearchByCategoryDto extends PaginationSearchDto {
+    @IsString()
+    category: string;
+
+    @IsOptional()
+    @IsEnum(ProductStatus)
+    status: ProductStatus;
+}
+
 export class ProductRepresentationPhotoCreateDto {
     @IsInt()
     productId: number;
@@ -137,6 +159,9 @@ export class ProductOptionCreateDto {
 
     @IsString()
     name: string;
+
+    @IsDateString()
+    date: Date;
 
     @IsOptional()
     @IsString()
@@ -249,15 +274,7 @@ export class EventCreateDto implements Dto<Event> {
 
 export class EventUpdateDto extends PartialType(EventCreateDto) { }
 
-export class EventSearchDto {
-    @IsOptional()
-    @IsNumberString()
-    page: number;
-
-    @IsOptional()
-    @IsNumberString()
-    limit: number;
-
+export class EventSearchDto extends PaginationSearchDto {
     @IsOptional()
     @IsEnum(EventStatus)
     status: EventStatus;
@@ -268,9 +285,6 @@ export class EventSearchDto {
 }
 
 export class ProductReviewCreateDto implements Dto<ProductReview> {
-    @IsInt()
-    userId: number;
-
     @IsInt()
     productId: number;
 
@@ -302,16 +316,12 @@ export class ProductReviewCreateDto implements Dto<ProductReview> {
 
 export class ProductReviewUpdateDto extends PartialType(ProductReviewCreateDto) { }
 
-export class ProductReviewSearchDto {
+export class ProductReviewSearchDto extends PaginationSearchDto {
     @IsOptional()
     @IsNumberString()
-    page: number;
+    product: number;
 
     @IsOptional()
     @IsNumberString()
-    limit: number;
-
-    @IsOptional()
-    @IsNumberString()
-    productId: number;
+    user: number;
 }

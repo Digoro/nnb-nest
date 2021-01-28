@@ -1,15 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { AnalysisHashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { PaginationWithChildren } from 'src/shared/model/pagination';
 import { Repository } from 'typeorm';
-import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductUpdateDto } from './model/product.dto';
+import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchByCategoryDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 
 @Injectable()
 export class ProductService {
-  productRelations = ['host', 'representationPhotos', 'categories', 'options', 'hashtags'];
+  basicProductRelations = ['host', 'representationPhotos', 'categories', 'options', 'hashtags', 'productRequests', 'productRequests.user'];
   productReviewRelations = ['user', 'product'];
 
   constructor(
@@ -61,32 +62,58 @@ export class ProductService {
       }
     }
 
-    const product = productDto.toEntity(user, categories, hashtags, analysisHashtags);
+    const cheapestPrice = this.getChepastPrice(productDto.options, 'price');
+    const cheapestDiscountPrice = this.getChepastPrice(productDto.options, 'discountPrice');
+
+    const product = productDto.toEntity(user, categories, cheapestPrice, cheapestDiscountPrice, hashtags, analysisHashtags);
     const newProduct = await this.productRepository.save(product);
 
-    productDto.representationPhotos.forEach(async (photo) => {
+    for (const photo of productDto.representationPhotos) {
       photo.product = newProduct;
       await this.representationPhotoRepository.save(photo);
-    });
+    }
 
-    productDto.options.forEach(async (option) => {
+    for (const option of productDto.options) {
       option.product = newProduct;
       await this.optionRepository.save(option);
-    });
+    }
 
     return newProduct;
   }
 
-  async paginateAll(options: IPaginationOptions): Promise<Pagination<Product>> {
-    return await paginate<Product>(this.productRepository, options, { relations: this.productRelations })
+  private getChepastPrice(options: ProductOption[], key: string): number {
+    return options.reduce((a, b) => {
+      if (a[key] < b[key]) return a;
+      else return b;
+    }).price;
   }
 
-  async paginateByHost(options: IPaginationOptions, hostId: number): Promise<Pagination<Product>> {
-    return await paginate<Product>(this.productRepository, options, { where: [{ host: hostId }], relations: this.productRelations })
+  async paginate(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit }
+    delete search.page;
+    delete search.limit;
+    return await paginate<Product>(this.productRepository, options, {
+      where: [search],
+      relations: this.basicProductRelations,
+      order: { createdAt: 'DESC' },
+      select: ['id', 'title', 'cheapestPrice', 'cheapestDiscountPrice', 'status', 'sortOrder', 'createdAt', 'updatedAt']
+    })
+  }
+
+  async findByCategory(search: ProductSearchByCategoryDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit }
+    return await paginate<Product>(this.productRepository
+      .createQueryBuilder('product')
+      .leftJoin('product.categories', 'category')
+      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .leftJoinAndSelect('product.categories', 'categorySelect')
+      .where('category.name = :name', { name: search.category })
+      .andWhere('status = :status', { status: search.status })
+      , options)
   }
 
   async findById(id: number): Promise<Product> {
-    return await this.productRepository.findOne({ id }, { relations: this.productRelations });
+    return await this.productRepository.findOne({ id }, { relations: this.basicProductRelations });
   }
 
   async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
@@ -133,9 +160,25 @@ export class ProductService {
     return newReview;
   }
 
-  async paginateProductReview(search: ProductReviewSearchDto): Promise<Pagination<ProductReview>> {
+  async paginateProductReview(search: ProductReviewSearchDto): Promise<PaginationWithChildren<ProductReview>> {
     const options = { page: search.page, limit: search.limit }
-    return await paginate<ProductReview>(this.productReviewRepository, options, { where: [{ product: search.productId }], relations: this.productReviewRelations })
+    delete search.page
+    delete search.limit
+    const result = await paginate<ProductReview>(this.productReviewRepository, options, {
+      where: [{ ...search, parent: null }],
+      relations: this.productReviewRelations,
+      order: { createdAt: 'DESC' }
+    })
+    const parents = result.items;
+    for (const parent of parents) {
+      const children = await this.productReviewRepository.find({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
+      if (children.length > 0) parents.push(...children)
+    }
+    const count = await this.productReviewRepository.count({ where: [search] });
+    return {
+      items: parents,
+      meta: { ...result.meta, totalItemsWithChildren: count }
+    };
   }
 
   async findProductReviewById(id: number): Promise<ProductReview> {

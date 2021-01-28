@@ -4,7 +4,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Role } from 'src/user/model/user.interface';
-import { ProductCreateDto, ProductRequestCreateDto as ProductRequestCreateDto, ProductUpdateDto } from './model/product.dto';
+import { ProductCreateDto, ProductRequestCreateDto, ProductSearchByCategoryDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Product, ProductRequest } from './model/product.entity';
 import { ProductService } from './product.service';
 import { UserIsProductHostGuard } from './user-is-product-host-guard';
@@ -21,13 +21,17 @@ export class ProductController {
   }
 
   @Get()
-  index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('hostId') hostId: number): Promise<Pagination<Product>> {
+  index(@Query() search: ProductSearchDto): Promise<Pagination<Product>> {
+    let limit = +search.limit;
     limit = limit > 100 ? 100 : limit;
-    if (!hostId) {
-      return this.productService.paginateAll({ page, limit });
-    } else {
-      return this.productService.paginateByHost({ page, limit }, hostId);
-    }
+    return this.productService.paginate(search);
+  }
+
+  @Get('/category')
+  getListFromCategory(@Query() search: ProductSearchByCategoryDto): Promise<Pagination<Product>> {
+    let limit = +search.limit;
+    limit = limit > 100 ? 100 : limit;
+    return this.productService.findByCategory(search);
   }
 
   @Get(':id')

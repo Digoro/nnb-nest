@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsBoolean, IsDateString, IsEnum, IsInt, IsNumberString, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { PaginationSearchDto } from 'src/shared/model/dto';
 import { PayMethod, PG } from './payment.interface';
 
 export class PaymentCreateDto {
@@ -58,12 +59,4 @@ export class PaymentCreateDto {
 
 export class PaymentUpdateDto extends PartialType(PaymentCreateDto) { }
 
-export class PaymentSearchDto {
-    @IsOptional()
-    @IsNumberString()
-    page: number;
-
-    @IsOptional()
-    @IsNumberString()
-    limit: number;
-}
+export class PaymentSearchDto extends PaginationSearchDto { }

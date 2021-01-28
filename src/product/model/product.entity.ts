@@ -12,10 +12,16 @@ export class Product extends BasicEntity {
     @Column({ length: 254 })
     title: string;
 
+    @Column()
+    cheapestPrice: number;
+
+    @Column()
+    cheapestDiscountPrice: number;
+
     @Column({ length: 254 })
     point: string;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ length: 254 })
     recommend: string;
 
     @Column({ length: 254 })
@@ -33,7 +39,7 @@ export class Product extends BasicEntity {
     @Column({ length: 254, name: 'detail_address' })
     detailAddress: string;
 
-    @Column({ nullable: true, name: 'running_minutes' })
+    @Column({ nullable: true, name: 'running_minutes', default: 0 })
     runningMinutes: number;
 
     @Column({ nullable: true, length: 254 })
@@ -63,7 +69,7 @@ export class Product extends BasicEntity {
     @OneToMany(() => ProductRepresentationPhoto, entity => entity.product)
     representationPhotos: ProductRepresentationPhoto[];
 
-    @ManyToMany(() => Category, { onUpdate: 'CASCADE', onDelete: 'CASCADE', })
+    @ManyToMany(() => Category, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
     @JoinTable({
         name: 'product_category_map',
         joinColumn: { name: 'product_id', referencedColumnName: 'id' },
@@ -136,6 +142,9 @@ export class ProductOption extends BaseEntity {
 
     @Column({ length: 254 })
     name: string;
+
+    @Column()
+    date: Date;
 
     @Column({ nullable: true, length: 254 })
     description: string;
