@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
-import { User } from './../../user/model/user.entity';
+import { User } from '../../user/model/user.entity';
 
 @Entity({ name: 'magazine' })
 export class Magazine extends BasicEntity {

@@ -1,8 +1,8 @@
 import { Exclude } from "class-transformer";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Magazine } from '../../post/model/magazine.entity';
 import { BasicEntity } from "../../shared/model/basic.entity";
-import { Magazine } from './../../magazine/model/magazine.entity';
 import { Gender, Role } from "./user.interface";
 const bcrypt = require('bcrypt');
 

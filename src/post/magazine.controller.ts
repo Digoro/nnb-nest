@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/user/model/user.interface';
-import { RolesGuard } from './../auth/guard/roles-guard';
+import { RolesGuard } from '../auth/guard/roles-guard';
 import { MagazineService } from './magazine.service';
 import { MagazineCreateDto, MagazineSearchDto, MagazineUpdateDto } from './model/magazine.dto';
 import { Magazine } from './model/magazine.entity';

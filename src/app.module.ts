@@ -4,8 +4,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
-import { MagazineModule } from './magazine/magazine.module';
 import { PaymentModule } from './payment/payment.module';
+import { MagazineModule } from './post/magazine.module';
 import { ProductModule } from './product/product.module';
 import { UserModule } from './user/user.module';
 
