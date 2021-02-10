@@ -1,11 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AnalysisHashtag, Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
 import { PaginationSearchDto } from './../../shared/model/dto';
-import { Category, ProductOption, ProductRepresentationPhoto } from './product.entity';
+import { ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 export class ProductCreateDto implements Dto<Product>{
@@ -88,11 +88,7 @@ export class ProductCreateDto implements Dto<Product>{
     @Type(() => HashtagCreateDto)
     hashtags: Hashtag[];
 
-    @ValidateNested({ each: true })
-    @Type(() => HashtagCreateDto)
-    analysisHashtags: AnalysisHashtag[];
-
-    toEntity(user: User, categories: Category[], cheapestPrice: number, cheapestDiscountPrice: number, hashtags: Hashtag[], analysisHashtags?: AnalysisHashtag[]): Product {
+    toEntity(user: User, cheapestPrice: number, cheapestDiscountPrice: number): Product {
         const product = new Product();
         product.host = user;
         product.title = this.title;
@@ -114,9 +110,6 @@ export class ProductCreateDto implements Dto<Product>{
         product.refundPolicy0 = this.refundPolicy0;
         product.status = this.status;
         product.sortOrder = this.sortOrder;
-        product.categories = categories;
-        product.hashtags = hashtags;
-        product.analysisHashtags = analysisHashtags;
         return product;
     }
 }
@@ -124,22 +117,28 @@ export class ProductCreateDto implements Dto<Product>{
 export class ProductUpdateDto extends PartialType(ProductCreateDto) { }
 
 export class ProductSearchDto extends PaginationSearchDto {
-    @IsOptional()
     @IsEnum(ProductStatus)
     status: ProductStatus;
 
     @IsOptional()
     @IsNumberString()
-    host: number;
-}
-
-export class ProductSearchByCategoryDto extends PaginationSearchDto {
-    @IsString()
-    category: string;
+    hostId: number;
 
     @IsOptional()
-    @IsEnum(ProductStatus)
-    status: ProductStatus;
+    @IsString()
+    categoryId: number;
+
+    @IsOptional()
+    @IsString()
+    hashtag: string;
+
+    @IsOptional()
+    @IsDateString()
+    from: Date;
+
+    @IsOptional()
+    @IsDateString()
+    to: Date;
 }
 
 export class ProductRepresentationPhotoCreateDto {
@@ -197,6 +196,10 @@ export class HashtagCreateDto {
 
     @IsEnum(HashtagType)
     type: HashtagType;
+
+    @IsOptional()
+    @IsBoolean()
+    isAnalysis: boolean;
 }
 
 export class ProductRequestCreateDto implements Dto<ProductRequest> {

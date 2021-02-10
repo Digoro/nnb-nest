@@ -1,6 +1,6 @@
 import { Exclude } from "class-transformer";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
-import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm";
 import { Magazine } from '../../post/model/magazine.entity';
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
@@ -106,10 +106,7 @@ export class Coupon extends BasicEntity {
 }
 
 @Entity({ name: 'user_user_like' })
-export class UserUserLike extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+export class UserUserLike extends BasicEntity {
     @ManyToOne(() => User, entitiy => entitiy.followingLikes)
     @JoinColumn({ name: 'following_id' })
     followingId: number;
@@ -120,10 +117,7 @@ export class UserUserLike extends BaseEntity {
 }
 
 @Entity({ name: 'user_product_like' })
-export class UserProductLike extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+export class UserProductLike extends BasicEntity {
     @ManyToOne(() => User, entitiy => entitiy.productLikes)
     @JoinColumn({ name: 'user_id' })
     userId: number;

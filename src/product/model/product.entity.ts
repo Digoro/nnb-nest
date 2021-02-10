@@ -1,14 +1,10 @@
 import { User, UserProductLike } from "src/user/model/user.entity";
-import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
 import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 @Entity({ name: 'product' })
 export class Product extends BasicEntity {
-    @ManyToOne(() => User, userEntity => userEntity.products)
-    @JoinColumn({ name: 'host_id' })
-    host: User;
-
     @Column({ length: 254 })
     title: string;
 
@@ -66,35 +62,15 @@ export class Product extends BasicEntity {
     @Column({ nullable: true, name: 'sort_order' })
     sortOrder: number;
 
+    @ManyToOne(() => User, userEntity => userEntity.products)
+    @JoinColumn({ name: 'host_id' })
+    host: User;
+
     @OneToMany(() => ProductRepresentationPhoto, entity => entity.product)
     representationPhotos: ProductRepresentationPhoto[];
 
-    @ManyToMany(() => Category, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
-    @JoinTable({
-        name: 'product_category_map',
-        joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' }
-    })
-    categories: Category[];
-
     @OneToMany(() => ProductOption, entity => entity.product)
     options: ProductOption[];
-
-    @ManyToMany(() => Hashtag)
-    @JoinTable({
-        name: 'product_hashtag_map',
-        joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'hashtag_id', referencedColumnName: 'id' }
-    })
-    hashtags: Hashtag[];
-
-    @ManyToMany(() => AnalysisHashtag)
-    @JoinTable({
-        name: 'product_analysis_hashtag_map',
-        joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'analysis_hashtag_id', referencedColumnName: 'id' }
-    })
-    analysisHashtags: Hashtag[];
 
     @OneToMany(() => UserProductLike, entity => entity.productId)
     userLikes: UserProductLike[];
@@ -104,6 +80,80 @@ export class Product extends BasicEntity {
 
     @OneToMany(() => ProductReview, entity => entity.product)
     productReviews: ProductReview[];
+
+    @OneToMany(() => ProductCategoryMap, map => map.product)
+    productCategoryMap: ProductCategoryMap[];
+
+    categories: Category[];
+
+    @OneToMany(() => ProductHashtagMap, map => map.product)
+    productHashtagMap: ProductHashtagMap[];
+
+    hashtags: Hashtag[];
+}
+
+
+@Entity({ name: 'hashtag' })
+export class Hashtag extends BasicEntity {
+    @Column({ length: 254, unique: true })
+    name: string;
+
+    @Column({ type: 'enum', enum: HashtagType, default: HashtagType.PRODUCT })
+    type: HashtagType;
+
+    @Column({ name: 'is_analysis', default: false })
+    isAnalysis: boolean;
+
+    @OneToMany(() => ProductHashtagMap, map => map.hashtag)
+    productHashtagMap: ProductHashtagMap[];
+}
+
+@Entity({ name: 'product_hashtag_map' })
+export class ProductHashtagMap extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryColumn()
+    productId: number;
+    @ManyToOne(() => Product, product => product.productHashtagMap)
+    @JoinColumn({ name: 'productId' })
+    product: Product;
+
+    @PrimaryColumn()
+    hashtagId: number;
+    @ManyToOne(() => Hashtag, hashtag => hashtag.productHashtagMap)
+    @JoinColumn({ name: 'hashtagId' })
+    hashtag: Hashtag;
+}
+
+@Entity({ name: 'category' })
+export class Category extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ length: 254, unique: true })
+    name: string;
+
+    @OneToMany(() => ProductCategoryMap, map => map.category)
+    productCategoryMap: ProductCategoryMap[];
+}
+
+@Entity({ name: 'product_category_map' })
+export class ProductCategoryMap extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryColumn()
+    productId: number;
+    @ManyToOne(() => Product, product => product.productCategoryMap)
+    @JoinColumn({ name: 'productId' })
+    product: Product;
+
+    @PrimaryColumn()
+    categoryId: number;
+    @ManyToOne(() => Category, category => category.productCategoryMap)
+    @JoinColumn({ name: 'categoryId' })
+    category: Category;
 }
 
 @Entity({ name: 'product_representation_photo' })
@@ -122,20 +172,8 @@ export class ProductRepresentationPhoto extends BaseEntity {
     sortOrder: number;
 }
 
-@Entity({ name: 'category' })
-export class Category extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ length: 254, unique: true })
-    name: string;
-}
-
 @Entity({ name: 'product_option' })
-export class ProductOption extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
+export class ProductOption extends BasicEntity {
     @ManyToOne(() => Product, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'product_id' },)
     product: Product;
@@ -161,31 +199,6 @@ export class ProductOption extends BaseEntity {
     @Column({ name: 'max_participants' })
     maxParticipants: number;
 }
-
-@Entity({ name: 'hashtag' })
-export class Hashtag extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ length: 254, unique: true })
-    name: string;
-
-    @Column({ type: 'enum', enum: HashtagType, default: HashtagType.PRODUCT })
-    type: HashtagType;
-}
-
-@Entity({ name: 'analysis_hashtag' })
-export class AnalysisHashtag extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ length: 254, unique: true })
-    name: string;
-
-    @Column({ type: 'enum', enum: HashtagType, default: HashtagType.PRODUCT })
-    type: HashtagType;
-}
-
 
 @Entity({ name: 'product_request' })
 export class ProductRequest extends BasicEntity {
@@ -239,7 +252,6 @@ export class Event extends BasicEntity {
     @Column({ name: 'end_at' })
     endAt: Date;
 }
-
 
 @Entity({ name: 'product_review' })
 export class ProductReview extends BasicEntity {

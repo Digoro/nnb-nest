@@ -1,115 +1,182 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
-import { AnalysisHashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { Product, ProductCategoryMap, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { PaginationWithChildren } from 'src/shared/model/pagination';
-import { Repository } from 'typeorm';
-import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchByCategoryDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
-import { Category, Hashtag, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
+import { getConnection, Repository } from 'typeorm';
+import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
+import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 
 @Injectable()
 export class ProductService {
-  basicProductRelations = ['host', 'representationPhotos', 'categories', 'options', 'hashtags', 'productRequests', 'productRequests.user'];
+  basicProductRelations = ['host', 'representationPhotos', 'options', 'productRequests', 'productRequests.user'];
   productReviewRelations = ['user', 'product'];
 
   constructor(
     private authService: AuthService,
     @InjectRepository(Product) private productRepository: Repository<Product>,
-    @InjectRepository(ProductRepresentationPhoto) private representationPhotoRepository: Repository<ProductRepresentationPhoto>,
-    @InjectRepository(ProductOption) private optionRepository: Repository<ProductOption>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
-    @InjectRepository(AnalysisHashtag) private analysisHashtagRepository: Repository<AnalysisHashtag>,
     @InjectRepository(ProductRequest) private productRequestRepository: Repository<ProductRequest>,
     @InjectRepository(ProductReview) private productReviewRepository: Repository<ProductReview>
   ) { }
 
   async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
-    const user = await this.authService.findById(userId);
+    const queryRunner = await getConnection().createQueryRunner()
+    try {
+      await queryRunner.startTransaction();
+      const user = await this.authService.findById(userId);
+      const cheapestPrice = this.getChepastPrice(productDto.options).price;
+      const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
+      const product = productDto.toEntity(user, cheapestPrice, cheapestDiscountPrice);
+      const newProduct = await queryRunner.manager.save(product);
 
-    const categories = [];
-    for (let i = 0; i < productDto.categoryIds.length; i++) {
-      const category = await this.categoryRepository.findOne({ id: productDto.categoryIds[i] });
-      if (category) {
-        categories.push(category);
+      for (const id of productDto.categoryIds) {
+        const category = await this.categoryRepository.findOne({ id });
+        const map = new ProductCategoryMap();
+        map.categoryId = id;
+        map.category = category;
+        map.productId = newProduct.id;
+        map.product = newProduct;
+        await queryRunner.manager.save(map);
       }
-    }
 
-    const hashtags = [];
-    for (let i = 0; i < productDto.hashtags.length; i++) {
-      let hashtag: Hashtag;
-      hashtag = await this.hashtagRepository.findOne({ name: productDto.hashtags[i].name });
-      if (!hashtag) {
-        hashtag = await this.hashtagRepository.save(productDto.hashtags[i]);
+      for (const tag of productDto.hashtags) {
+        let hashtag: Hashtag;
+        hashtag = await this.hashtagRepository.findOne({ name: tag.name });
+        if (!hashtag) hashtag = await queryRunner.manager.save(Hashtag, tag);
+        const map = new ProductHashtagMap();
+        map.hashtagId = hashtag.id;
+        map.hashtag = hashtag;
+        map.productId = newProduct.id;
+        map.product = newProduct;
+        await queryRunner.manager.save(map);
       }
-      if (hashtag) {
-        hashtags.push(hashtag);
+
+      for (const photo of productDto.representationPhotos) {
+        photo.product = newProduct;
+        await queryRunner.manager.save(ProductRepresentationPhoto, photo);
       }
-    }
 
-    const analysisHashtags = [];
-    if (productDto.analysisHashtags) {
-      for (let i = 0; i < productDto.analysisHashtags.length; i++) {
-        let analysisHashtag: AnalysisHashtag;
-        analysisHashtag = await this.analysisHashtagRepository.findOne({ name: productDto.analysisHashtags[i].name });
-        if (!analysisHashtag) {
-          analysisHashtag = await this.analysisHashtagRepository.save(productDto.analysisHashtags[i]);
-        }
-        if (analysisHashtag) {
-          analysisHashtags.push(analysisHashtag);
-        }
+      for (const option of productDto.options) {
+        option.product = newProduct;
+        await queryRunner.manager.save(ProductOption, option);
       }
+
+      queryRunner.commitTransaction();
+      return newProduct;
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    } finally {
+      await queryRunner.release();
     }
-
-    const cheapestPrice = this.getChepastPrice(productDto.options, 'price');
-    const cheapestDiscountPrice = this.getChepastPrice(productDto.options, 'discountPrice');
-
-    const product = productDto.toEntity(user, categories, cheapestPrice, cheapestDiscountPrice, hashtags, analysisHashtags);
-    const newProduct = await this.productRepository.save(product);
-
-    for (const photo of productDto.representationPhotos) {
-      photo.product = newProduct;
-      await this.representationPhotoRepository.save(photo);
-    }
-
-    for (const option of productDto.options) {
-      option.product = newProduct;
-      await this.optionRepository.save(option);
-    }
-
-    return newProduct;
   }
 
-  private getChepastPrice(options: ProductOption[], key: string): number {
+  private getChepastPrice(options: ProductOption[]): ProductOption {
     return options.reduce((a, b) => {
-      if (a[key] < b[key]) return a;
+      if (a.discountPrice < b.discountPrice) return a;
       else return b;
-    }).price;
-  }
-
-  async paginate(search: ProductSearchDto): Promise<Pagination<Product>> {
-    const options = { page: search.page, limit: search.limit }
-    delete search.page;
-    delete search.limit;
-    return await paginate<Product>(this.productRepository, options, {
-      where: [search],
-      relations: this.basicProductRelations,
-      order: { createdAt: 'DESC' },
-      select: ['id', 'title', 'cheapestPrice', 'cheapestDiscountPrice', 'status', 'sortOrder', 'createdAt', 'updatedAt']
     })
   }
 
-  async findByCategory(search: ProductSearchByCategoryDto): Promise<Pagination<Product>> {
-    const options = { page: search.page, limit: search.limit }
-    return await paginate<Product>(this.productRepository
-      .createQueryBuilder('product')
-      .leftJoin('product.categories', 'category')
-      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
-      .leftJoinAndSelect('product.categories', 'categorySelect')
-      .where('category.name = :name', { name: search.category })
-      .andWhere('status = :status', { status: search.status })
-      , options)
+  async search(search: ProductSearchDto): Promise<Pagination<Product>> {
+    if (search.categoryId) return await this.searchByCategory(search);
+    if (search.hashtag) return await this.searchByHashtag(search);
+    if (search.from && search.to) return await this.searchByFromTo(search);
+    else return await this.searchByOthers(search);
+  }
+
+  async searchByOthers(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit };
+    const products = await paginate<Product>(
+      this.productRepository
+        .createQueryBuilder('product')
+        .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+        .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+        .where('product.status = :status', { status: search.status })
+        .orderBy('product.createdAt', 'DESC')
+      , options
+    )
+    const items = products.items.map(product => {
+      const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      product.hashtags = hashtags;
+      delete product.productHashtagMap;
+      return product;
+    })
+    return { items, meta: products.meta };
+  }
+
+  async searchByHashtag(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit };
+    const hashtag = await this.hashtagRepository.findOne({ name: search.hashtag });
+    const products = await paginate<Product>(
+      this.productRepository
+        .createQueryBuilder('product')
+        .leftJoin(ProductHashtagMap, 'map', 'map.productId = product.id')
+        .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+        .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+        .where('product.status = :status', { status: search.status })
+        .andWhere('map.hashtagId = :hashtagId', { hashtagId: hashtag.id })
+        .orderBy('product.createdAt', 'DESC')
+      , options
+    )
+    const items = products.items.map(product => {
+      const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      product.hashtags = hashtags;
+      delete product.productHashtagMap;
+      return product;
+    })
+    return { items, meta: products.meta };
+  }
+
+  async searchByFromTo(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit };
+    const products = await paginate<Product>(
+      this.productRepository
+        .createQueryBuilder('product')
+        .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+        .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+        .leftJoin(ProductOption, 'option', 'option.product_id = product.id')
+        .where('product.status = :status', { status: search.status })
+        .andWhere('option.date between :from and :to', { from: search.from, to: search.to })
+        .orderBy('product.createdAt', 'DESC')
+      , options
+    )
+    const items = products.items.map(product => {
+      const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      product.hashtags = hashtags;
+      delete product.productHashtagMap;
+      return product;
+    })
+    return { items, meta: products.meta };
+  }
+
+  async searchByCategory(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit };
+    const products = await paginate<Product>(
+      this.productRepository
+        .createQueryBuilder('product')
+        .leftJoin(ProductCategoryMap, 'map', 'map.productId = product.id')
+        .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+        .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+        .where('product.status = :status', { status: search.status })
+        .andWhere('map.categoryId = :categoryId', { categoryId: search.categoryId })
+        .orderBy('product.createdAt', 'DESC')
+      , options
+    )
+    const items = products.items.map(product => {
+      const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      product.hashtags = hashtags;
+      delete product.productHashtagMap;
+      return product;
+    })
+    return { items, meta: products.meta };
   }
 
   async findById(id: number): Promise<Product> {
@@ -117,7 +184,7 @@ export class ProductService {
   }
 
   async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
-    //TODO: ManyToMany relations(category, hashtag, analysistag)
+    //TODO: ManyToMany relations(category, hashtag)
     const product = await this.findById(id);
     return await this.productRepository.save(Object.assign(product, productDto))
   }
