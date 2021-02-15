@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService, Provider } from 'src/auth/service/auth.service';
 import { UserLoginDto } from 'src/user/model/user.dto';
@@ -76,5 +76,17 @@ export class AuthController {
     @UseGuards(AuthGuard('facebook'))
     facebookAuthRedirect(@Req() req) {
         return this.authService.checkJWT(req)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('sms')
+    requestAuthSms(@Body() body: any): Promise<boolean> {
+        return this.authService.requestAuthSms(body.phoneNumber)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('sms')
+    checkAuthSms(@Query('phoneNumber') phoneNumber: string, @Query('authNumber') authNumber: string,): Promise<boolean> {
+        return this.authService.checkAuthSms(phoneNumber, authNumber);
     }
 }

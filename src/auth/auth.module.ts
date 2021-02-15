@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,11 +11,16 @@ import { JwtStrategy } from './guard/strategy/jwt-strategy';
 import { KakaoStrategy } from './guard/strategy/kakao-strategy';
 import { NaverStrategy } from './guard/strategy/naver-strategy';
 import { UserIsUserGuard } from './guard/user-is-user-guard';
+import { AuthSms } from './model/auth.entity';
 import { AuthService } from './service/auth.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([
+            User,
+            AuthSms
+        ]),
+        HttpModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
