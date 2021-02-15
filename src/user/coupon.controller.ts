@@ -5,7 +5,7 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Coupon } from 'src/user/model/user.entity';
 import { CouponService } from './coupon.service';
-import { CouponCreateDto, CouponUpdateDto } from './model/user.dto';
+import { CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
 import { Role } from './model/user.interface';
 
 @Controller('api/coupons')
@@ -30,12 +30,22 @@ export class CouponController {
         return coupon;
     }
 
+    @Get('')
+    search(@Query() search: CouponSearchDto): Promise<Pagination<Coupon>> {
+        let limit = search.limit;
+        limit = limit > 100 ? 100 : limit;
+        return this.couponService.search(search);
+    }
+
     @Roles(Role.ADMIN)
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Get('')
-    index(@Query('page') page: number = 1, @Query('limit') limit: number = 10): Promise<Pagination<Coupon>> {
-        limit = limit > 100 ? 100 : limit;
-        return this.couponService.paginateAll({ page, limit });
+    @Post('/user')
+    addCouponToUser(@Body() dto: CouponAddToUserDto): Promise<any> {
+        try {
+            return this.couponService.addCouponToUser(dto);
+        } catch {
+            throw new InternalServerErrorException();
+        }
     }
 
     @Roles(Role.ADMIN)
@@ -53,6 +63,10 @@ export class CouponController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Delete(':id')
     deleteOne(@Param('id') id: number): Promise<any> {
-        return this.couponService.deleteOne(id);
+        try {
+            return this.couponService.deleteOne(id);
+        } catch {
+            throw new InternalServerErrorException();
+        }
     }
 }

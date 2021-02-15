@@ -1,13 +1,16 @@
-import { IsNumberString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsNumber } from "class-validator";
 
 export interface Dto<T> {
     toEntity(...args: any[]): T;
 }
 
 export class PaginationSearchDto {
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     page: number;
 
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     limit: number;
 }

@@ -1,6 +1,6 @@
 import { Exclude } from "class-transformer";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
-import { BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Magazine } from '../../post/model/magazine.entity';
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
@@ -54,12 +54,9 @@ export class User extends BasicEntity {
     @OneToMany(() => Product, productEntity => productEntity.host)
     products: Product[];
 
-    @ManyToMany(() => Coupon)
-    @JoinTable({
-        name: 'user_coupon_map',
-        joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'coupon_id', referencedColumnName: 'id' }
-    })
+    @OneToMany(() => UserCouponMap, map => map.user)
+    userCouponMap: UserCouponMap[];
+
     coupons: Coupon[];
 
     @OneToMany(() => UserProductLike, entity => entity.userId)
@@ -103,6 +100,30 @@ export class Coupon extends BasicEntity {
 
     @Column()
     expireDuration: Date;
+
+    @Column({ name: 'is_used', default: false })
+    isUsed: boolean;
+
+    @OneToMany(() => UserCouponMap, map => map.coupon)
+    userCouponMap: UserCouponMap[];
+}
+
+@Entity({ name: 'user_coupon_map' })
+export class UserCouponMap extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryColumn()
+    userId: number;
+    @ManyToOne(() => User, user => user.userCouponMap)
+    @JoinColumn({ name: 'userId' })
+    user: User;
+
+    @PrimaryColumn()
+    couponId: number;
+    @ManyToOne(() => Coupon, coupon => coupon.userCouponMap)
+    @JoinColumn({ name: 'couponId' })
+    coupon: Coupon;
 }
 
 @Entity({ name: 'user_user_like' })

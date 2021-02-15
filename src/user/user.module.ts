@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
-import { Coupon, User, UserProductLike, UserUserLike } from './model/user.entity';
+import { Coupon, User, UserCouponMap, UserProductLike, UserUserLike } from './model/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -13,7 +13,8 @@ import { UserService } from './user.service';
             User,
             Coupon,
             UserProductLike,
-            UserUserLike
+            UserUserLike,
+            UserCouponMap
         ]),
         AuthModule
     ],

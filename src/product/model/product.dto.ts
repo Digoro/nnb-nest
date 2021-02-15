@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
@@ -173,6 +173,7 @@ export class ProductOptionCreateDto {
     discountPrice: number;
 
     @IsInt()
+    @Min(1)
     minParticipants: number;
 
     @IsInt()

@@ -1,7 +1,8 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
-import { IsBoolean, IsDateString, IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
-import { Dto } from './../../shared/model/dto';
+import { Dto, PaginationSearchDto } from './../../shared/model/dto';
 import { Coupon } from './user.entity';
 import { Gender } from './user.interface';
 
@@ -92,7 +93,8 @@ export class CouponCreateDto implements Dto<Coupon>{
     @IsInt()
     price: number;
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     expireDuration: Date;
 
     toEntity(): Coupon {
@@ -106,3 +108,32 @@ export class CouponCreateDto implements Dto<Coupon>{
 }
 
 export class CouponUpdateDto extends PartialType(CouponCreateDto) { }
+
+export class CouponAddToUserDto {
+    @IsInt()
+    userId: number;
+
+    @IsInt()
+    couponId: number;
+}
+
+export class CouponSearchDto extends PaginationSearchDto {
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    userId: number;
+
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    expireDuration: Date;
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(value => {
+        if (value === 'true') return true;
+        else if (value === 'false') return false;
+        else return value;
+    })
+    isUsed: boolean;
+}
