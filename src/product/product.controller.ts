@@ -27,9 +27,9 @@ export class ProductController {
     return this.productService.search(search);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: number) {
-    const product = await this.productService.findById(id);
+  @Get(':productId/:userId')
+  async findOneByUser(@Param('productId') productId: number, @Param('userId') userId: number) {
+    const product = await this.productService.findById(productId, userId);
     if (!product) throw new NotFoundException()
     return product;
   }
@@ -58,5 +58,12 @@ export class ProductController {
   @Put('requests/:id')
   checkProductRequest(@Param('id') id: number, @Body() isChecked: boolean): Promise<ProductRequest> {
     return this.productService.checkProductRequest(id, isChecked);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/likes')
+  getLikeProducts(@Query() search: ProductSearchDto, @Request() request): Promise<Pagination<Product>> {
+    const userId = request.user.id;
+    return this.productService.getLikeProducts(userId, search);
   }
 }

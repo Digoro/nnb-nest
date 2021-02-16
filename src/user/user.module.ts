@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { Product } from 'src/product/model/product.entity';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
 import { Coupon, User, UserCouponMap, UserProductLike, UserUserLike } from './model/user.entity';
@@ -14,7 +15,8 @@ import { UserService } from './user.service';
             Coupon,
             UserProductLike,
             UserUserLike,
-            UserCouponMap
+            UserCouponMap,
+            Product
         ]),
         AuthModule
     ],

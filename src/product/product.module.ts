@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { UserProductLike } from 'src/user/model/user.entity';
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { Category, Event, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
@@ -20,7 +21,8 @@ import { ProductService } from './product.service';
       Event,
       ProductReview,
       ProductCategoryMap,
-      ProductHashtagMap
+      ProductHashtagMap,
+      UserProductLike
     ]),
     AuthModule
   ],

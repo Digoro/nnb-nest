@@ -60,7 +60,7 @@ export class User extends BasicEntity {
 
     coupons: Coupon[];
 
-    @OneToMany(() => UserProductLike, entity => entity.userId)
+    @OneToMany(() => UserProductLike, entity => entity.user)
     productLikes: UserProductLike[];
 
     @OneToMany(() => UserUserLike, entity => entity.followingId)
@@ -146,11 +146,15 @@ export class UserUserLike extends BasicEntity {
 
 @Entity({ name: 'user_product_like' })
 export class UserProductLike extends BasicEntity {
-    @ManyToOne(() => User, entitiy => entitiy.productLikes)
-    @JoinColumn({ name: 'user_id' })
+    @PrimaryColumn()
     userId: number;
+    @ManyToOne(() => User, entity => entity.productLikes)
+    @JoinColumn({ name: 'userId' })
+    user: User;
 
-    @ManyToOne(() => Product, entity => entity.userLikes)
-    @JoinColumn({ name: 'product_id' })
+    @PrimaryColumn()
     productId: number;
+    @ManyToOne(() => Product, entity => entity.userLikes)
+    @JoinColumn({ name: 'productId' })
+    product: Product;
 }

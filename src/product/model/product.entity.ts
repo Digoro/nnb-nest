@@ -73,7 +73,7 @@ export class Product extends BasicEntity {
     @OneToMany(() => ProductOption, entity => entity.product)
     options: ProductOption[];
 
-    @OneToMany(() => UserProductLike, entity => entity.productId)
+    @OneToMany(() => UserProductLike, entity => entity.product)
     userLikes: UserProductLike[];
 
     @OneToMany(() => ProductRequest, entity => entity.product)
@@ -94,6 +94,10 @@ export class Product extends BasicEntity {
 
     @OneToMany(() => Order, entity => entity.product)
     orders: Order[];
+
+    likes: number;
+
+    isSetLike: boolean;
 }
 
 
