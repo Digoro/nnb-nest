@@ -1,3 +1,4 @@
+import { Order, OrderItem } from "src/payment/model/order.entity";
 import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
@@ -90,6 +91,9 @@ export class Product extends BasicEntity {
     productHashtagMap: ProductHashtagMap[];
 
     hashtags: Hashtag[];
+
+    @OneToMany(() => Order, entity => entity.product)
+    orders: Order[];
 }
 
 
@@ -198,6 +202,9 @@ export class ProductOption extends BasicEntity {
 
     @Column({ name: 'max_participants' })
     maxParticipants: number;
+
+    @OneToMany(() => OrderItem, entity => entity.productOption)
+    orderItems: OrderItem[];
 }
 
 @Entity({ name: 'product_request' })

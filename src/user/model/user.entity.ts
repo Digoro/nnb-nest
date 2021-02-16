@@ -1,4 +1,5 @@
 import { Exclude } from "class-transformer";
+import { Order } from "src/payment/model/order.entity";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Magazine } from '../../post/model/magazine.entity';
@@ -75,7 +76,10 @@ export class User extends BasicEntity {
     productReviews: ProductReview[];
 
     @OneToMany(() => Magazine, entity => entity.author)
-    magazine: Magazine[];
+    magazines: Magazine[];
+
+    @OneToMany(() => Order, entity => entity.user)
+    orders: Order[];
 
     @BeforeInsert()
     async hashPassword() {
@@ -106,6 +110,9 @@ export class Coupon extends BasicEntity {
 
     @OneToMany(() => UserCouponMap, map => map.coupon)
     userCouponMap: UserCouponMap[];
+
+    @OneToMany(() => Order, entity => entity.coupon)
+    orders: Order[];
 }
 
 @Entity({ name: 'user_coupon_map' })

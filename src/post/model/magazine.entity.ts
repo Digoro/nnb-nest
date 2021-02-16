@@ -13,7 +13,7 @@ export class Magazine extends BasicEntity {
     @Column({ name: 'representation_photo', length: 254 })
     representationPhoto: string;
 
-    @ManyToOne(() => User, entity => entity.magazine)
+    @ManyToOne(() => User, entity => entity.magazines)
     author: User;
 
     @Column({ length: 254 })

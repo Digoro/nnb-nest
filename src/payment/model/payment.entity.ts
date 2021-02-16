@@ -1,11 +1,13 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
+import { Order } from "./order.entity";
 import { PayMethod, PG } from "./payment.interface";
 
 @Entity({ name: 'payment' })
 export class Payment extends BasicEntity {
-    @Column({ name: 'order_id', length: 254 })
-    orderId: string;
+    @OneToOne(() => Order)
+    @JoinColumn({ name: 'order_id' })
+    order: Order;
 
     @Column({ nullable: true, name: 'pg_name', type: 'enum', enum: PG })
     pgName: PG;
@@ -43,8 +45,8 @@ export class Payment extends BasicEntity {
     @Column({ nullable: true, name: 'card_receipt', length: 254 })
     cardReceipt: string;
 
-    @Column({ nullable: true, name: 'band_name', length: 254 })
-    bandName: string;
+    @Column({ nullable: true, name: 'bank_name', length: 254 })
+    bankName: string;
 
     @Column({ nullable: true, name: 'bank_num', length: 254 })
     bankNum: string;

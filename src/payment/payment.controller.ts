@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
-import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
+import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
+import { PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @Controller('api/payments')
@@ -10,12 +11,6 @@ export class PaymentController {
     constructor(
         private paymentService: PaymentService
     ) { }
-
-    @UseGuards(AuthGuard('jwt'))
-    @Post('')
-    create(@Body() payment: PaymentCreateDto): Promise<Payment> {
-        return this.paymentService.create(payment);
-    }
 
     @UseGuards(AuthGuard('jwt'))
     @Get(':id')
@@ -47,5 +42,34 @@ export class PaymentController {
         } catch {
             throw new InternalServerErrorException();
         }
+    }
+
+    @Post('pg/auth')
+    pgAuth(): Promise<boolean> {
+        return this.paymentService.authPayple('');
+    }
+
+    @Post('callback')
+    @Redirect('http://localhost:8080/tabs/payment-success')
+    async callbackPayment(@Body() paypleDto: PaypleCreateDto): Promise<any> {
+        try {
+            const payment = await this.paymentService.pay(paypleDto);
+            return { url: `http://localhost:8080/tabs/payment-success/${payment.id}` }
+        } catch {
+            return { url: `http://localhost:8080/tabs/payment-fail` }
+        }
+    }
+
+    @UseGuards(AuthGuard('jwt'), UserIsPaymentOwnerGuard)
+    @Get('owner/id/:id')
+    getPurchasedProduct(@Param('id') id: number): Promise<any> {
+        return this.paymentService.findById(id);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('owner/search')
+    getPurchasedProducts(@Query() search: PaymentSearchDto, @Request() request): Promise<any> {
+        const userId = request.user.id;
+        return this.paymentService.paginateByUserId(userId, search);
     }
 }

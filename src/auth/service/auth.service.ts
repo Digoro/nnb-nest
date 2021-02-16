@@ -20,10 +20,10 @@ export enum Provider {
 
 @Injectable()
 export class AuthService {
-    private sms_api_key: string;
-    private sms_user_id: string;
-    private sms_sender_phone: string;
-    private sms_url = "https://apis.aligo.in/send/";
+    private SMS_API_KEY: string;
+    private SMS_USER_ID: string;
+    private SMS_SENDER_PHONE: string;
+    private SMS_URL = "https://apis.aligo.in/send/";
 
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
@@ -32,9 +32,9 @@ export class AuthService {
         private http: HttpService,
         private configService: ConfigService
     ) {
-        this.sms_api_key = configService.get("SMS_API_KEY");
-        this.sms_user_id = configService.get("SMS_USER_ID");
-        this.sms_sender_phone = configService.get("SMS_SENDER_PHONE");
+        this.SMS_API_KEY = configService.get("SMS_API_KEY");
+        this.SMS_USER_ID = configService.get("SMS_USER_ID");
+        this.SMS_SENDER_PHONE = configService.get("SMS_SENDER_PHONE");
     }
 
     async create(userDto: UserCreateDto): Promise<User> {
@@ -122,12 +122,12 @@ export class AuthService {
 
     async sendSms(phoneNumber: string, authNumber: string) {
         const form = new FormData();
-        form.append('key', this.sms_api_key)
-        form.append('userid', this.sms_user_id)
+        form.append('key', this.SMS_API_KEY)
+        form.append('userid', this.SMS_USER_ID)
         form.append('msg', `노는법 인증 번호 ${authNumber}를 입력해주세요.`)
-        form.append('sender', this.sms_sender_phone)
+        form.append('sender', this.SMS_SENDER_PHONE)
         form.append('receiver', phoneNumber)
-        const result = await this.http.post(this.sms_url, form, { headers: form.getHeaders() }).toPromise();
+        const result = await this.http.post(this.SMS_URL, form, { headers: form.getHeaders() }).toPromise();
         if (result.data.result_code === -101) {
             throw new InternalServerErrorException();
         }
