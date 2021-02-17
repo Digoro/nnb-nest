@@ -1,11 +1,48 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsDate, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { PaginationSearchDto } from 'src/shared/model/dto';
+import { Dto } from './../../shared/model/dto';
+import { Order } from './order.entity';
+import { Payment } from './payment.entity';
 import { PayMethod, PG } from './payment.interface';
 
-export class PaymentCreateDto {
-    @IsString()
-    orderId: string;
+class OrderCreateDto {
+    @IsNumber()
+    userId: number;
+
+    @IsNumber()
+    productId: number;
+
+    @IsOptional()
+    @IsNumber()
+    couponId: number;
+
+    @IsOptional()
+    @IsNumber()
+    point: number;
+
+    @IsDate()
+    @Type(() => Date)
+    orderAt: Date;
+
+    @ValidateNested({ each: true })
+    @Type(() => OrderItemCreateDto)
+    orderItems: OrderItemCreateDto[];
+}
+
+class OrderItemCreateDto {
+    @IsNumber()
+    productOptionId: number;
+
+    @IsNumber()
+    count: number;
+}
+
+export class PaymentCreateDto implements Dto<Payment>{
+    @ValidateNested({ each: true })
+    @Type(() => OrderCreateDto)
+    order: OrderCreateDto;
 
     @IsOptional()
     @IsEnum(PG)
@@ -55,6 +92,26 @@ export class PaymentCreateDto {
     @IsOptional()
     @IsString()
     bankNum: string;
+
+    toEntity(order: Order): Payment {
+        const payment = new Payment();
+        payment.order = order;
+        payment.pgName = this.pgName;
+        payment.pgOrderId = this.pgOrderId;
+        payment.payAt = this.payAt;
+        payment.totalPrice = this.totalPrice;
+        payment.payMethod = this.payMethod;
+        payment.payPrice = this.payPrice;
+        payment.payCommissionPrice = this.payCommissionPrice;
+        payment.result = this.result;
+        payment.resultMessage = this.resultMessage;
+        payment.cardName = this.cardName;
+        payment.cardNum = this.cardNum;
+        payment.cardReceipt = this.cardReceipt;
+        payment.bankName = this.bankName;
+        payment.bankNum = this.bankNum;
+        return payment;
+    }
 }
 
 export class PaymentUpdateDto extends PartialType(PaymentCreateDto) { }

@@ -9,7 +9,8 @@ export enum PayMethod {
     POINT = "POINT",
     CARD = "CARD",
     TRANSFER = "TRANSFER",
-    DIRECT = "DIRECT"
+    DIRECT = "DIRECT",
+    FREE = "FREE"
 }
 
 export interface PaypleUserDefine {

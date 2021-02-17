@@ -8,7 +8,7 @@ import { Coupon, User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { Order, OrderItem } from './model/order.entity';
-import { PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
 const moment = require('moment');
 
@@ -87,8 +87,47 @@ export class PaymentService {
             payment.bankName = paypleDto.PCD_PAY_BANKNAME;
             payment.bankNum = paypleDto.PCD_PAY_BANKNUM;
 
+            const result = await queryRunner.manager.save(Payment, payment);
             queryRunner.commitTransaction();
-            return await queryRunner.manager.save(Payment, payment);
+            return result;
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException();
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async join(dto: PaymentCreateDto) {
+        const queryRunner = await getConnection().createQueryRunner();
+
+        try {
+            await queryRunner.startTransaction();
+
+            const order = new Order();
+            const user = await this.userRepository.findOne({ id: dto.order.userId });
+            const product = await this.productRepository.findOne({ id: dto.order.productId });
+            const coupon = await this.couponRepository.findOne({ id: dto.order.couponId });
+            order.user = user;
+            order.product = product;
+            order.coupon = coupon;
+            order.point = dto.order.point;
+            order.orderAt = dto.order.orderAt;
+            const newOrder = await this.orderRepository.save(order);
+
+            for (const item of dto.order.orderItems) {
+                const orderItem = new OrderItem();
+                orderItem.order = newOrder;
+                const productOption = await this.productOptionRepository.findOne({ id: item.productOptionId });
+                orderItem.productOption = productOption;
+                orderItem.count = item.count;
+                await this.orderItemRepository.save(orderItem);
+            }
+
+            const payment = dto.toEntity(newOrder);
+            const result = await this.paymentRepository.save(payment);
+            queryRunner.commitTransaction();
+            return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException();
