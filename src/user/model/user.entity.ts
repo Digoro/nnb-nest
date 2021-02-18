@@ -154,7 +154,7 @@ export class UserProductLike extends BasicEntity {
 
     @PrimaryColumn()
     productId: number;
-    @ManyToOne(() => Product, entity => entity.userLikes)
+    @ManyToOne(() => Product, entity => entity.userLikes, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'productId' })
     product: Product;
 }

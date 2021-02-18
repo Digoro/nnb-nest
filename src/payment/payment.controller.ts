@@ -41,12 +41,22 @@ export class PaymentController {
     }
 
     /**
+     * 호스트가 주최한 상품의 개별 결제 조회
+     */
+    @UseGuards(AuthGuard('jwt'))
+    @Get('by/host/:productId')
+    getCountByProduct(@Param('productId') productId: number, @Request() request): Promise<number> {
+        const userId = request.user.id;
+        return this.paymentService.findOneByProduct(productId, userId);
+    }
+
+    /**
      * 로그인 한 유저의 개별 결제 조회
      */
     @UseGuards(AuthGuard('jwt'), UserIsPaymentOwnerGuard)
     @Get('owner/id/:id')
     getPurchasedProduct(@Param('id') id: number): Promise<any> {
-        return this.paymentService.findById(id);
+        return this.paymentService.findOneByOwner(id);
     }
 
     /**

@@ -8,6 +8,7 @@ import { UserProductLike } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
+import { ProductStatus } from './model/product.interface';
 
 @Injectable()
 export class ProductService {
@@ -17,6 +18,7 @@ export class ProductService {
   constructor(
     private authService: AuthService,
     @InjectRepository(Product) private productRepository: Repository<Product>,
+    @InjectRepository(ProductRepresentationPhoto) private productRepresentationPhotoRepository: Repository<ProductRepresentationPhoto>,
     @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
@@ -87,7 +89,31 @@ export class ProductService {
     if (search.categoryId) return await this.searchByCategory(search);
     if (search.hashtag) return await this.searchByHashtag(search);
     if (search.from && search.to) return await this.searchByFromTo(search);
+    if (search.hostId) return await this.searchHosted(search);
     else return await this.searchByOthers(search);
+  }
+
+  async searchHosted(search: ProductSearchDto): Promise<Pagination<Product>> {
+    const options = { page: search.page, limit: search.limit };
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+      .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .where('product.host = :hostId', { hostId: search.hostId })
+      .orderBy('product.createdAt', 'DESC')
+    if (search.status !== ProductStatus.ALL) {
+      query.where('product.status = :status', { status: search.status })
+    }
+    const products = await paginate<Product>(query, options)
+
+    const items = products.items.map(product => {
+      const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      product.hashtags = hashtags;
+      delete product.productHashtagMap;
+      return product;
+    })
+    return { items, meta: products.meta };
   }
 
   async searchByOthers(search: ProductSearchDto): Promise<Pagination<Product>> {

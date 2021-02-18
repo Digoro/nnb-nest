@@ -123,7 +123,7 @@ export class ProductHashtagMap extends BaseEntity {
 
     @PrimaryColumn()
     productId: number;
-    @ManyToOne(() => Product, product => product.productHashtagMap)
+    @ManyToOne(() => Product, product => product.productHashtagMap, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'productId' })
     product: Product;
 
@@ -153,7 +153,7 @@ export class ProductCategoryMap extends BaseEntity {
 
     @PrimaryColumn()
     productId: number;
-    @ManyToOne(() => Product, product => product.productCategoryMap)
+    @ManyToOne(() => Product, product => product.productCategoryMap, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'productId' })
     product: Product;
 
@@ -213,7 +213,7 @@ export class ProductOption extends BasicEntity {
 
 @Entity({ name: 'product_request' })
 export class ProductRequest extends BasicEntity {
-    @ManyToOne(() => Product, entity => entity.productRequests)
+    @ManyToOne(() => Product, entity => entity.productRequests, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'product_id' })
     product: Product;
 
@@ -270,7 +270,7 @@ export class ProductReview extends BasicEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Product, entity => entity.productReviews)
+    @ManyToOne(() => Product, entity => entity.productReviews, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'product_id' })
     product: Product;
 

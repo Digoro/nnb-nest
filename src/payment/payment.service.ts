@@ -172,14 +172,25 @@ export class PaymentService {
         return products;
     }
 
-    async findById(id: number): Promise<Payment> {
+    async findOneByProduct(productId: number, hostId: number): Promise<number> {
+        return await this.paymentRepository
+            .createQueryBuilder('payment')
+            .leftJoin("payment.order", 'order')
+            .leftJoin("order.product", 'product')
+            .leftJoin("product.host", 'host')
+            .where('product.id = :productId', { productId })
+            .andWhere('host.id = :hostId', { hostId })
+            .getCount()
+    }
+
+    async findOneByOwner(id: number): Promise<Payment> {
         return await this.paymentRepository.findOne(id, {
             relations: this.relations
         });
     }
 
     async updateOne(id: number, paymentDto: PaymentUpdateDto): Promise<any> {
-        const payment = await this.findById(id);
+        const payment = await this.findOneByOwner(id);
         if (!payment) throw new BadRequestException()
         return this.paymentRepository.save(Object.assign(payment, paymentDto))
     }

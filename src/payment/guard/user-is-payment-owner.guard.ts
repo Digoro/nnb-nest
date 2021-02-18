@@ -17,7 +17,7 @@ export class UserIsPaymentOwnerGuard implements CanActivate {
             const paymentId = +request.params.id;
             const requestUser: User = request.user;
 
-            const payment = await this.paymentService.findById(paymentId);
+            const payment = await this.paymentService.findOneByOwner(paymentId);
             const paymentUser = payment.order.user
 
             const user = await this.userService.findById(requestUser.id);
