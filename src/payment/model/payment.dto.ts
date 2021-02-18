@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { PaginationSearchDto } from 'src/shared/model/dto';
 import { Dto } from './../../shared/model/dto';
 import { Order } from './order.entity';
 import { Payment } from './payment.entity';
@@ -115,8 +114,6 @@ export class PaymentCreateDto implements Dto<Payment>{
 }
 
 export class PaymentUpdateDto extends PartialType(PaymentCreateDto) { }
-
-export class PaymentSearchDto extends PaginationSearchDto { }
 
 export class PaypleCreateDto {
     @IsOptional()

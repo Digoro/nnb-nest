@@ -1,9 +1,13 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Payment } from 'src/payment/model/payment.entity';
+import { PaginationSearchDto } from 'src/shared/model/dto';
+import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
-import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { PaymentCreateDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @Controller('api/payments')
@@ -12,33 +16,47 @@ export class PaymentController {
         private paymentService: PaymentService
     ) { }
 
-    @UseGuards(AuthGuard('jwt'))
-    @Get()
-    index(@Query() search: PaymentSearchDto): Promise<Pagination<Payment>> {
-        let limit = +search.limit;
+    /**
+     * 전체 결제 목록 조회
+     */
+    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Get('')
+    getAll(@Query() search: PaginationSearchDto): Promise<Pagination<Payment>> {
+        let limit = search.limit;
         limit = limit > 100 ? 100 : limit;
         return this.paymentService.paginate(search);
     }
 
+    /**
+     * 호스트 단위 전체 결제 목록 조회
+     */
     @UseGuards(AuthGuard('jwt'))
-    @Get(':id')
-    async findOne(@Param('id') id: number): Promise<Payment> {
-        const payment = await this.paymentService.findById(id);
-        if (!payment) throw new NotFoundException()
-        return payment;
+    @Get('by/host')
+    get(@Query() search: PaginationSearchDto, @Request() request): Promise<Pagination<Payment>> {
+        const userId = request.user.id;
+        let limit = search.limit;
+        limit = limit > 100 ? 100 : limit;
+        return this.paymentService.paginate(search, userId);
     }
 
+    /**
+     * 로그인 한 유저의 개별 결제 조회
+     */
     @UseGuards(AuthGuard('jwt'), UserIsPaymentOwnerGuard)
     @Get('owner/id/:id')
     getPurchasedProduct(@Param('id') id: number): Promise<any> {
         return this.paymentService.findById(id);
     }
 
+    /**
+     * 로그인 한 유저의 결제 목록 조회
+     */
     @UseGuards(AuthGuard('jwt'))
     @Get('owner/search')
-    getPurchasedProducts(@Query() search: PaymentSearchDto, @Request() request): Promise<any> {
+    getPurchasedProducts(@Query() search: PaginationSearchDto, @Request() request): Promise<any> {
         const userId = request.user.id;
-        return this.paymentService.paginateByUserId(userId, search);
+        return this.paymentService.paginateByUser(userId, search);
     }
 
     @Post('pg/auth')
