@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
@@ -22,15 +22,12 @@ export class ProductController {
 
   @Get('product/:productId')
   async findOne(@Param('productId') productId: number) {
-    const product = await this.productService.findById(productId);
-    if (!product) throw new NotFoundException()
-    return product;
+    return await this.productService.findById(productId);
   }
 
   @Get('product/:productId/user/:userId')
   async findOneByUser(@Param('productId') productId: number, @Param('userId') userId: number) {
     const product = await this.productService.findById(productId, userId);
-    if (!product) throw new NotFoundException()
     return product;
   }
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
@@ -194,8 +194,9 @@ export class ProductService {
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
       .orderBy('product.createdAt', 'DESC')
-      .getOne()
+      .getOne();
 
+    if (!product) throw new NotFoundException();
     const hashtags = product.productHashtagMap.map(map => map.hashtag);
     const categories = product.productCategoryMap.map(map => map.category);
     const likes = await this.userProductLikeRepository.count({ where: { productId: id } })
