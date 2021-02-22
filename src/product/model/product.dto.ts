@@ -9,10 +9,6 @@ import { ProductOption, ProductRepresentationPhoto } from './product.entity';
 import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 export class ProductCreateDto implements Dto<Product>{
-    @IsOptional()
-    @IsInt()
-    hostId: number;
-
     @IsString()
     title: string;
 
@@ -81,7 +77,8 @@ export class ProductCreateDto implements Dto<Product>{
     options: ProductOption[];
 
     @ArrayMinSize(1)
-    categoryIds: number[];
+    @IsInt({ each: true })
+    categories: number[];
 
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
@@ -142,20 +139,15 @@ export class ProductSearchDto extends PaginationSearchDto {
 }
 
 export class ProductRepresentationPhotoCreateDto {
-    @IsInt()
-    productId: number;
-
     @IsString()
     photo: string;
 
+    @IsOptional()
     @IsInt()
     sortOrder: number;
 }
 
 export class ProductOptionCreateDto {
-    @IsInt()
-    productId: number;
-
     @IsString()
     name: string;
 
@@ -189,16 +181,12 @@ export class CategoryCreateDto {
 }
 
 export class HashtagCreateDto {
-    @IsInt()
-    id: number;
-
     @IsString()
     name: string;
 
     @IsEnum(HashtagType)
     type: HashtagType;
 
-    @IsOptional()
     @IsBoolean()
     isAnalysis: boolean;
 }

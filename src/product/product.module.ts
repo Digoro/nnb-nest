@@ -2,8 +2,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { UserProductLike } from 'src/user/model/user.entity';
+import { CategoryController } from './category.controller';
+import { CategoryService } from './categoy.service';
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
+import { HashtagController } from './hashtag.controller';
+import { HashtagService } from './hashtag.service';
 import { Category, Event, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductReviewController } from './product-review.controller';
 import { ProductController } from './product.controller';
@@ -29,11 +33,15 @@ import { ProductService } from './product.service';
   controllers: [
     ProductController,
     EventController,
-    ProductReviewController
+    ProductReviewController,
+    CategoryController,
+    HashtagController
   ],
   providers: [
     ProductService,
-    EventService
+    EventService,
+    CategoryService,
+    HashtagService
   ]
 })
 export class ProductModule { }

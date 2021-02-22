@@ -34,16 +34,16 @@ export class ProductService {
       const cheapestPrice = this.getChepastPrice(productDto.options).price;
       const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
       const product = productDto.toEntity(user, cheapestPrice, cheapestDiscountPrice);
-      const newProduct = await queryRunner.manager.save(product);
+      const newProduct = await queryRunner.manager.save(Product, product);
 
-      for (const id of productDto.categoryIds) {
+      for (const id of productDto.categories) {
         const category = await this.categoryRepository.findOne({ id });
         const map = new ProductCategoryMap();
         map.categoryId = id;
         map.category = category;
         map.productId = newProduct.id;
         map.product = newProduct;
-        await queryRunner.manager.save(map);
+        await queryRunner.manager.save(ProductCategoryMap, map);
       }
 
       for (const tag of productDto.hashtags) {
@@ -55,7 +55,7 @@ export class ProductService {
         map.hashtag = hashtag;
         map.productId = newProduct.id;
         map.product = newProduct;
-        await queryRunner.manager.save(map);
+        await queryRunner.manager.save(ProductHashtagMap, map);
       }
 
       for (const photo of productDto.representationPhotos) {
