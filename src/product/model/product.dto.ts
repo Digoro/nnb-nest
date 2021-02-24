@@ -111,7 +111,10 @@ export class ProductCreateDto implements Dto<Product>{
     }
 }
 
-export class ProductUpdateDto extends PartialType(ProductCreateDto) { }
+export class ProductUpdateDto extends PartialType(ProductCreateDto) {
+    cheapestPrice: number;
+    cheapestDiscountPrice: number;
+}
 
 export class ProductSearchDto extends PaginationSearchDto {
     @IsEnum(ProductStatus)
@@ -181,6 +184,11 @@ export class CategoryCreateDto {
 }
 
 export class HashtagCreateDto {
+    @IsOptional()
+    @IsNumber()
+    id: number;
+
+    @IsOptional()
     @IsString()
     name: string;
 

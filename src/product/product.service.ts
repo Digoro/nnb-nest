@@ -18,7 +18,6 @@ export class ProductService {
   constructor(
     private authService: AuthService,
     @InjectRepository(Product) private productRepository: Repository<Product>,
-    @InjectRepository(ProductRepresentationPhoto) private productRepresentationPhotoRepository: Repository<ProductRepresentationPhoto>,
     @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
@@ -30,11 +29,12 @@ export class ProductService {
     const queryRunner = await getConnection().createQueryRunner()
     try {
       await queryRunner.startTransaction();
+      const manager = queryRunner.manager;
       const user = await this.authService.findById(userId);
       const cheapestPrice = this.getChepastPrice(productDto.options).price;
       const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
       const product = productDto.toEntity(user, cheapestPrice, cheapestDiscountPrice);
-      const newProduct = await queryRunner.manager.save(Product, product);
+      const newProduct = await manager.save(Product, product);
 
       for (const id of productDto.categories) {
         const category = await this.categoryRepository.findOne({ id });
@@ -43,31 +43,115 @@ export class ProductService {
         map.category = category;
         map.productId = newProduct.id;
         map.product = newProduct;
-        await queryRunner.manager.save(ProductCategoryMap, map);
+        await manager.save(ProductCategoryMap, map);
       }
 
       for (const tag of productDto.hashtags) {
         let hashtag: Hashtag;
-        hashtag = await this.hashtagRepository.findOne({ name: tag.name });
-        if (!hashtag) hashtag = await queryRunner.manager.save(Hashtag, tag);
+        if (tag.name) hashtag = await this.hashtagRepository.findOne({ name: tag.name });
+        else if (tag.id) hashtag = await this.hashtagRepository.findOne({ id: tag.id });
+        if (!hashtag) hashtag = await manager.save(Hashtag, tag);
         const map = new ProductHashtagMap();
         map.hashtagId = hashtag.id;
         map.hashtag = hashtag;
         map.productId = newProduct.id;
         map.product = newProduct;
-        await queryRunner.manager.save(ProductHashtagMap, map);
+        await manager.save(ProductHashtagMap, map);
       }
 
       for (const photo of productDto.representationPhotos) {
         photo.product = newProduct;
-        await queryRunner.manager.save(ProductRepresentationPhoto, photo);
+        await manager.save(ProductRepresentationPhoto, photo);
       }
 
       for (const option of productDto.options) {
         option.product = newProduct;
-        await queryRunner.manager.save(ProductOption, option);
+        await manager.save(ProductOption, option);
       }
 
+      queryRunner.commitTransaction();
+      return newProduct;
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
+    const queryRunner = await getConnection().createQueryRunner()
+    try {
+      await queryRunner.startTransaction();
+      const manager = queryRunner.manager;
+      const photos = productDto.representationPhotos;
+      const options = productDto.options;
+      delete productDto.representationPhotos;
+      delete productDto.options;
+      if (productDto.options) {
+        const cheapestPrice = this.getChepastPrice(productDto.options).price;
+        const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
+        productDto.cheapestPrice = cheapestPrice;
+        productDto.cheapestDiscountPrice = cheapestDiscountPrice;
+      }
+      const product = await manager.findOne(Product, id);
+      const newProduct = await manager.save(Product, Object.assign(product, productDto));
+
+      if (photos) {
+        await manager.delete(ProductRepresentationPhoto, { product: newProduct });
+        for (const photo of photos) {
+          const newPhoto = new ProductRepresentationPhoto();
+          newPhoto.photo = photo.photo;
+          newPhoto.product = newProduct;
+          newPhoto.sortOrder = newProduct.sortOrder;
+          await manager.save(ProductRepresentationPhoto, newPhoto);
+        }
+      }
+
+      if (options) {
+        await manager.delete(ProductOption, { product: newProduct });
+        for (const option of options) {
+          const newOption = new ProductOption();
+          newOption.name = option.name;
+          newOption.product = newProduct;
+          newOption.date = option.date;
+          newOption.description = option.description;
+          newOption.price = option.price;
+          newOption.discountPrice = option.discountPrice;
+          newOption.minParticipants = option.minParticipants;
+          newOption.maxParticipants = option.maxParticipants;
+          await manager.save(ProductOption, newOption);
+        }
+      }
+
+      if (productDto.categories) {
+        await manager.delete(ProductCategoryMap, { productId: id });
+        for (const id of productDto.categories) {
+          const category = await manager.findOne(Category, { id });
+          const map = new ProductCategoryMap();
+          map.categoryId = id;
+          map.category = category;
+          map.productId = newProduct.id;
+          map.product = newProduct;
+          await manager.save(ProductCategoryMap, map);
+        }
+      }
+
+      if (productDto.hashtags) {
+        await manager.delete(ProductHashtagMap, { productId: id });
+        for (const tag of productDto.hashtags) {
+          let hashtag: Hashtag;
+          if (tag.name) hashtag = await manager.findOne(Hashtag, { name: tag.name });
+          else if (tag.id) hashtag = await manager.findOne(Hashtag, { id: tag.id });
+          if (!hashtag) hashtag = await manager.save(Hashtag, tag);
+          const map = new ProductHashtagMap();
+          map.hashtagId = hashtag.id;
+          map.hashtag = hashtag;
+          map.productId = newProduct.id;
+          map.product = newProduct;
+          await manager.save(ProductHashtagMap, map);
+        }
+      }
       queryRunner.commitTransaction();
       return newProduct;
     } catch (e) {
@@ -86,11 +170,23 @@ export class ProductService {
   }
 
   async search(search: ProductSearchDto): Promise<Pagination<Product>> {
-    if (search.categoryId) return await this.searchByCategory(search);
-    if (search.hashtag) return await this.searchByHashtag(search);
-    if (search.from && search.to) return await this.searchByFromTo(search);
-    if (search.hostId) return await this.searchHosted(search);
-    else return await this.searchByOthers(search);
+    try {
+      if (search.categoryId) return await this.searchByCategory(search);
+      if (search.hashtag) return await this.searchByHashtag(search);
+      if (search.from && search.to) return await this.searchByFromTo(search);
+      if (search.hostId) return await this.searchHosted(search);
+      else return await this.searchByOthers(search);
+    } catch (e) {
+      return {
+        items: [], meta: {
+          currentPage: 1,
+          itemCount: 0,
+          itemsPerPage: search.limit,
+          totalItems: 0,
+          totalPages: 0
+        }
+      }
+    }
   }
 
   async searchHosted(search: ProductSearchDto): Promise<Pagination<Product>> {
@@ -236,12 +332,6 @@ export class ProductService {
     delete product.productHashtagMap;
     delete product.productCategoryMap;
     return product;
-  }
-
-  async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
-    //TODO: ManyToMany relations(category, hashtag)
-    const product = await this.findById(id);
-    return await this.productRepository.save(Object.assign(product, productDto))
   }
 
   async deleteOne(id: number): Promise<any> {

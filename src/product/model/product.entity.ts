@@ -100,7 +100,6 @@ export class Product extends BasicEntity {
     isSetLike: boolean;
 }
 
-
 @Entity({ name: 'hashtag' })
 export class Hashtag extends BasicEntity {
     @Column({ length: 254, unique: true })
@@ -170,7 +169,7 @@ export class ProductRepresentationPhoto extends BaseEntity {
     id: number;
 
     @ManyToOne(() => Product, entity => entity.representationPhotos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-    @JoinColumn({ name: 'product_id' },)
+    @JoinColumn({ name: 'product_id' })
     product: Product;
 
     @Column({ length: 254 })
