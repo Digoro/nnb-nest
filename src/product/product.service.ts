@@ -32,9 +32,7 @@ export class ProductService {
       await queryRunner.startTransaction();
       const manager = queryRunner.manager;
       const user = await this.authService.findById(userId);
-      const cheapestPrice = this.getChepastPrice(productDto.options).price;
-      const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
-      const product = productDto.toEntity(user, cheapestPrice, cheapestDiscountPrice);
+      const product = productDto.toEntity(user);
       const newProduct = await manager.save(Product, product);
 
       for (const id of productDto.categories) {
@@ -107,11 +105,6 @@ export class ProductService {
             await manager.save(ProductOption, option);
           }
         }
-        const productOptions = await manager.find(ProductOption, { product })
-        const cheapestPrice = this.getChepastPrice(productOptions).price;
-        const cheapestDiscountPrice = this.getChepastPrice(productOptions).discountPrice;
-        dto.cheapestPrice = cheapestPrice;
-        dto.cheapestDiscountPrice = cheapestDiscountPrice;
       }
       const newProduct = await manager.save(Product, Object.assign(product, dto));
 
@@ -162,13 +155,6 @@ export class ProductService {
     } finally {
       await queryRunner.release();
     }
-  }
-
-  private getChepastPrice(options: ProductOption[]): ProductOption {
-    return options.reduce((a, b) => {
-      if (a.discountPrice < b.discountPrice) return a;
-      else return b;
-    })
   }
 
   async search(search: ProductSearchDto): Promise<Pagination<Product>> {
@@ -317,6 +303,7 @@ export class ProductService {
       .leftJoinAndSelect('product.options', 'productOptions')
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
+      .andWhere('productOptions.isOld = :isOld', { isOld: false })
       .orderBy('product.createdAt', 'DESC')
       .getOne();
 

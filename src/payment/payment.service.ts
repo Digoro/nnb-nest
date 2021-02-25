@@ -63,11 +63,11 @@ export class PaymentService {
             const newOrder = await queryRunner.manager.save(Order, order);
 
             for (const option of userDefine.options) {
-                const o = await this.productOptionRepository.findOne({ id: option.oid })
+                const o = await this.productOptionRepository.findOne({ id: option.id })
                 const orderItem = new OrderItem();
                 orderItem.order = newOrder;
                 orderItem.productOption = o;
-                orderItem.count = option.optionCount;
+                orderItem.count = option.count;
                 await queryRunner.manager.save(OrderItem, orderItem);
             }
 

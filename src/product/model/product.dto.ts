@@ -12,6 +12,13 @@ export class ProductCreateDto implements Dto<Product>{
     @IsString()
     title: string;
 
+    @IsNumber()
+    price: number;
+
+    @IsOptional()
+    @IsNumber()
+    discountPrice: number;
+
     @IsString()
     point: string;
 
@@ -85,12 +92,12 @@ export class ProductCreateDto implements Dto<Product>{
     @Type(() => HashtagCreateDto)
     hashtags: Hashtag[];
 
-    toEntity(user: User, cheapestPrice: number, cheapestDiscountPrice: number): Product {
+    toEntity(user: User): Product {
         const product = new Product();
         product.host = user;
         product.title = this.title;
-        product.cheapestPrice = cheapestPrice;
-        product.cheapestDiscountPrice = cheapestDiscountPrice;
+        product.price = this.price;
+        product.discountPrice = this.discountPrice;
         product.point = this.point;
         product.recommend = this.recommend;
         product.description = this.description;
@@ -119,9 +126,6 @@ export class ProductUpdateDto extends OmitType(ProductCreateDto, ['options']) {
     @ValidateNested({ each: true })
     @Type(() => ProductOptionCreateDto)
     removedOptions: ProductOptionCreateDto[];
-
-    cheapestPrice: number;
-    cheapestDiscountPrice: number;
 }
 
 export class ProductSearchDto extends PaginationSearchDto {
@@ -177,15 +181,13 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
     price: number;
 
     @IsInt()
-    discountPrice: number;
-
-    @IsInt()
     @Min(1)
     minParticipants: number;
 
     @IsInt()
     maxParticipants: number;
 
+    @IsOptional()
     @IsBoolean()
     isOld: boolean;
 
@@ -196,7 +198,6 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
         option.date = this.date;
         option.description = this.description;
         option.price = this.price;
-        option.discountPrice = this.discountPrice;
         option.minParticipants = this.minParticipants;
         option.maxParticipants = this.maxParticipants;
         option.maxParticipants = this.maxParticipants;

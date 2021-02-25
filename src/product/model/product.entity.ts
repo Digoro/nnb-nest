@@ -10,10 +10,10 @@ export class Product extends BasicEntity {
     title: string;
 
     @Column()
-    cheapestPrice: number;
+    price: number;
 
-    @Column()
-    cheapestDiscountPrice: number;
+    @Column({ name: 'discount_price', nullable: true })
+    discountPrice: number;
 
     @Column({ length: 254 })
     point: string;
@@ -196,9 +196,6 @@ export class ProductOption extends BasicEntity {
 
     @Column()
     price: number;
-
-    @Column({ name: 'discount_price' })
-    discountPrice: number;
 
     @Column({ name: 'min_participants' })
     minParticipants: number;
