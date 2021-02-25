@@ -206,6 +206,9 @@ export class ProductOption extends BasicEntity {
     @Column({ name: 'max_participants' })
     maxParticipants: number;
 
+    @Column({ name: 'is_old', default: false })
+    isOld: boolean;
+
     @OneToMany(() => OrderItem, entity => entity.productOption)
     orderItems: OrderItem[];
 }

@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
@@ -111,7 +111,15 @@ export class ProductCreateDto implements Dto<Product>{
     }
 }
 
-export class ProductUpdateDto extends PartialType(ProductCreateDto) {
+export class ProductUpdateDto extends OmitType(ProductCreateDto, ['options']) {
+    @ValidateNested({ each: true })
+    @Type(() => ProductOptionCreateDto)
+    addedOptions: ProductOptionCreateDto[];
+
+    @ValidateNested({ each: true })
+    @Type(() => ProductOptionCreateDto)
+    removedOptions: ProductOptionCreateDto[];
+
     cheapestPrice: number;
     cheapestDiscountPrice: number;
 }
@@ -150,7 +158,11 @@ export class ProductRepresentationPhotoCreateDto {
     sortOrder: number;
 }
 
-export class ProductOptionCreateDto {
+export class ProductOptionCreateDto implements Dto<ProductOption> {
+    @IsOptional()
+    @IsNumber()
+    id: number;
+
     @IsString()
     name: string;
 
@@ -173,6 +185,24 @@ export class ProductOptionCreateDto {
 
     @IsInt()
     maxParticipants: number;
+
+    @IsBoolean()
+    isOld: boolean;
+
+    toEntity(product: Product): ProductOption {
+        const option = new ProductOption();
+        option.name = this.name;
+        option.product = product;
+        option.date = this.date;
+        option.description = this.description;
+        option.price = this.price;
+        option.discountPrice = this.discountPrice;
+        option.minParticipants = this.minParticipants;
+        option.maxParticipants = this.maxParticipants;
+        option.maxParticipants = this.maxParticipants;
+        option.isOld = this.isOld;
+        return option;
+    }
 }
 
 export class CategoryCreateDto {

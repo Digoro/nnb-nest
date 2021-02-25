@@ -6,6 +6,7 @@ import { Product, ProductCategoryMap, ProductRequest, ProductReview } from 'src/
 import { PaginationWithChildren } from 'src/shared/model/pagination';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
+import { Order, OrderItem } from './../payment/model/order.entity';
 import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 import { ProductStatus } from './model/product.interface';
@@ -79,23 +80,40 @@ export class ProductService {
     }
   }
 
-  async updateOne(id: number, productDto: ProductUpdateDto): Promise<any> {
+  async updateOne(id: number, dto: ProductUpdateDto): Promise<any> {
     const queryRunner = await getConnection().createQueryRunner()
     try {
       await queryRunner.startTransaction();
       const manager = queryRunner.manager;
-      const photos = productDto.representationPhotos;
-      const options = productDto.options;
-      delete productDto.representationPhotos;
-      delete productDto.options;
-      if (productDto.options) {
-        const cheapestPrice = this.getChepastPrice(productDto.options).price;
-        const cheapestDiscountPrice = this.getChepastPrice(productDto.options).discountPrice;
-        productDto.cheapestPrice = cheapestPrice;
-        productDto.cheapestDiscountPrice = cheapestDiscountPrice;
-      }
+      const photos = dto.representationPhotos;
+      delete dto.representationPhotos;
       const product = await manager.findOne(Product, id);
-      const newProduct = await manager.save(Product, Object.assign(product, productDto));
+
+      if (dto.addedOptions && dto.removedOptions) {
+        for (const option of dto.addedOptions) {
+          const newOption = option.toEntity(product);
+          await manager.save(ProductOption, newOption);
+        }
+        for (const option of dto.removedOptions) {
+          const count = await manager.createQueryBuilder(Order, 'order')
+            .leftJoin(OrderItem, 'item', 'order.id = item.order')
+            .where('order.product = :productId', { productId: product.id })
+            .andWhere('item.productOption = :productOptionId', { productOptionId: option.id })
+            .getCount()
+          if (count === 0) {
+            await manager.delete(ProductOption, { id: option.id });
+          } else {
+            option.isOld = true;
+            await manager.save(ProductOption, option);
+          }
+        }
+        const productOptions = await manager.find(ProductOption, { product })
+        const cheapestPrice = this.getChepastPrice(productOptions).price;
+        const cheapestDiscountPrice = this.getChepastPrice(productOptions).discountPrice;
+        dto.cheapestPrice = cheapestPrice;
+        dto.cheapestDiscountPrice = cheapestDiscountPrice;
+      }
+      const newProduct = await manager.save(Product, Object.assign(product, dto));
 
       if (photos) {
         await manager.delete(ProductRepresentationPhoto, { product: newProduct });
@@ -108,25 +126,9 @@ export class ProductService {
         }
       }
 
-      if (options) {
-        await manager.delete(ProductOption, { product: newProduct });
-        for (const option of options) {
-          const newOption = new ProductOption();
-          newOption.name = option.name;
-          newOption.product = newProduct;
-          newOption.date = option.date;
-          newOption.description = option.description;
-          newOption.price = option.price;
-          newOption.discountPrice = option.discountPrice;
-          newOption.minParticipants = option.minParticipants;
-          newOption.maxParticipants = option.maxParticipants;
-          await manager.save(ProductOption, newOption);
-        }
-      }
-
-      if (productDto.categories) {
+      if (dto.categories) {
         await manager.delete(ProductCategoryMap, { productId: id });
-        for (const id of productDto.categories) {
+        for (const id of dto.categories) {
           const category = await manager.findOne(Category, { id });
           const map = new ProductCategoryMap();
           map.categoryId = id;
@@ -137,9 +139,9 @@ export class ProductService {
         }
       }
 
-      if (productDto.hashtags) {
+      if (dto.hashtags) {
         await manager.delete(ProductHashtagMap, { productId: id });
-        for (const tag of productDto.hashtags) {
+        for (const tag of dto.hashtags) {
           let hashtag: Hashtag;
           if (tag.name) hashtag = await manager.findOne(Hashtag, { name: tag.name });
           else if (tag.id) hashtag = await manager.findOne(Hashtag, { id: tag.id });
