@@ -7,7 +7,7 @@ import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
-import { PaymentCreateDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { PaymentCreateDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @Controller('api/payments')
@@ -76,7 +76,7 @@ export class PaymentController {
 
     @Post('callback')
     @Redirect('http://localhost:8080/tabs/payment-success')
-    async callbackPayment(@Body() paypleDto: PaypleCreateDto): Promise<any> {
+    async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
             return { url: `http://localhost:8080/tabs/payment-success/${payment.id}` }

@@ -206,6 +206,9 @@ export class PaypleCreateDto {
     PCD_PAY_CARDNUM: string;
     @IsOptional()
     @IsString()
+    PCD_PAY_CARDQUOTA: string;
+    @IsOptional()
+    @IsString()
     PCD_PAY_CARDTRADENUM: string;
     @IsOptional()
     @IsString()

@@ -105,9 +105,6 @@ export class Coupon extends BasicEntity {
     @Column()
     expireDuration: Date;
 
-    @Column({ name: 'is_used', default: false })
-    isUsed: boolean;
-
     @OneToMany(() => UserCouponMap, map => map.coupon)
     userCouponMap: UserCouponMap[];
 
@@ -131,6 +128,9 @@ export class UserCouponMap extends BaseEntity {
     @ManyToOne(() => Coupon, coupon => coupon.userCouponMap)
     @JoinColumn({ name: 'couponId' })
     coupon: Coupon;
+
+    @Column({ name: 'is_used', default: false })
+    isUsed: boolean;
 }
 
 @Entity({ name: 'user_user_like' })

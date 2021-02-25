@@ -32,7 +32,7 @@ export class CouponService {
                 .leftJoin(UserCouponMap, 'map', 'map.couponId = coupon.id')
                 .where('map.userId = :userId', { userId: search.userId })
                 .andWhere('coupon.expireDuration > :to', { to: search.expireDuration })
-                .andWhere('coupon.isUsed = :isUsed', { isUsed: search.isUsed })
+                .andWhere('map.isUsed = :isUsed', { isUsed: search.isUsed })
                 .orderBy('coupon.createdAt', 'DESC')
             , options
         )
@@ -46,7 +46,7 @@ export class CouponService {
                 .createQueryBuilder('coupon')
                 .leftJoin(UserCouponMap, 'map', 'map.couponId = coupon.id')
                 .where('map.userId = :userId', { userId: search.userId })
-                .andWhere('coupon.isUsed = :isUsed', { isUsed: search.isUsed })
+                .andWhere('map.isUsed = :isUsed', { isUsed: search.isUsed })
                 .orWhere('coupon.expireDuration < :to', { to: search.expireDuration })
                 .orderBy('coupon.createdAt', 'DESC')
             , options

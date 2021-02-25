@@ -5,9 +5,10 @@ import * as FormData from 'form-data';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
-import { Coupon, User } from 'src/user/model/user.entity';
+import { User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
+import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCreateDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
@@ -17,7 +18,7 @@ const moment = require('moment');
 export class PaymentService {
     private PAYPLE_CST_ID: string;
     private PAYPLE_CST_KEY: string;
-    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.orderItems', 'order.orderItems.productOption', 'order.user'];
+    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems', 'order.orderItems.productOption', 'order.user'];
 
     constructor(
         @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
@@ -61,6 +62,12 @@ export class PaymentService {
             order.point = 0;
             order.orderAt = new Date();
             const newOrder = await queryRunner.manager.save(Order, order);
+
+            if (coupon) {
+                const userCoupon = await queryRunner.manager.findOne(UserCouponMap, { userId: user.id, couponId: coupon.id });
+                userCoupon.isUsed = true;
+                await queryRunner.manager.save(UserCouponMap, userCoupon);
+            }
 
             for (const option of userDefine.options) {
                 const o = await this.productOptionRepository.findOne({ id: option.id })
