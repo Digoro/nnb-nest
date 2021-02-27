@@ -2,30 +2,30 @@ import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Que
 import { AuthGuard } from '@nestjs/passport';
 import { ProductReview } from 'src/product/model/product.entity';
 import { ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto } from './model/product.dto';
-import { ProductService } from './product.service';
+import { ProductReviewService } from './product-review.service';
 import { UserIsReviewAuthorGuard } from './user-is-review-author-guard copy';
 
 @Controller('api/reviews/products')
 export class ProductReviewController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productReviewService: ProductReviewService) { }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('')
   createReview(@Body() review: ProductReviewCreateDto, @Request() request): Promise<ProductReview> {
     const userId = request.user.id;
-    return this.productService.createReview(userId, review);
+    return this.productReviewService.create(userId, review);
   }
 
   @Get('')
   indexReview(@Query() search: ProductReviewSearchDto): any {
     let limit = +search.limit;
     limit = limit > 100 ? 100 : limit;
-    return this.productService.paginateProductReview(search);
+    return this.productReviewService.paginate(search);
   }
 
   @Get(':id')
   async findReviewOne(@Param('id') id: number) {
-    const review = await this.productService.findProductReviewById(id);
+    const review = await this.productReviewService.findOne(id);
     if (!review) throw new NotFoundException()
     return review;
   }
@@ -33,12 +33,12 @@ export class ProductReviewController {
   @UseGuards(AuthGuard('jwt'), UserIsReviewAuthorGuard)
   @Put(':id')
   updateReview(@Param('id') id: number, @Body() review: ProductReviewUpdateDto) {
-    return this.productService.updateProductReview(id, review);
+    return this.productReviewService.update(id, review);
   }
 
   @UseGuards(AuthGuard('jwt'), UserIsReviewAuthorGuard)
   @Delete(':id')
   removeReview(@Param('id') id: number) {
-    return this.productService.deleteProductReview(id);
+    return this.productReviewService.delete(id);
   }
 }

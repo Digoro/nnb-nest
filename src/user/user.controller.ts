@@ -43,6 +43,15 @@ export class UserController {
         return user;
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @Get('/user/current')
+    async getCurrentUser(@Request() request): Promise<User> {
+        const userId = request.user.id;
+        const user = await this.authService.findById(userId);
+        if (!user) throw new NotFoundException()
+        return user;
+    }
+
     @Get('')
     index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('name') name: string): Promise<Pagination<User>> {
         limit = limit > 100 ? 100 : limit;

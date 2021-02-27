@@ -1,11 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Roles } from 'src/auth/decorator/roles.decorator';
-import { RolesGuard } from 'src/auth/guard/roles-guard';
-import { Role } from 'src/user/model/user.interface';
-import { ProductCreateDto, ProductRequestCreateDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
-import { Product, ProductRequest } from './model/product.entity';
+import { ProductCreateDto, ProductManageDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
+import { Product } from './model/product.entity';
 import { ProductService } from './product.service';
 import { UserIsProductHostGuard } from './user-is-product-host-guard';
 
@@ -45,24 +42,16 @@ export class ProductController {
     return this.productService.create(userId, product);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post('requests')
-  productRequest(@Body() productRequestDto: ProductRequestCreateDto, @Request() request): Promise<ProductRequest> {
-    const userId = request.user.id;
-    return this.productService.productRequest(userId, productRequestDto);
-  }
-
   @UseGuards(AuthGuard('jwt'), UserIsProductHostGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() product: ProductUpdateDto) {
     return this.productService.updateOne(id, product);
   }
 
-  @Roles(Role.ADMIN)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Put('requests/:id')
-  checkProductRequest(@Param('id') id: number, @Body() isChecked: boolean): Promise<ProductRequest> {
-    return this.productService.checkProductRequest(id, isChecked);
+  @UseGuards(AuthGuard('jwt'), UserIsProductHostGuard)
+  @Put('/management/:id')
+  manage(@Param('id') id: number, @Body() product: ProductManageDto) {
+    return this.productService.manage(id, product);
   }
 
   @UseGuards(AuthGuard('jwt'), UserIsProductHostGuard)

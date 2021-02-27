@@ -9,7 +9,10 @@ import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
 import { Category, Event, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
+import { ProductRequestController } from './product-request.controller';
+import { ProductRequestService } from './product-request.service';
 import { ProductReviewController } from './product-review.controller';
+import { ProductReviewService } from './product-review.service';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
@@ -33,15 +36,18 @@ import { ProductService } from './product.service';
   controllers: [
     ProductController,
     EventController,
-    ProductReviewController,
     CategoryController,
-    HashtagController
+    ProductReviewController,
+    HashtagController,
+    ProductRequestController
   ],
   providers: [
     ProductService,
     EventService,
     CategoryService,
-    HashtagService
+    ProductReviewService,
+    HashtagService,
+    ProductRequestService,
   ]
 })
 export class ProductModule { }

@@ -156,7 +156,6 @@ export class PaymentService {
             .leftJoinAndSelect('product.representationPhotos', 'representationPhotos')
             .leftJoinAndSelect('order.orderItems', 'orderItems')
             .leftJoinAndSelect('orderItems.productOption', 'productOption')
-            .where('product.',)
             .orderBy('payment.payAt', 'DESC')
         if (hostId) query = query.where('host.id = :hostId', { hostId })
         const products = await paginate<Payment>(query, options)

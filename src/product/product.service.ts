@@ -1,13 +1,12 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
-import { Product, ProductCategoryMap, ProductRequest, ProductReview } from 'src/product/model/product.entity';
-import { PaginationWithChildren } from 'src/shared/model/pagination';
+import { Product, ProductCategoryMap, ProductReview } from 'src/product/model/product.entity';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Order, OrderItem } from './../payment/model/order.entity';
-import { ProductCreateDto, ProductRequestCreateDto, ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
+import { ProductCreateDto, ProductManageDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 import { ProductStatus } from './model/product.interface';
 
@@ -22,7 +21,6 @@ export class ProductService {
     @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
-    @InjectRepository(ProductRequest) private productRequestRepository: Repository<ProductRequest>,
     @InjectRepository(ProductReview) private productReviewRepository: Repository<ProductReview>
   ) { }
 
@@ -159,10 +157,10 @@ export class ProductService {
 
   async search(search: ProductSearchDto): Promise<Pagination<Product>> {
     try {
-      if (search.categoryId) return await this.searchByCategory(search);
-      if (search.hashtag) return await this.searchByHashtag(search);
-      if (search.from && search.to) return await this.searchByFromTo(search);
-      if (search.hostId) return await this.searchHosted(search);
+      if (search.categoryId !== undefined) return await this.searchByCategory(search);
+      if (search.hashtag !== undefined) return await this.searchByHashtag(search);
+      if (search.from !== undefined && search.to !== undefined) return await this.searchByFromTo(search);
+      if (search.hostId !== undefined) return await this.searchHosted(search);
       else return await this.searchByOthers(search);
     } catch (e) {
       return {
@@ -177,6 +175,18 @@ export class ProductService {
     }
   }
 
+  async manage(id: number, dto: ProductManageDto) {
+    if (dto.status !== undefined) {
+      const product = await this.productRepository.findOne(id);
+      product.status = dto.status;
+      return await this.productRepository.save(product);
+    } else if (dto.sortOrder !== undefined) {
+      const product = await this.productRepository.findOne(id);
+      product.sortOrder = dto.sortOrder;
+      return await this.productRepository.save(product);
+    }
+  }
+
   async searchHosted(search: ProductSearchDto): Promise<Pagination<Product>> {
     const options = { page: search.page, limit: search.limit };
     const query = this.productRepository
@@ -185,7 +195,7 @@ export class ProductService {
       .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .where('product.host = :hostId', { hostId: search.hostId })
-      .orderBy('product.createdAt', 'DESC')
+      .orderBy('product.sortOrder', 'ASC')
     if (search.status !== ProductStatus.ALL) {
       query.where('product.status = :status', { status: search.status })
     }
@@ -202,20 +212,25 @@ export class ProductService {
 
   async searchByOthers(search: ProductSearchDto): Promise<Pagination<Product>> {
     const options = { page: search.page, limit: search.limit };
-    const products = await paginate<Product>(
-      this.productRepository
-        .createQueryBuilder('product')
-        .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
-        .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
-        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
-        .where('product.status = :status', { status: search.status })
-        .orderBy('product.createdAt', 'DESC')
-      , options
-    )
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
+      .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+      .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
+      .leftJoinAndSelect("productCategoryMap.category", 'category')
+      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .orderBy('product.sortOrder', 'ASC')
+    if (search.status !== ProductStatus.ALL) {
+      query.where('product.status = :status', { status: search.status })
+    }
+    const products = await paginate<Product>(query, options)
     const items = products.items.map(product => {
       const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      const categories = product.productCategoryMap.map(map => map.category);
       product.hashtags = hashtags;
+      product.categories = categories;
       delete product.productHashtagMap;
+      delete product.productCategoryMap;
       return product;
     })
     return { items, meta: products.meta };
@@ -233,7 +248,7 @@ export class ProductService {
         .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
         .where('product.status = :status', { status: search.status })
         .andWhere('map.hashtagId = :hashtagId', { hashtagId: hashtag.id })
-        .orderBy('product.createdAt', 'DESC')
+        .orderBy('product.sortOrder', 'ASC')
       , options
     )
     const items = products.items.map(product => {
@@ -256,7 +271,7 @@ export class ProductService {
         .leftJoin(ProductOption, 'option', 'option.product_id = product.id')
         .where('product.status = :status', { status: search.status })
         .andWhere('option.date between :from and :to', { from: search.from, to: search.to })
-        .orderBy('product.createdAt', 'DESC')
+        .orderBy('product.sortOrder', 'ASC')
       , options
     )
     const items = products.items.map(product => {
@@ -279,7 +294,7 @@ export class ProductService {
         .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
         .where('product.status = :status', { status: search.status })
         .andWhere('map.categoryId = :categoryId', { categoryId: search.categoryId })
-        .orderBy('product.createdAt', 'DESC')
+        .orderBy('product.sortOrder', 'ASC')
       , options
     )
     const items = products.items.map(product => {
@@ -300,10 +315,9 @@ export class ProductService {
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
-      .leftJoinAndSelect('product.options', 'productOptions')
+      .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
-      .andWhere('productOptions.isOld = :isOld', { isOld: false })
       .orderBy('product.createdAt', 'DESC')
       .getOne();
 
@@ -325,81 +339,6 @@ export class ProductService {
 
   async deleteOne(id: number): Promise<any> {
     return await this.productRepository.delete(id);
-  }
-
-  async productRequest(userId: number, productRequestDto: ProductRequestCreateDto): Promise<ProductRequest> {
-    const user = await this.authService.findById(userId);
-    const product = await this.productRepository.findOne(productRequestDto.productId);
-    if (user && product) {
-      const productRequest = productRequestDto.toEntity(user, product);
-      const newRequest = await this.productRequestRepository.save(productRequest)
-      return newRequest;
-    } else {
-      throw new BadRequestException()
-    }
-  }
-
-  async findProductRequestById(id: number): Promise<ProductRequest> {
-    return await this.productRequestRepository.findOne({ id });
-  }
-
-  async checkProductRequest(id: number, isChecked: boolean): Promise<any> {
-    const productRequest = await this.findProductRequestById(id);
-    if (!productRequest) throw new BadRequestException();
-    productRequest.isChecked = isChecked;
-    if (isChecked) productRequest.checkedAt = new Date();
-    const original = await this.findProductRequestById(id);
-    return await this.productRequestRepository.save(Object.assign(original, productRequest))
-  }
-
-  async createReview(userId: number, reviewDto: ProductReviewCreateDto): Promise<ProductReview> {
-    const user = await this.authService.findById(userId);
-    const product = await this.findById(reviewDto.productId);
-    const parent = reviewDto.parentId ? await this.findProductReviewById(reviewDto.parentId) : undefined;
-    const review = reviewDto.toEntity(user, product, parent);
-    const newReview = await this.productReviewRepository.save(review);
-    return newReview;
-  }
-
-  async paginateProductReview(search: ProductReviewSearchDto): Promise<PaginationWithChildren<ProductReview>> {
-    const options = { page: search.page, limit: search.limit }
-    delete search.page
-    delete search.limit
-    const result = await paginate<ProductReview>(this.productReviewRepository, options, {
-      where: [{ ...search, parent: null }],
-      relations: this.productReviewRelations,
-      order: { createdAt: 'DESC' }
-    })
-    const parents = result.items;
-    for (const parent of parents) {
-      const children = await this.productReviewRepository.find({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
-      if (children.length > 0) parents.push(...children)
-    }
-    const count = await this.productReviewRepository.count({ where: [search] });
-    return {
-      items: parents,
-      meta: { ...result.meta, totalItemsWithChildren: count }
-    };
-  }
-
-  async findProductReviewById(id: number): Promise<ProductReview> {
-    return await this.productReviewRepository.findOne({ id }, { relations: this.productReviewRelations });
-  }
-
-  async updateProductReview(id: number, reviewDto: ProductReviewUpdateDto): Promise<any> {
-    const review = await this.findProductReviewById(id);
-    return await this.productReviewRepository.save(Object.assign(review, reviewDto))
-  }
-
-  async deleteProductReview(id: number): Promise<any> {
-    const review = await this.productReviewRepository.findOne({ id }, { relations: ['children'] });
-    if (review.children.length > 0) {
-      const dto = new ProductReviewUpdateDto();
-      dto.comment = '삭제된 댓글입니다.';
-      return await this.updateProductReview(id, dto);
-    } else {
-      return await this.productReviewRepository.delete(id);
-    }
   }
 
   async getLikeProducts(userId: number, search: ProductSearchDto): Promise<Pagination<Product>> {

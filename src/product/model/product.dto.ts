@@ -128,6 +128,16 @@ export class ProductUpdateDto extends OmitType(ProductCreateDto, ['options']) {
     removedOptions: ProductOptionCreateDto[];
 }
 
+export class ProductManageDto {
+    @IsOptional()
+    @IsEnum(ProductStatus)
+    status: ProductStatus;
+
+    @IsOptional()
+    @IsNumber()
+    sortOrder: number;
+}
+
 export class ProductSearchDto extends PaginationSearchDto {
     @IsEnum(ProductStatus)
     status: ProductStatus;

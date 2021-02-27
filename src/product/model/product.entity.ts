@@ -203,7 +203,7 @@ export class ProductOption extends BasicEntity {
     @Column({ name: 'max_participants' })
     maxParticipants: number;
 
-    @Column({ name: 'is_old', default: false })
+    @Column({ name: 'is_checked', default: false })
     isOld: boolean;
 
     @OneToMany(() => OrderItem, entity => entity.productOption)
@@ -212,12 +212,16 @@ export class ProductOption extends BasicEntity {
 
 @Entity({ name: 'product_request' })
 export class ProductRequest extends BasicEntity {
+    @PrimaryColumn()
+    productId: number;
     @ManyToOne(() => Product, entity => entity.productRequests, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-    @JoinColumn({ name: 'product_id' })
+    @JoinColumn({ name: 'productId' })
     product: Product;
 
+    @PrimaryColumn()
+    userId: number;
     @ManyToOne(() => User, entity => entity.productRequests)
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'userId' })
     user: User;
 
     @Column({ name: 'number_of_people' })
