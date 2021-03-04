@@ -78,13 +78,11 @@ export class AuthController {
         return this.authService.checkJWT(req)
     }
 
-    @UseGuards(AuthGuard('jwt'))
     @Post('sms')
     requestAuthSms(@Body() body: any): Promise<boolean> {
         return this.authService.requestAuthSms(body.phoneNumber)
     }
 
-    @UseGuards(AuthGuard('jwt'))
     @Get('sms')
     checkAuthSms(@Query('phoneNumber') phoneNumber: string, @Query('authNumber') authNumber: string,): Promise<boolean> {
         return this.authService.checkAuthSms(phoneNumber, authNumber);

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as FormData from 'form-data';
 import { Observable } from 'rxjs';
+import { Error } from 'src/shared/model/error';
 import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { User } from 'src/user/model/user.entity';
 import { MoreThan, Repository } from 'typeorm';
@@ -38,8 +39,10 @@ export class AuthService {
     }
 
     async create(userDto: UserCreateDto): Promise<User> {
-        const find = await this.findByEmail(userDto.email);
-        if (find) throw new BadRequestException('already exist email');
+        const findEmail = await this.findByEmail(userDto.email);
+        if (findEmail) throw new BadRequestException(new Error('WUSER1005', '이미 해당 이메일이 존재합니다.'));
+        const findPhone = await this.userRepository.findOne({ phoneNumber: userDto.phoneNumber });
+        if (findPhone) throw new BadRequestException(new Error('WUSER1006', '이미 해당 휴대폰 번호가 존재합니다.'));
         const user = await this.userRepository.save(this.userRepository.create(userDto));
         return await this.findById(user.id)
     }
@@ -71,8 +74,6 @@ export class AuthService {
     }
 
     async updateOne(id: number, user: UserUpdateDto): Promise<any> {
-        // const find = await this.findByEmail(user.email);
-        // if (find) throw new BadRequestException('already exist email');
         return await this.update(id, user)
     }
 
@@ -135,6 +136,8 @@ export class AuthService {
     }
 
     async checkAuthSms(phoneNumber: string, authNumber: string): Promise<boolean> {
+        const find = await this.userRepository.findOne({ phoneNumber });
+        if (find) throw new BadRequestException(new Error('WUSER1006', '이미 해당 휴대폰 번호가 존재합니다.'));
         const time = moment().subtract(5, 'minute').format('YYYY-MM-DD HH:mm:ss')
         const authSms = await this.authSmsRepository.findOne({ phoneNumber, authNumber, updatedAt: MoreThan(time) });
         return !!authSms;

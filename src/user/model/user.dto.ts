@@ -45,6 +45,7 @@ export class UserCreateDto {
     @IsEnum(Gender)
     gender: Gender;
 
+    @IsOptional()
     @IsString()
     profilePhoto: string;
 

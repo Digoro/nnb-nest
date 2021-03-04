@@ -40,7 +40,7 @@ export class User extends BasicEntity {
     @Column({ nullable: true, type: 'enum', enum: Gender, default: Gender.MALE })
     gender: Gender;
 
-    @Column({ name: 'profile_photo', length: 254 })
+    @Column({ name: 'profile_photo', length: 254, default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' })
     profilePhoto: string;
 
     @Column({ nullable: true, length: 254 })
