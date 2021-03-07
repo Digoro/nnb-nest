@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService, Provider } from 'src/auth/service/auth.service';
 import { UserLoginDto } from 'src/user/model/user.dto';
+import { User } from 'src/user/model/user.entity';
+import { FindPassword } from './model/auth.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -86,5 +88,15 @@ export class AuthController {
     @Get('sms')
     checkAuthSms(@Query('phoneNumber') phoneNumber: string, @Query('authNumber') authNumber: string,): Promise<boolean> {
         return this.authService.checkAuthSms(phoneNumber, authNumber);
+    }
+
+    @Post('find-password')
+    findPassword(@Body() body: any): Promise<FindPassword> {
+        return this.authService.sendFindPasswordMail(body.email);
+    }
+
+    @Put('reset-password')
+    resetPassword(@Body() body: { validationCode: string, password: string }): Promise<User> {
+        return this.authService.resetPassword(body.validationCode, body.password);
     }
 }

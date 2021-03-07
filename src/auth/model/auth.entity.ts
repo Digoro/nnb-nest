@@ -9,3 +9,15 @@ export class AuthSms extends BasicEntity {
     @Column({ name: 'auth_number' })
     authNumber: string;
 }
+
+@Entity({ name: 'find_password' })
+export class FindPassword extends BasicEntity {
+    @Column({ name: 'validation_code' })
+    validationCode: string;
+
+    @Column()
+    email: string;
+
+    @Column({ name: 'expiration_at' })
+    expirationAt: Date;
+}
