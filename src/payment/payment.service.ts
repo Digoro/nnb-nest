@@ -204,6 +204,7 @@ export class PaymentService {
     async deleteOne(id: number): Promise<any> {
         return await this.paymentRepository.delete(id);
     }
+    
 
     async authPayple(payWork: string): Promise<any> {
         const cstId = this.PAYPLE_CST_ID;
