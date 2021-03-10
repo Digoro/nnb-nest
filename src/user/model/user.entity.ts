@@ -83,15 +83,11 @@ export class User extends BasicEntity {
 
     @BeforeInsert()
     async beforeInsert() {
-        this.hashPassword();
+        this.password = await bcrypt.hash(this.password, 12);
     }
 
     @BeforeUpdate()
     async beforeUpdate() {
-        this.hashPassword();
-    }
-
-    private async hashPassword() {
         this.password = await bcrypt.hash(this.password, 12);
     }
 
