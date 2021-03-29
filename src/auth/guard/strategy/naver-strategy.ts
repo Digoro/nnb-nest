@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-naver';
-import { AuthService, Provider } from 'src/auth/service/auth.service';
+import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
 
 @Injectable()
-export class NaverStrategy extends PassportStrategy(Strategy, Provider.NAVER) {
+export class NaverStrategy extends PassportStrategy(Strategy, OAuthProvider.NAVER) {
     constructor(
         private configService: ConfigService,
         private authService: AuthService
@@ -19,7 +19,10 @@ export class NaverStrategy extends PassportStrategy(Strategy, Provider.NAVER) {
 
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const email = profile.emails[0].value;
-        const jwt = await this.authService.validateOAuthLogin(email, profile.id, Provider.NAVER);
+        const id = profile.id;
+        const nickname = profile.displayName;
+        const image = profile.photos ? profile.photos[0].value : profile._json.profile_image;
+        const jwt = await this.authService.oauthLogin(email, id, nickname, OAuthProvider.NAVER, image);
         if (jwt) done(null, jwt);
         else {
             done(null, false);

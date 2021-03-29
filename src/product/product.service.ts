@@ -197,7 +197,7 @@ export class ProductService {
       .where('product.host = :hostId', { hostId: search.hostId })
       .orderBy('product.sortOrder', 'ASC')
     if (search.status !== ProductStatus.ALL) {
-      query.where('product.status = :status', { status: search.status })
+      query.andWhere('product.status = :status', { status: search.status })
     }
     const products = await paginate<Product>(query, options)
 

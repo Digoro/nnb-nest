@@ -2,11 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-kakao';
-import { Provider } from 'src/auth/service/auth.service';
+import { OAuthProvider } from 'src/auth/service/auth.service';
 import { AuthService } from '../../service/auth.service';
 
 @Injectable()
-export class KakaoStrategy extends PassportStrategy(Strategy, Provider.KAKAO) {
+export class KakaoStrategy extends PassportStrategy(Strategy, OAuthProvider.KAKAO) {
     constructor(
         private configService: ConfigService,
         private authService: AuthService
@@ -14,13 +14,17 @@ export class KakaoStrategy extends PassportStrategy(Strategy, Provider.KAKAO) {
         super({
             clientID: configService.get('KAKAO_CLIENT_ID'),
             clientSecret: '',
-            callbackURL: 'http://localhost:3000/auth/kakao/callback'
+            callbackURL: 'http://localhost:3000/auth/kakao/callback',
+            scope: 'account_email, profile',
+            successRedirect: '/tabs/feed'
         })
     }
 
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
-        const email = profile.emails[0].value;
-        const jwt = await this.authService.validateOAuthLogin(email, profile.id, Provider.KAKAO);
+        const email = profile._json.kakao_account.email;
+        const username = profile.username;
+        const image = profile._json.kakao_account.profile.profile_image_url;
+        const jwt = await this.authService.oauthLogin(email, profile.id, username, OAuthProvider.KAKAO, image);
         if (jwt) done(null, jwt);
         else {
             done(null, false);

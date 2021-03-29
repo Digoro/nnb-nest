@@ -83,12 +83,12 @@ export class User extends BasicEntity {
 
     @BeforeInsert()
     async beforeInsert() {
-        this.password = await bcrypt.hash(this.password, 12);
+        if (this.password) this.password = await bcrypt.hash(this.password, 12);
     }
 
     @BeforeUpdate()
     async beforeUpdate() {
-        this.password = await bcrypt.hash(this.password, 12);
+        if (this.password) this.password = await bcrypt.hash(this.password, 12);
     }
 
     comparePassword(attempPassword: string): boolean {

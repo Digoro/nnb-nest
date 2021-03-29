@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Put, Query, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthService, Provider } from 'src/auth/service/auth.service';
+import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
 import { UserLoginDto } from 'src/user/model/user.dto';
 import { User } from 'src/user/model/user.entity';
 import { FindPassword } from './model/auth.entity';
@@ -22,62 +22,53 @@ export class AuthController {
     }
 
     @Get('login/google')
-    @UseGuards(AuthGuard(Provider.GOOGLE))
+    @UseGuards(AuthGuard(OAuthProvider.GOOGLE))
     googleAuth() { }
 
-    @UseGuards(AuthGuard('jwt'))
-    @Get('success')
-    success() {
-        return 'success';
-    }
-
-    @Get('fail')
-    fail() {
-        return 'fail';
-    }
-
     @Get('google/callback')
-    @UseGuards(AuthGuard('google'))
+    @UseGuards(AuthGuard(OAuthProvider.GOOGLE))
     async googleAuthRedirect(@Req() req, @Res() res): Promise<any> {
-        try {
-            const user = await req.user;
-            console.log(user);
-            res.redirect('/success');
-        } catch (err) {
-            console.log(err);
-            res.redirect('/fail');
-            return err;
-        }
+        return await this.redirect(res, req);
     }
 
     @Get('login/kakao')
-    @UseGuards(AuthGuard('kakao'))
+    @UseGuards(AuthGuard(OAuthProvider.KAKAO))
     kakaoAuth(@Req() req) { }
 
     @Get('kakao/callback')
-    @UseGuards(AuthGuard('kakao'))
-    kakaoAuthRedirect(@Req() req) {
-        return this.authService.checkJWT(req)
+    @UseGuards(AuthGuard(OAuthProvider.KAKAO))
+    async kakaoAuthRedirect(@Req() req, @Res() res) {
+        return await this.redirect(res, req);
     }
 
     @Get('login/naver')
-    @UseGuards(AuthGuard('naver'))
+    @UseGuards(AuthGuard(OAuthProvider.NAVER))
     naverAuth(@Req() req) { }
 
     @Get('naver/callback')
-    @UseGuards(AuthGuard('naver'))
-    naverAuthRedirect(@Req() req) {
-        return this.authService.checkJWT(req)
+    @UseGuards(AuthGuard(OAuthProvider.NAVER))
+    async naverAuthRedirect(@Req() req, @Res() res) {
+        return await this.redirect(res, req);
     }
 
     @Get('login/facebook')
-    @UseGuards(AuthGuard('facebook'))
+    @UseGuards(AuthGuard(OAuthProvider.FACEBOOK))
     facebookAuth(@Req() req) { }
 
     @Get('facebook/callback')
-    @UseGuards(AuthGuard('facebook'))
-    facebookAuthRedirect(@Req() req) {
-        return this.authService.checkJWT(req)
+    @UseGuards(AuthGuard(OAuthProvider.FACEBOOK))
+    async facebookAuthRedirect(@Req() req, @Res() res) {
+        return await this.redirect(res, req);
+    }
+
+    async redirect(res, req) {
+        try {
+            const user = await req.user;
+            res.cookie('access_token', user)
+            res.redirect('http://localhost:8080');
+        } catch (err) {
+            res.redirect('http://localhost:8080/tabs/login');
+        }
     }
 
     @Post('sms')

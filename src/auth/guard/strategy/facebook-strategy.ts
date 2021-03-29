@@ -2,11 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-facebook';
-import { Provider } from 'src/auth/service/auth.service';
+import { OAuthProvider } from 'src/auth/service/auth.service';
 import { AuthService } from './../../service/auth.service';
 
 @Injectable()
-export class FacebookStrategy extends PassportStrategy(Strategy, Provider.FACEBOOK) {
+export class FacebookStrategy extends PassportStrategy(Strategy, OAuthProvider.FACEBOOK) {
     constructor(
         private configService: ConfigService,
         private authService: AuthService
@@ -21,7 +21,10 @@ export class FacebookStrategy extends PassportStrategy(Strategy, Provider.FACEBO
 
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const email = profile.emails[0].value;
-        const jwt = await this.authService.validateOAuthLogin(email, profile.id, Provider.FACEBOOK);
+        const id = profile.id;
+        const nickname = profile.displayName;
+        const image = profile.photos[0].value;
+        const jwt = await this.authService.oauthLogin(email, id, nickname, OAuthProvider.FACEBOOK, image);
         if (jwt) done(null, jwt);
         else {
             done(null, false);

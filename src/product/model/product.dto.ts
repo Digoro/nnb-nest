@@ -143,7 +143,8 @@ export class ProductSearchDto extends PaginationSearchDto {
     status: ProductStatus;
 
     @IsOptional()
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     hostId: number;
 
     @IsOptional()
