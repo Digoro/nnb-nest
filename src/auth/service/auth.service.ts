@@ -549,7 +549,7 @@ export class AuthService {
 		const findPassword = await this.findPasswordRepository.findOne({ validationCode, expirationAt: MoreThan(time) });
 		if (!findPassword) throw new BadRequestException(new Error('WUSER1009', '유효한 코드가 아닙니다.'));
 		const user = await this.userRepository.findOne({ email: findPassword.email });
-		user.password = password;
+		user.password = await bcrypt.hash(user.password, 12);
 		const update = await this.update(user.id, user);
 		return update;
 	}

@@ -1,7 +1,7 @@
 import { Exclude } from "class-transformer";
 import { Order } from "src/payment/model/order.entity";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Magazine } from '../../post/model/magazine.entity';
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Gender, Role } from "./user.interface";
@@ -83,11 +83,6 @@ export class User extends BasicEntity {
 
     @BeforeInsert()
     async beforeInsert() {
-        if (this.password) this.password = await bcrypt.hash(this.password, 12);
-    }
-
-    @BeforeUpdate()
-    async beforeUpdate() {
         if (this.password) this.password = await bcrypt.hash(this.password, 12);
     }
 
