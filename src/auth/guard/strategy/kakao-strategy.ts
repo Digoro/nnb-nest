@@ -15,8 +15,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, OAuthProvider.KAKA
             clientID: configService.get('KAKAO_CLIENT_ID'),
             clientSecret: '',
             callbackURL: 'http://localhost:3000/auth/kakao/callback',
-            scope: 'account_email, profile',
-            successRedirect: '/tabs/feed'
+            scope: 'account_email, profile'
         })
     }
 

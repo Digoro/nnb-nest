@@ -210,7 +210,8 @@ export class PaymentService {
         const custKey = this.PAYPLE_CST_KEY;
         // const cstId = 'test';
         // const custKey = 'abcd1234567890';
-        const url = "https://testcpay.payple.kr/php/auth.php";
+        const url = "https://cpay.payple.kr/php/auth.php";
+        // const url = "https://testcpay.payple.kr/php/auth.php";
 
         const form = new FormData();
         form.append('cst_id', cstId);
@@ -224,7 +225,8 @@ export class PaymentService {
         const result = await this.http.post(url, form, {
             headers: {
                 ...form.getHeaders(),
-                referer: 'localhost:8080'
+                referer: 'nonunbub.com'
+                // referer: 'localhost:8080'
             }
         }).toPromise();
         return result.data;

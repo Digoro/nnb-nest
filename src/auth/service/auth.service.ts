@@ -62,7 +62,7 @@ export class AuthService {
 		if (!user) throw new UnauthorizedException();
 		const match = await this.comparePassword(userDto.password, user.password);
 		if (!match) throw new UnauthorizedException();
-		return this.generateJWT(user);
+		return await this.generateJWT(user);
 	}
 
 	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<string> {
@@ -75,9 +75,9 @@ export class AuthService {
 			newUser.nickname = username ? username : this.gernateRandomString(8);
 			newUser.profilePhoto = image;
 			await this.userRepository.save(newUser);
-			return this.generateJWT(newUser);
+			return await this.generateJWT(newUser);
 		}
-		return this.generateJWT(user);
+		return await this.generateJWT(user);
 	}
 
 	async update<T>(id: number, userForUpdate: T) {
@@ -93,9 +93,9 @@ export class AuthService {
 		return await this.update(id, user);
 	}
 
-	generateJWT(user: User): string {
+	async generateJWT(user: User): Promise<string> {
 		delete user.password;
-		return this.jwtService.sign({ ...user });
+		return this.jwtService.signAsync({ ...user });
 	}
 
 	async comparePassword(newPassword: string, passwordHash: string): Promise<boolean> {
