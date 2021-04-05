@@ -72,7 +72,7 @@ export class AuthService {
 			newUser.email = email;
 			newUser.provider = provider;
 			newUser.thirdpartyId = thirdPartyId;
-			newUser.nickname = username ? username : this.gernateRandomString(8);
+			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(14)}`;
 			newUser.profilePhoto = image;
 			await this.userRepository.save(newUser);
 			return await this.generateJWT(newUser);
@@ -170,8 +170,7 @@ export class AuthService {
 			pass.email = email;
 			pass.expirationAt = expirationAt;
 			const result = await manager.save(FindPassword, pass);
-			const url = `https://www.nonunbub.com/tabs/reset-password?validationCode=${code}`;
-			// const url = `http://localhost:8080/tabs/reset-password?validationCode=${code}`;
+			const url = `${this.configService.get('SITE_HOST')}/tabs/reset-password?validationCode=${code}`;
 			const message = `
       <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">

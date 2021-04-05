@@ -14,7 +14,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, OAuthProvider.F
         super({
             clientID: configService.get('FACEBOOK_CLIENT_ID'),
             clientSecret: configService.get('FACEBOOK_CLIENT_SECRET_KEY'),
-            callbackURL: 'http://localhost:3000/auth/facebook/callback',
+            callbackURL: `${configService.get('API_HOST')}/auth/facebook/callback`,
             profileFields: ['id', 'email', 'gender', 'link', 'locale', 'name', 'timezone', 'updated_time', 'verified', 'photos'],
         })
     }

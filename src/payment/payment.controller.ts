@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
@@ -13,7 +14,8 @@ import { PaymentService } from './payment.service';
 @Controller('api/payments')
 export class PaymentController {
     constructor(
-        private paymentService: PaymentService
+        private paymentService: PaymentService,
+        private configService: ConfigService
     ) { }
 
     /**
@@ -75,13 +77,13 @@ export class PaymentController {
     }
 
     @Post('callback')
-    @Redirect('http://localhost:8080/tabs/payment-success')
+    @Redirect(`${new ConfigService().get('SITE_HOST')}/tabs/payment-success`)
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
-            return { url: `http://localhost:8080/tabs/payment-success/${payment.id}` }
+            return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch {
-            return { url: `http://localhost:8080/tabs/payment-fail` }
+            return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail` }
         }
     }
 

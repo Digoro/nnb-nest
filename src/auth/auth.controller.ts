@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query, Request, Response, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
 import { UserLoginDto } from 'src/user/model/user.dto';
@@ -9,7 +10,8 @@ import { FindPassword } from './model/auth.entity';
 @Controller('auth')
 export class AuthController {
     constructor(
-        private authService: AuthService
+        private authService: AuthService,
+        private configService: ConfigService
     ) { }
 
     @Post('login')
@@ -77,12 +79,10 @@ export class AuthController {
                 const previousUrl = decodeURIComponent(splited[splited.length - 1])
                 response.redirect(previousUrl);
             } else {
-                response.redirect('https://nonunbub.com/tabs/home');
-                // response.redirect('http://localhost:8080/tabs/home');
+                response.redirect(`${this.configService.get('SITE_HOST')}/tabs/home`);
             }
         } catch (err) {
-            response.redirect('https://nonunbub.com/tabs/login');
-            // response.redirect('http://localhost:8080/tabs/login');
+            response.redirect(`${this.configService.get('SITE_HOST')}/tabs/login`);
         }
     }
 

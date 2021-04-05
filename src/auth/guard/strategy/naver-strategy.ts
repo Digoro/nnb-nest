@@ -13,7 +13,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, OAuthProvider.NAVE
         super({
             clientID: configService.get('NAVER_CLIENT_ID'),
             clientSecret: configService.get('NAVER_CLIENT_SECRET_KEY'),
-            callbackURL: 'http://localhost:3000/auth/naver/callback'
+            callbackURL: `${configService.get('API_HOST')}/auth/naver/callback`
         })
     }
 
