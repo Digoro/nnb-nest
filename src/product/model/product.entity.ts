@@ -1,3 +1,4 @@
+import { Max, Min } from "class-validator";
 import { Order, OrderItem } from "src/payment/model/order.entity";
 import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
@@ -6,22 +7,26 @@ import { EventStatus, EventType, HashtagType, ProductStatus } from './product.in
 
 @Entity({ name: 'product' })
 export class Product extends BasicEntity {
-    @Column({ length: 254 })
+    @Column({ length: 30 })
     title: string;
 
     @Column()
+    @Min(0)
+    @Max(100000000)
     price: number;
 
     @Column({ name: 'discount_price', nullable: true })
+    @Min(0)
+    @Max(100000000)
     discountPrice: number;
 
-    @Column({ length: 254 })
+    @Column({ length: 500 })
     point: string;
 
-    @Column({ length: 254 })
+    @Column({ length: 500 })
     recommend: string;
 
-    @Column({ length: 254 })
+    @Column({ type: 'text' })
     description: string;
 
     @Column()
@@ -30,31 +35,34 @@ export class Product extends BasicEntity {
     @Column()
     lon: number;
 
-    @Column({ length: 254 })
+    @Column({ type: 'text' })
     address: string;
 
-    @Column({ length: 254, name: 'detail_address' })
+    @Column({ length: 500, name: 'detail_address' })
     detailAddress: string;
 
     @Column({ nullable: true, name: 'running_minutes', default: 0 })
+    @Min(0)
     runningMinutes: number;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, length: 500 })
     notice: string;
 
-    @Column({ nullable: true, length: 254, name: 'check_list' })
+    @Column({ nullable: true, length: 500, name: 'check_list' })
     checkList: string;
 
-    @Column({ nullable: true, length: 254, name: 'include_list' })
+    @Column({ nullable: true, length: 500, name: 'include_list' })
     includeList: string;
 
-    @Column({ nullable: true, length: 254, name: 'exclude_list' })
+    @Column({ nullable: true, length: 500, name: 'exclude_list' })
     excludeList: string;
 
     @Column({ name: 'refund_policy_100' })
+    @Min(0)
     refundPolicy100: number;
 
     @Column({ name: 'refund_policy_0' })
+    @Min(0)
     refundPolicy0: number;
 
     @Column({ nullable: true, type: 'enum', enum: ProductStatus, default: ProductStatus.CREATED })
@@ -102,7 +110,7 @@ export class Product extends BasicEntity {
 
 @Entity({ name: 'hashtag' })
 export class Hashtag extends BasicEntity {
-    @Column({ length: 254, unique: true })
+    @Column({ length: 20, unique: true })
     name: string;
 
     @Column({ type: 'enum', enum: HashtagType, default: HashtagType.PRODUCT })
@@ -138,7 +146,7 @@ export class Category extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ length: 254, unique: true })
+    @Column({ length: 20, unique: true })
     name: string;
 
     @OneToMany(() => ProductCategoryMap, map => map.category)
@@ -172,7 +180,7 @@ export class ProductRepresentationPhoto extends BaseEntity {
     @JoinColumn({ name: 'product_id' })
     product: Product;
 
-    @Column({ length: 254 })
+    @Column({ type: 'text' })
     photo: string;
 
     @Column()
@@ -185,22 +193,26 @@ export class ProductOption extends BasicEntity {
     @JoinColumn({ name: 'product_id' },)
     product: Product;
 
-    @Column({ length: 254 })
+    @Column({ length: 100 })
     name: string;
 
     @Column()
     date: Date;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, length: 300 })
     description: string;
 
     @Column()
+    @Min(0)
+    @Max(100000000)
     price: number;
 
     @Column({ name: 'min_participants' })
+    @Min(1)
     minParticipants: number;
 
     @Column({ name: 'max_participants' })
+    @Min(1)
     maxParticipants: number;
 
     @Column({ name: 'is_old', default: false })
@@ -225,9 +237,11 @@ export class ProductRequest extends BasicEntity {
     user: User;
 
     @Column({ name: 'number_of_people' })
+    @Min(1)
+    @Max(999)
     numberOfPeople: number;
 
-    @Column({ length: 254 })
+    @Column({ length: 500 })
     message: string;
 
     @Column({ name: 'is_checked' })
@@ -239,10 +253,10 @@ export class ProductRequest extends BasicEntity {
 
 @Entity({ name: 'event' })
 export class Event extends BasicEntity {
-    @Column({ length: 254 })
+    @Column({ length: 30 })
     title: string;
 
-    @Column({ length: 254 })
+    @Column({ length: 50 })
     subtitle: string;
 
     @Column({ type: 'enum', enum: EventType, default: EventType.PROMOTION })
@@ -251,10 +265,10 @@ export class Event extends BasicEntity {
     @Column({ type: 'enum', enum: EventStatus, default: EventStatus.CREATED })
     status: EventStatus;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, type: 'text' })
     photo: string;
 
-    @Column({ length: 254 })
+    @Column({ length: 500 })
     contents: string;
 
     @Column({ name: 'comment_enable' })
@@ -278,12 +292,13 @@ export class ProductReview extends BasicEntity {
     product: Product;
 
     @Column()
+    @Min(0)
     score: number;
 
-    @Column({ length: 254 })
+    @Column({ length: 1000 })
     comment: string;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, type: 'text' })
     photo: string;
 
     @ManyToOne(() => ProductReview, entity => entity.children)

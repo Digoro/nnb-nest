@@ -1,6 +1,6 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
@@ -10,22 +10,30 @@ import { EventStatus, EventType, HashtagType, ProductStatus } from './product.in
 
 export class ProductCreateDto implements Dto<Product>{
     @IsString()
+    @MaxLength(30)
     title: string;
 
     @IsNumber()
+    @Min(0)
+    @Max(100000000)
     price: number;
 
     @IsOptional()
     @IsNumber()
+    @Min(0)
+    @Max(100000000)
     discountPrice: number;
 
     @IsString()
+    @MaxLength(500)
     point: string;
 
     @IsString()
+    @MaxLength(500)
     recommend: string;
 
     @IsString()
+    @MaxLength(65535)
     description: string;
 
     @IsNumber()
@@ -35,35 +43,44 @@ export class ProductCreateDto implements Dto<Product>{
     lon: number;
 
     @IsString()
+    @MaxLength(65535)
     address: string;
 
     @IsString()
+    @MaxLength(500)
     detailAddress: string;
 
     @IsOptional()
     @IsInt()
+    @Min(0)
     runningMinutes: number;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     notice: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     checkList: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     includeList: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     excludeList: string;
 
     @IsInt()
+    @Min(0)
     refundPolicy100: number;
 
     @IsInt()
+    @Min(0)
     refundPolicy0: number;
 
     @IsOptional()
@@ -153,6 +170,7 @@ export class ProductSearchDto extends PaginationSearchDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(20)
     hashtag: string;
 
     @IsOptional()
@@ -166,6 +184,7 @@ export class ProductSearchDto extends PaginationSearchDto {
 
 export class ProductRepresentationPhotoCreateDto {
     @IsString()
+    @MaxLength(65535)
     photo: string;
 
     @IsOptional()
@@ -179,6 +198,7 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
     id: number;
 
     @IsString()
+    @MaxLength(100)
     name: string;
 
     @IsDateString()
@@ -186,9 +206,12 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
 
     @IsOptional()
     @IsString()
+    @MaxLength(300)
     description: string;
 
     @IsInt()
+    @Min(0)
+    @Max(100000000)
     price: number;
 
     @IsInt()
@@ -196,6 +219,7 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
     minParticipants: number;
 
     @IsInt()
+    @Min(1)
     maxParticipants: number;
 
     @IsOptional()
@@ -222,6 +246,7 @@ export class CategoryCreateDto {
     productId: number;
 
     @IsString()
+    @MaxLength(20)
     name: string;
 }
 
@@ -232,6 +257,7 @@ export class HashtagCreateDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(20)
     name: string;
 
     @IsEnum(HashtagType)
@@ -246,9 +272,12 @@ export class ProductRequestCreateDto implements Dto<ProductRequest> {
     productId: number;
 
     @IsInt()
+    @Min(1)
+    @Max(999)
     numberOfPeople: number;
 
     @IsString()
+    @MaxLength(500)
     message: string;
 
     @IsBoolean()
@@ -272,9 +301,11 @@ export class ProductRequestCreateDto implements Dto<ProductRequest> {
 
 export class EventCreateDto implements Dto<Event> {
     @IsString()
+    @MaxLength(30)
     title: string;
 
     @IsString()
+    @MaxLength(50)
     subtitle: string;
 
     @IsEnum(EventType)
@@ -285,9 +316,11 @@ export class EventCreateDto implements Dto<Event> {
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     photo: string;
 
     @IsString()
+    @MaxLength(500)
     contents: string;
 
     @IsBoolean()
@@ -331,9 +364,11 @@ export class ProductReviewCreateDto implements Dto<ProductReview> {
     productId: number;
 
     @IsInt()
+    @Min(0)
     score: number;
 
     @IsString()
+    @MaxLength(1000)
     comment: string;
 
     @IsOptional()
@@ -342,6 +377,7 @@ export class ProductReviewCreateDto implements Dto<ProductReview> {
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     photo: string;
 
     toEntity(user: User, product: Product, parent?: ProductReview): ProductReview {

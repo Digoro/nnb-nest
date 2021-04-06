@@ -1,17 +1,20 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Dto, PaginationSearchDto } from 'src/shared/model/dto';
 import { User } from 'src/user/model/user.entity';
 import { Magazine } from './magazine.entity';
 
 export class MagazineCreateDto implements Dto<Magazine> {
     @IsString()
+    @MaxLength(50)
     title: string;
 
     @IsString()
+    @MaxLength(50)
     catchphrase: string;
 
     @IsString()
+    @MaxLength(65535)
     representationPhoto: string;
 
     @IsOptional()
@@ -19,6 +22,7 @@ export class MagazineCreateDto implements Dto<Magazine> {
     authorId: number;
 
     @IsString()
+    @MaxLength(65535)
     contents: string;
 
     toEntity(author: User): Magazine {

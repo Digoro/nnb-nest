@@ -1,4 +1,5 @@
 import { Exclude } from "class-transformer";
+import { Min } from "class-validator";
 import { Order } from "src/payment/model/order.entity";
 import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
@@ -13,10 +14,10 @@ export class User extends BasicEntity {
     email: string;
 
     @Exclude()
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, type: 'text' })
     password: string;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, length: 20 })
     name: string;
 
     @Column({ nullable: true, unique: true, length: 15, name: 'phone_number' })
@@ -25,7 +26,7 @@ export class User extends BasicEntity {
     @Column({ nullable: true, length: 254 })
     provider: string;
 
-    @Column({ nullable: true, length: 254, name: 'thirdparty_id' })
+    @Column({ nullable: true, type: 'text', name: 'thirdparty_id' })
     thirdpartyId: string;
 
     @Column({ default: 0 })
@@ -34,19 +35,19 @@ export class User extends BasicEntity {
     @Column({ nullable: true })
     birthday: Date;
 
-    @Column({ length: 254 })
+    @Column({ length: 20 })
     nickname: string;
 
     @Column({ nullable: true, type: 'enum', enum: Gender, default: Gender.MALE })
     gender: Gender;
 
-    @Column({ name: 'profile_photo', length: 254, default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' })
+    @Column({ name: 'profile_photo', type: 'text', default: 'https://nonunbub.s3.ap-northeast-2.amazonaws.com/users/empty_profile.png' })
     profilePhoto: string;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, length: 30 })
     catchphrase: string;
 
-    @Column({ nullable: true, length: 254 })
+    @Column({ nullable: true, length: 500 })
     introduction: string;
 
     @Column({ type: 'enum', enum: Role, default: Role.USER })
@@ -93,13 +94,14 @@ export class User extends BasicEntity {
 
 @Entity({ name: 'coupon' })
 export class Coupon extends BasicEntity {
-    @Column({ length: 254 })
+    @Column({ length: 50 })
     name: string;
 
-    @Column({ length: 254 })
+    @Column({ length: 500 })
     contents: string;
 
     @Column()
+    @Min(0)
     price: number;
 
     @Column()

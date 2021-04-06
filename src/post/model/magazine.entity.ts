@@ -4,18 +4,18 @@ import { User } from '../../user/model/user.entity';
 
 @Entity({ name: 'magazine' })
 export class Magazine extends BasicEntity {
-    @Column({ length: 254 })
+    @Column({ length: 50 })
     title: string;
 
-    @Column({ length: 254 })
+    @Column({ length: 50 })
     catchphrase: string;
 
-    @Column({ name: 'representation_photo', length: 254 })
+    @Column({ name: 'representation_photo', type: 'text' })
     representationPhoto: string;
 
     @ManyToOne(() => User, entity => entity.magazines)
     author: User;
 
-    @Column({ length: 254 })
+    @Column({ type: 'text' })
     contents: string;
 }

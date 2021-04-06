@@ -324,7 +324,7 @@ export class AuthService {
 										<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:0px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
 											<!--<![endif]-->
 											<div class="img-container center fixedwidth" align="center" style="padding-right: 0px;padding-left: 0px;">
-												<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img class="center fixedwidth" align="center" border="0" src="https://nonunbub.com/static//assets/nonunbub_logo.png" alt="nnb" title="nnb" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 125px; display: block;" width="125">
+												<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img class="center fixedwidth" align="center" border="0" src="https://nonunbub.com/static//assets/nnb_logo.png" alt="nnb" title="nnb" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 125px; display: block;" width="125">
 												<div style="font-size:1px;line-height:10px">&nbsp;</div>
 												<!--[if mso]></td></tr></table><![endif]-->
 											</div>
@@ -548,7 +548,7 @@ export class AuthService {
 		const findPassword = await this.findPasswordRepository.findOne({ validationCode, expirationAt: MoreThan(time) });
 		if (!findPassword) throw new BadRequestException(new Error('WUSER1009', '유효한 코드가 아닙니다.'));
 		const user = await this.userRepository.findOne({ email: findPassword.email });
-		user.password = await bcrypt.hash(user.password, 12);
+		user.password = await bcrypt.hash(password, 12);
 		const update = await this.update(user.id, user);
 		return update;
 	}

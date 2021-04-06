@@ -1,6 +1,6 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
 import { Coupon } from './user.entity';
@@ -8,30 +8,38 @@ import { Gender } from './user.interface';
 
 export class UserCreateDto {
     @IsEmail()
+    @MaxLength(254)
     email: string;
 
     @IsOptional()
     @IsString()
+    @MinLength(10)
+    @MaxLength(20)
     password: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(20)
     name: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(15)
     phoneNumber: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(254)
     provider: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     thirdpartyId: string;
 
     @IsOptional()
     @IsInt()
+    @Min(0)
     points: number;
 
     @IsOptional()
@@ -39,6 +47,7 @@ export class UserCreateDto {
     birthday: Date;
 
     @IsString()
+    @MaxLength(20)
     nickname: string;
 
     @IsOptional()
@@ -47,14 +56,17 @@ export class UserCreateDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     profilePhoto: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(30)
     catchphrase: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     introduction: string;
 }
 
@@ -63,10 +75,12 @@ export class UserLoginDto extends PickType(UserCreateDto, ['email', 'password'])
 export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider', 'thirdpartyId']) {
     @IsOptional()
     @IsString()
+    @MaxLength(20)
     nickname: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     profilePhoto: string;
 }
 
@@ -74,7 +88,6 @@ export class UserUpdateRoleDto {
     @IsEnum(Role)
     role: Role;
 }
-
 
 export class UserLikeDto {
     @IsInt()
@@ -86,12 +99,15 @@ export class UserLikeDto {
 
 export class CouponCreateDto implements Dto<Coupon>{
     @IsString()
+    @MaxLength(50)
     name: string;
 
     @IsString()
+    @MaxLength(500)
     contents: string;
 
     @IsInt()
+    @Min(0)
     price: number;
 
     @IsDate()
