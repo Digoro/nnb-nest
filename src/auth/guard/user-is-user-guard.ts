@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { Role } from "src/user/model/user.interface";
 import { AuthService } from "../service/auth.service";
 
 
@@ -15,6 +16,7 @@ export class UserIsUserGuard implements CanActivate {
             const requestCurrentUser = request.user;
             const currentUser = await this.authService.findById(requestCurrentUser.id);
             if (!currentUser) return false;
+            if (currentUser.role === Role.ADMIN) return true;
             return currentUser.id === requestUserId;
         } catch {
             return false;

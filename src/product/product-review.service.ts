@@ -4,7 +4,7 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { ProductReview } from 'src/product/model/product.entity';
 import { PaginationWithChildren } from 'src/shared/model/pagination';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto } from './model/product.dto';
 import { ProductService } from './product.service';
 
@@ -30,23 +30,48 @@ export class ProductReviewService {
 
   async paginate(search: ProductReviewSearchDto): Promise<PaginationWithChildren<ProductReview>> {
     const options = { page: search.page, limit: search.limit }
-    delete search.page
-    delete search.limit
-    const result = await paginate<ProductReview>(this.productReviewRepository, options, {
-      where: [{ ...search, parent: null }],
-      relations: this.productReviewRelations,
-      order: { createdAt: 'DESC' }
-    })
-    const parents = result.items;
-    for (const parent of parents) {
-      const children = await this.productReviewRepository.find({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
-      if (children.length > 0) parents.push(...children)
+    delete search.page;
+    delete search.limit;
+
+    //profile page
+    if (search.user) {
+      const hostedProducts = await this.productService.getHostedProducts(search.user);
+      const ids = hostedProducts.map(product => product.id);
+      delete search.user;
+      const result = await paginate<ProductReview>(this.productReviewRepository, options, {
+        where: [{ parent: null, product: In(ids) }],
+        relations: this.productReviewRelations,
+        order: { createdAt: 'DESC' }
+      })
+      const items = result.items;
+      for (const parent of items) {
+        const children = await this.productReviewRepository.find({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
+        if (children.length > 0) items.push(...children)
+      }
+      const count = await this.productReviewRepository.count({ where: [{ product: In(ids) }] });
+      return {
+        items: items,
+        meta: { ...result.meta, totalItemsWithChildren: count }
+      };
     }
-    const count = await this.productReviewRepository.count({ where: [search] });
-    return {
-      items: parents,
-      meta: { ...result.meta, totalItemsWithChildren: count }
-    };
+    //product-detail page
+    else {
+      const result = await paginate<ProductReview>(this.productReviewRepository, options, {
+        where: [{ ...search, parent: null }],
+        relations: this.productReviewRelations,
+        order: { createdAt: 'DESC' }
+      })
+      const items = result.items;
+      for (const parent of items) {
+        const children = await this.productReviewRepository.find({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
+        if (children.length > 0) items.push(...children)
+      }
+      const count = await this.productReviewRepository.count({ where: [search] });
+      return {
+        items: items,
+        meta: { ...result.meta, totalItemsWithChildren: count }
+      };
+    }
   }
 
   async findOne(id: number): Promise<ProductReview> {

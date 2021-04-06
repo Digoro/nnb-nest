@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthService } from 'src/auth/service/auth.service';
 import { User } from 'src/user/model/user.entity';
+import { Role } from "src/user/model/user.interface";
 import { PaymentService } from './../payment.service';
 
 
@@ -21,6 +22,7 @@ export class UserIsPaymentOwnerGuard implements CanActivate {
             const paymentUser = payment.order.user
 
             const user = await this.userService.findById(requestUser.id);
+            if (user.role === Role.ADMIN) return true;
             let hasPermission = false;
             if (user.id === paymentUser.id) {
                 hasPermission = true

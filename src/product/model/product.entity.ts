@@ -26,7 +26,7 @@ export class Product extends BasicEntity {
     @Column({ length: 500 })
     recommend: string;
 
-    @Column({ type: 'text' })
+    @Column({ select: false, type: 'text' })
     description: string;
 
     @Column()

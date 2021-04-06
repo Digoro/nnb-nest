@@ -191,6 +191,7 @@ export class ProductService {
     const options = { page: search.page, limit: search.limit };
     const query = this.productRepository
       .createQueryBuilder('product')
+      .addSelect('product.description')
       .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
       .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
@@ -214,6 +215,7 @@ export class ProductService {
     const options = { page: search.page, limit: search.limit };
     const query = this.productRepository
       .createQueryBuilder('product')
+      .addSelect('product.description')
       .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
       .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
       .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
@@ -236,12 +238,20 @@ export class ProductService {
     return { items, meta: products.meta };
   }
 
+  async getHostedProducts(hostId: number): Promise<Product[]> {
+    return await this.productRepository.find({
+      where: [{ host: hostId }],
+      order: { sortOrder: 'ASC' }
+    })
+  }
+
   async searchByHashtag(search: ProductSearchDto): Promise<Pagination<Product>> {
     const options = { page: search.page, limit: search.limit };
     const hashtag = await this.hashtagRepository.findOne({ name: search.hashtag });
     const products = await paginate<Product>(
       this.productRepository
         .createQueryBuilder('product')
+        .addSelect('product.description')
         .leftJoin(ProductHashtagMap, 'map', 'map.productId = product.id')
         .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
         .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
@@ -265,6 +275,7 @@ export class ProductService {
     const products = await paginate<Product>(
       this.productRepository
         .createQueryBuilder('product')
+        .addSelect('product.description')
         .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
         .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
         .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
@@ -288,6 +299,7 @@ export class ProductService {
     const products = await paginate<Product>(
       this.productRepository
         .createQueryBuilder('product')
+        .addSelect('product.description')
         .leftJoin(ProductCategoryMap, 'map', 'map.productId = product.id')
         .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
         .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
@@ -309,6 +321,7 @@ export class ProductService {
   async findById(id: number, userId?: number): Promise<Product> {
     const product = await this.productRepository
       .createQueryBuilder('product')
+      .addSelect('product.description')
       .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
       .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
       .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
