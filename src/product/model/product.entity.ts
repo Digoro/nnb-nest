@@ -59,10 +59,12 @@ export class Product extends BasicEntity {
 
     @Column({ name: 'refund_policy_100' })
     @Min(0)
+    @Max(9999)
     refundPolicy100: number;
 
     @Column({ name: 'refund_policy_0' })
     @Min(0)
+    @Max(9999)
     refundPolicy0: number;
 
     @Column({ nullable: true, type: 'enum', enum: ProductStatus, default: ProductStatus.CREATED })

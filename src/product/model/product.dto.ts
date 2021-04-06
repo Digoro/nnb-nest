@@ -77,10 +77,12 @@ export class ProductCreateDto implements Dto<Product>{
 
     @IsInt()
     @Min(0)
+    @Max(9999)
     refundPolicy100: number;
 
     @IsInt()
     @Min(0)
+    @Max(9999)
     refundPolicy0: number;
 
     @IsOptional()

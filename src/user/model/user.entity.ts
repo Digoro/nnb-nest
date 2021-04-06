@@ -47,7 +47,7 @@ export class User extends BasicEntity {
     @Column({ nullable: true, length: 30 })
     catchphrase: string;
 
-    @Column({ nullable: true, length: 500 })
+    @Column({ nullable: true, length: 1000 })
     introduction: string;
 
     @Column({ type: 'enum', enum: Role, default: Role.USER })

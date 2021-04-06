@@ -66,7 +66,7 @@ export class UserCreateDto {
 
     @IsOptional()
     @IsString()
-    @MaxLength(500)
+    @MaxLength(1000)
     introduction: string;
 }
 
