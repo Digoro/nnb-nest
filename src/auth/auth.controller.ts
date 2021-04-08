@@ -1,12 +1,14 @@
 import { Body, Controller, Get, Post, Put, Query, Request, Response, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
 import { UserLoginDto } from 'src/user/model/user.dto';
 import { User } from 'src/user/model/user.entity';
 import { UserIsUserGuard } from './guard/user-is-user-guard';
 import { FindPassword } from './model/auth.entity';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(

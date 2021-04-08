@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
@@ -11,6 +12,7 @@ import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
 import { PaymentCreateDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
+@ApiTags('payments')
 @Controller('api/payments')
 export class PaymentController {
     constructor(

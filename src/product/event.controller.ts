@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
@@ -8,6 +9,7 @@ import { EventService } from './event.service';
 import { EventCreateDto, EventSearchDto, EventUpdateDto } from './model/product.dto';
 import { Event } from './model/product.entity';
 
+@ApiTags('events')
 @Controller('api/events')
 export class EventController {
   constructor(private readonly eventService: EventService) { }

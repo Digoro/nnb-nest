@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
@@ -9,6 +10,7 @@ import { ProductRequestCreateDto } from './model/product.dto';
 import { ProductRequest } from './model/product.entity';
 import { ProductRequestService } from './product-request.service';
 
+@ApiTags('product-requests')
 @Controller('api/product-requests')
 export class ProductRequestController {
   constructor(

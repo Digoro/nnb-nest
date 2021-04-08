@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { BandService } from './band.service';
 
+@ApiTags('band')
 @Controller('api/band')
 export class BandController {
     constructor(private readonly bandService: BandService) { }

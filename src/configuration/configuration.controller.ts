@@ -1,11 +1,13 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Role } from 'src/user/model/user.interface';
 import { ConfigurationService } from './configuration.service';
 import { Configuration } from './model/configuration.entity';
 
+@ApiTags('configurations')
 @Controller('api/configurations')
 export class ConfigurationController {
     constructor(

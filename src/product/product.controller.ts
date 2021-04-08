@@ -1,11 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ProductCreateDto, ProductManageDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Product } from './model/product.entity';
 import { ProductService } from './product.service';
 import { UserIsProductHostGuard } from './user-is-product-host-guard';
 
+@ApiTags('products')
 @Controller('api/products')
 export class ProductController {
   constructor(private readonly productService: ProductService) { }

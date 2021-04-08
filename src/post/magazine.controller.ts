@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/user/model/user.interface';
@@ -8,6 +9,7 @@ import { MagazineService } from './magazine.service';
 import { MagazineCreateDto, MagazineSearchDto, MagazineUpdateDto } from './model/magazine.dto';
 import { Magazine } from './model/magazine.entity';
 
+@ApiTags('magazines')
 @Controller('api/magazines')
 export class MagazineController {
     constructor(private readonly magazineService: MagazineService) { }

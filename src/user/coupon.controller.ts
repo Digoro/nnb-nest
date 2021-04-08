@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
@@ -8,6 +9,7 @@ import { CouponService } from './coupon.service';
 import { CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
 import { Role } from './model/user.interface';
 
+@ApiTags('coupons')
 @Controller('api/coupons')
 export class CouponController {
     constructor(

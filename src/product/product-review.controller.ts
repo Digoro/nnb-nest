@@ -1,10 +1,12 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { ProductReview } from 'src/product/model/product.entity';
 import { ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto } from './model/product.dto';
 import { ProductReviewService } from './product-review.service';
 import { UserIsReviewAuthorGuard } from './user-is-review-author-guard copy';
 
+@ApiTags('reviews')
 @Controller('api/reviews/products')
 export class ProductReviewController {
   constructor(private readonly productReviewService: ProductReviewService) { }
