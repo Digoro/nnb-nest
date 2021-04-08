@@ -74,6 +74,9 @@ export class AuthService {
 			newUser.thirdpartyId = thirdPartyId;
 			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(14)}`;
 			newUser.profilePhoto = image;
+			newUser.aggrementTermsOfService = true;
+			newUser.aggrementCollectPersonal = true;
+			newUser.aggrementMarketing = true;
 			await this.userRepository.save(newUser);
 			return await this.generateJWT(newUser);
 		}
