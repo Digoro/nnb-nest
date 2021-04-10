@@ -50,10 +50,10 @@ export class User extends BasicEntity {
     @Column({ nullable: true, length: 1000 })
     introduction: string;
 
-    @Column({ name: 'aggrement_termsOfService', default: true })
+    @Column({ name: 'aggrement_terms_of_service', default: true })
     aggrementTermsOfService: boolean;
 
-    @Column({ name: 'aggrement_collectPersonal', default: true })
+    @Column({ name: 'aggrement_collect_personal', default: true })
     aggrementCollectPersonal: boolean;
 
     @Column({ name: 'aggrement_marketing', default: false })
