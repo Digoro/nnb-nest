@@ -102,7 +102,6 @@ export class PaymentService {
             queryRunner.commitTransaction();
             return result;
         } catch (e) {
-            this.logger.error(e);
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException();
         } finally {
@@ -154,8 +153,6 @@ export class PaymentService {
         form.append('apikey', this.configService.get('ALIMTALK_API_KEY'))
         form.append('userid', this.configService.get('ALIMTALK_USER_ID'))
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise()
-        this.logger.log(`get token`)
-        this.logger.log(response.data)
         return response.data.token;
     }
 
@@ -167,33 +164,16 @@ export class PaymentService {
         const totalPrice = payment.totalPrice;
         const payAt = moment(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
-        const orderItems = await this.orderItemRepository.find({ where: { order: payment.order.id }, relations: ['productOption'] })
-        this.logger.log("orderItems")
-        this.logger.log(orderItems)
-        const productOptions = orderItems.map(item => item.productOption.name).join(", ");
-        this.logger.log("productOptions")
+        const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
+        let productOptions = orderItems.map(item => item.productOption.name).join(", ");
         let productOptionDate;
         if (orderItems.length > 0) productOptionDate = moment(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
-        else productOptionDate = '상세 페이지에서 확인하세요'
-        this.logger.log("productOptionDate")
-        this.logger.log(productOptionDate)
+        else {
+            productOptions = '홈 - 내모임에서 확인해주세요.'
+            productOptionDate = '홈 - 내모임에서 확인해주세요.'
+        }
         const productId = payment.order.product.id;
-        this.logger.log("productId")
-        this.logger.log(`
-receiverPhoneNumber:${receiverPhoneNumber},
-receiverName:${receiverName},
-nickname:${nickname},
-orderNumber:${orderNumber},
-totalPrice:${totalPrice},
-payAt:${payAt},
-productTitle:${productTitle},
-orderItems:${orderItems},
-productOptions:${productOptions},
-productOptionDate:${productOptionDate},
-productId:${productId},
-        `);
         const token = await this.getAlimtalkToken();
-        this.logger.log(token);
         const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
         const temp = "TD_0323"
         const subject = "노는법 예약확인 메시지"
@@ -244,7 +224,6 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
         const code = response.data.code;
         if (code === -99) {
-            this.logger.error(response.data);
             throw new InternalServerErrorException();
         }
         return true;
