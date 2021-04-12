@@ -168,6 +168,8 @@ export class PaymentService {
         const payAt = moment(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
         const orderItems = await this.orderItemRepository.find({ where: { order: payment.order.id }, relations: ['productOption'] })
+        this.logger.log("orderItems")
+        this.logger.log(orderItems)
         const productOptions = orderItems.map(item => item.productOption.name).join(", ");
         const productOptionDate = moment(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
         const productId = payment.order.product.id;
