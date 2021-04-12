@@ -169,8 +169,21 @@ export class PaymentService {
         const productOptions = orderItems.map(item => item.productOption.name).join(", ");
         const productOptionDate = moment(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
         const productId = payment.order.product.id;
-
-        const token = await this.getAlimtalkToken()
+        this.logger.log(`
+receiverPhoneNumber:${receiverPhoneNumber},
+receiverName:${receiverName},
+nickname:${nickname},
+orderNumber:${orderNumber},
+totalPrice:${totalPrice},
+payAt:${payAt},
+productTitle:${productTitle},
+orderItems:${orderItems},
+productOptions:${productOptions},
+productOptionDate:${productOptionDate},
+productId:${productId},
+        `);
+        const token = await this.getAlimtalkToken();
+        this.logger.log(token);
         const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
         const temp = "TD_0323"
         const subject = "노는법 예약확인 메시지"

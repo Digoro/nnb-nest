@@ -15,7 +15,7 @@ import { PaymentService } from './payment.service';
 @ApiTags('payments')
 @Controller('api/payments')
 export class PaymentController {
-    private readonly logger = new Logger();
+    private readonly logger = new Logger(PaymentController.name);
 
     constructor(
         private paymentService: PaymentService,
@@ -85,6 +85,7 @@ export class PaymentController {
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
+            this.logger.log(payment);
             await this.paymentService.sendAlimtalk(payment);
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch (e) {
