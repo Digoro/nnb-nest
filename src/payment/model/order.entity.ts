@@ -29,8 +29,7 @@ export class Order extends BaseEntity {
     @OneToMany(() => OrderItem, entity => entity.order)
     orderItems: OrderItem[];
 
-    @OneToOne(() => Payment)
-    @JoinColumn({ name: 'payment_id' })
+    @OneToOne(() => Payment, payment => payment.order)
     payment: Payment;
 }
 

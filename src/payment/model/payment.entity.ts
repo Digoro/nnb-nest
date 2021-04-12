@@ -5,7 +5,7 @@ import { PayMethod, PG } from "./payment.interface";
 
 @Entity({ name: 'payment' })
 export class Payment extends BasicEntity {
-    @OneToOne(() => Order)
+    @OneToOne(() => Order, order => order.payment)
     @JoinColumn({ name: 'order_id' })
     order: Order;
 
