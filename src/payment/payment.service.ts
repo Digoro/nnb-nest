@@ -171,8 +171,11 @@ export class PaymentService {
         this.logger.log("orderItems")
         this.logger.log(orderItems)
         const productOptions = orderItems.map(item => item.productOption.name).join(", ");
+        this.logger.log("productOptions")
         const productOptionDate = moment(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
+        this.logger.log("productOptionDate")
         const productId = payment.order.product.id;
+        this.logger.log("productId")
         this.logger.log(`
 receiverPhoneNumber:${receiverPhoneNumber},
 receiverName:${receiverName},
