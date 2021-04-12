@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, Logger, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -15,6 +15,8 @@ import { PaymentService } from './payment.service';
 @ApiTags('payments')
 @Controller('api/payments')
 export class PaymentController {
+    private readonly logger = new Logger();
+
     constructor(
         private paymentService: PaymentService,
         private configService: ConfigService
@@ -85,7 +87,8 @@ export class PaymentController {
             const payment = await this.paymentService.pay(paypleDto);
             await this.paymentService.sendAlimtalk(payment);
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
-        } catch {
+        } catch (e) {
+            this.logger.error(e);
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail` }
         }
     }

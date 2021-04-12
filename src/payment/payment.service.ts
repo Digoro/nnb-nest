@@ -102,7 +102,7 @@ export class PaymentService {
             queryRunner.commitTransaction();
             return result;
         } catch (e) {
-            this.logger.log(e);
+            this.logger.error(e);
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException();
         } finally {
@@ -221,7 +221,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
         const code = response.data.code;
         if (code === -99) {
-            this.logger.log(response.data);
+            this.logger.error(response.data);
             throw new InternalServerErrorException();
         }
         return true;
