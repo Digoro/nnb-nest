@@ -1,4 +1,4 @@
-import { BadRequestException, HttpService, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, HttpService, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as FormData from 'form-data';
@@ -20,6 +20,7 @@ export class PaymentService {
     private PAYPLE_CST_KEY: string;
     private PAYPLE_API_URL: string;
     relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems', 'order.orderItems.productOption', 'order.user'];
+    private readonly logger = new Logger();
 
     constructor(
         @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
@@ -101,8 +102,7 @@ export class PaymentService {
             queryRunner.commitTransaction();
             return result;
         } catch (e) {
-            console.log(e);
-            console.log(e.error);
+            this.logger.log(e);
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException();
         } finally {
@@ -220,7 +220,10 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         form.append('testMode', "N");
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
         const code = response.data.code;
-        if (code === -99) throw new InternalServerErrorException();
+        if (code === -99) {
+            this.logger.log(response.data);
+            throw new InternalServerErrorException();
+        }
         return true;
     }
 

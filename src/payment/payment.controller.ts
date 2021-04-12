@@ -83,7 +83,7 @@ export class PaymentController {
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
-            // await this.paymentService.sendAlimtalk(payment);
+            await this.paymentService.sendAlimtalk(payment);
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch {
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail` }
