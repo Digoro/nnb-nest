@@ -101,6 +101,8 @@ export class PaymentService {
             queryRunner.commitTransaction();
             return result;
         } catch (e) {
+            console.log(e);
+            console.log(e.error);
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException();
         } finally {
