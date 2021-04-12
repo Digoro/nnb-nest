@@ -154,6 +154,8 @@ export class PaymentService {
         form.append('apikey', this.configService.get('ALIMTALK_API_KEY'))
         form.append('userid', this.configService.get('ALIMTALK_USER_ID'))
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise()
+        this.logger.log(`get token`)
+        this.logger.log(response.data)
         return response.data.token;
     }
 
