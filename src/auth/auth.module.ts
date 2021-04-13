@@ -2,8 +2,10 @@ import { HttpModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Coupon } from 'src/user/model/user.entity';
+import { Configuration } from './../configuration/model/configuration.entity';
 import { MailService } from './../shared/service/mail.service';
-import { User } from './../user/model/user.entity';
+import { User, UserCouponMap } from './../user/model/user.entity';
 import { AuthController } from './auth.controller';
 import { RolesGuard } from './guard/roles-guard';
 import { FacebookStrategy } from './guard/strategy/facebook-strategy';
@@ -20,7 +22,10 @@ import { AuthService } from './service/auth.service';
         TypeOrmModule.forFeature([
             User,
             AuthSms,
-            FindPassword
+            FindPassword,
+            Coupon,
+            UserCouponMap,
+            Configuration
         ]),
         HttpModule,
         JwtModule.registerAsync({

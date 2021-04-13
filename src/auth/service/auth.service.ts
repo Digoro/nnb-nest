@@ -5,9 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as FormData from 'form-data';
 import { Error } from 'src/shared/model/error';
 import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
-import { User } from 'src/user/model/user.entity';
+import { Coupon, User } from 'src/user/model/user.entity';
 import { getConnection, MoreThan, Repository } from 'typeorm';
+import { Configuration } from './../../configuration/model/configuration.entity';
 import { MailService } from './../../shared/service/mail.service';
+import { UserCouponMap } from './../../user/model/user.entity';
 import { AuthSms, FindPassword } from './../model/auth.entity';
 const bcrypt = require('bcrypt');
 const moment = require('moment')
@@ -30,6 +32,9 @@ export class AuthService {
 		@InjectRepository(User) private userRepository: Repository<User>,
 		@InjectRepository(AuthSms) private authSmsRepository: Repository<AuthSms>,
 		@InjectRepository(FindPassword) private findPasswordRepository: Repository<FindPassword>,
+		@InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
+		@InjectRepository(UserCouponMap) private userCouponMapRepository: Repository<UserCouponMap>,
+		@InjectRepository(Configuration) private configurationRepository: Repository<Configuration>,
 		private jwtService: JwtService,
 		private http: HttpService,
 		private configService: ConfigService,
@@ -46,6 +51,7 @@ export class AuthService {
 		const findPhone = await this.userRepository.findOne({ phoneNumber: userDto.phoneNumber });
 		if (findPhone) throw new BadRequestException(new Error('WUSER1006', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
+		this.setCoupon(user);
 		return await this.findById(user.id)
 	}
 
@@ -66,7 +72,7 @@ export class AuthService {
 	}
 
 	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<string> {
-		const user = await this.findByEmail(email);
+		let user = await this.findByEmail(email);
 		if (!user) {
 			const newUser = new User();
 			newUser.email = email;
@@ -77,10 +83,29 @@ export class AuthService {
 			newUser.aggrementTermsOfService = true;
 			newUser.aggrementCollectPersonal = true;
 			newUser.aggrementMarketing = true;
-			await this.userRepository.save(newUser);
-			return await this.generateJWT(newUser);
+			user = await this.userRepository.save(newUser);
+			this.setCoupon(user);
 		}
 		return await this.generateJWT(user);
+	}
+
+	async setCoupon(user: User) {
+		const event = await this.configurationRepository.findOne({ key: 'signupEvent' });
+		if (event && event.value === 'true') {
+			const coupon = new Coupon();
+			coupon.name = '회원가입 이벤트';
+			coupon.contents = '회원가입 이벤트';
+			coupon.price = 3000;
+			coupon.expireDuration = moment().endOf('year').toDate();
+			const newCoupon = await this.couponRepository.save(coupon);
+
+			const map = new UserCouponMap();
+			map.user = user;
+			map.userId = user.id;
+			map.coupon = newCoupon;
+			map.couponId = newCoupon.id;
+			await this.userCouponMapRepository.save(map);
+		}
 	}
 
 	async update<T>(id: number, userForUpdate: T) {

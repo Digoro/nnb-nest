@@ -156,7 +156,7 @@ export class PaymentService {
         return response.data.token;
     }
 
-    async sendAlimtalk(payment: Payment) {
+    async sendAlimtalk(payment: Payment, receiver?: string) {
         const receiverPhoneNumber = payment.order.user.phoneNumber;
         const receiverName = payment.order.user.name;
         const nickname = payment.order.user.nickname;
@@ -212,7 +212,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         form.append('senderkey', this.configService.get('ALIMTALK_SENDER_KEY'));
         form.append('tpl_code', temp);
         form.append('sender', sender);
-        form.append('receiver_1', receiverPhoneNumber);
+        receiver ? form.append('receiver_1', receiver) : form.append('receiver_1', receiverPhoneNumber);
         form.append('recvname_1', receiverName);
         form.append('subject_1', subject);
         form.append('message_1', message);

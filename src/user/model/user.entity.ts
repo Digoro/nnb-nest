@@ -38,7 +38,7 @@ export class User extends BasicEntity {
     @Column({ length: 20 })
     nickname: string;
 
-    @Column({ nullable: true, type: 'enum', enum: Gender, default: Gender.MALE })
+    @Column({ nullable: true, type: 'enum', enum: Gender, default: Gender.OTHER })
     gender: Gender;
 
     @Column({ name: 'profile_photo', type: 'text', default: 'https://nonunbub.s3.ap-northeast-2.amazonaws.com/users/empty_profile.png' })

@@ -86,6 +86,8 @@ export class PaymentController {
         try {
             const payment = await this.paymentService.pay(paypleDto);
             await this.paymentService.sendAlimtalk(payment);
+            await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_01'));
+            await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_02'));
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch (e) {
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail` }
