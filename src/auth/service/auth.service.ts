@@ -72,7 +72,7 @@ export class AuthService {
 			newUser.email = email;
 			newUser.provider = provider;
 			newUser.thirdpartyId = thirdPartyId;
-			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(14)}`;
+			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(11)}`;
 			newUser.profilePhoto = image;
 			newUser.aggrementTermsOfService = true;
 			newUser.aggrementCollectPersonal = true;
