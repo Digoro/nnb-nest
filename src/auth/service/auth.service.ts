@@ -54,6 +54,7 @@ export class AuthService {
 		if (findPhone) throw new BadRequestException(new ErrorInfo('NE001', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
 		this.setCoupon(user);
+		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		return await this.findById(user.id)
 	}
 
@@ -70,7 +71,6 @@ export class AuthService {
 		if (!user) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0017', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
 		const match = await this.comparePassword(userDto.password, user.password);
 		if (!match) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0018', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
-		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		return await this.generateJWT(user);
 	}
 
