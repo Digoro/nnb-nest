@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Event } from 'src/product/model/product.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { EventCreateDto, EventSearchDto, EventUpdateDto } from './model/product.dto';
 
@@ -28,7 +29,7 @@ export class EventService {
 
   async updateOne(id: number, eventtDto: EventUpdateDto): Promise<any> {
     const event = await this.findById(id);
-    if (!event) throw new BadRequestException()
+    if (!event) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0031', '존재하지 않습니다.'))
     return await this.eventRepository.save(Object.assign(event, eventtDto))
   }
 

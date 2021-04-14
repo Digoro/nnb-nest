@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Role } from 'src/user/model/user.interface';
 import { EventService } from './event.service';
 import { EventCreateDto, EventSearchDto, EventUpdateDto } from './model/product.dto';
@@ -31,7 +32,7 @@ export class EventController {
   @Get(':id')
   async findOne(@Param('id') id: number) {
     const event = await this.eventService.findById(id);
-    if (!event) throw new NotFoundException()
+    if (!event) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0009', '존재하지 않습니다.'))
     return event;
   }
 

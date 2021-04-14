@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Product, ProductRequest } from 'src/product/model/product.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { PaginationSearchDto } from './../shared/model/dto';
 import { ProductRequestCreateDto } from './model/product.dto';
@@ -39,7 +40,7 @@ export class ProductRequestService {
       const newRequest = await this.productRequestRepository.save(productRequest)
       return newRequest;
     } else {
-      throw new BadRequestException()
+      throw new BadRequestException(new ErrorInfo('NE003', 'NEI0008', '유효하지 않은 상품 신청 정보입니다.'))
     }
   }
 
@@ -49,7 +50,7 @@ export class ProductRequestService {
 
   async check(id: number, isChecked: boolean): Promise<any> {
     const productRequest = await this.findOne(id);
-    if (!productRequest) throw new BadRequestException();
+    if (!productRequest) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0032', '존재하지 않습니다.'))
     productRequest.isChecked = isChecked;
     if (isChecked) productRequest.checkedAt = new Date();
     const original = await this.findOne(id);

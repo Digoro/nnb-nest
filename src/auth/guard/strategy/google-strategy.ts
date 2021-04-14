@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { AuthService, OAuthProvider } from '../../service/auth.service';
 
 @Injectable()
@@ -27,7 +28,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, OAuthProvider.GOO
         if (jwt) done(null, jwt);
         else {
             done(null, false);
-            throw new UnauthorizedException()
+            throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0027', '구글로 로그인 실패'))
         }
     }
 }

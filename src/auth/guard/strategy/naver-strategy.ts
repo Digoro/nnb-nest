@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-naver';
 import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
+import { ErrorInfo } from 'src/shared/model/error-info';
 
 @Injectable()
 export class NaverStrategy extends PassportStrategy(Strategy, OAuthProvider.NAVER) {
@@ -26,7 +27,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, OAuthProvider.NAVE
         if (jwt) done(null, jwt);
         else {
             done(null, false);
-            throw new UnauthorizedException()
+            throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0024', '네이버로 로그인 실패'))
         }
     }
 }

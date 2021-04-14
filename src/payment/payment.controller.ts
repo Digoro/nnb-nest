@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, Logger, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -85,12 +85,18 @@ export class PaymentController {
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
-            await this.paymentService.sendAlimtalk(payment);
-            await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_01'));
-            await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_02'));
+            try {
+                await this.paymentService.sendAlimtalk(payment);
+                if (this.configService.get('IS_SEND_ALIMTALK_TO_MANAGER') === 'true') {
+                    await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_01'));
+                    await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_02'));
+                }
+            } catch (e) {
+                return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail?errorCode=NEI0013` }
+            }
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch (e) {
-            return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail` }
+            return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail?errorCode=NEI0011` }
         }
     }
 
@@ -102,11 +108,7 @@ export class PaymentController {
     @UseGuards(AuthGuard('jwt'))
     @Put(':id')
     updateOne(@Param('id') id: number, @Body() payment: PaymentUpdateDto): Promise<any> {
-        try {
-            return this.paymentService.updateOne(id, payment);
-        } catch {
-            throw new InternalServerErrorException();
-        }
+        return this.paymentService.updateOne(id, payment);
     }
 
     @UseGuards(AuthGuard('jwt'))

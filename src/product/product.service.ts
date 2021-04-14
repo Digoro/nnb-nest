@@ -2,13 +2,15 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
-import { Product, ProductCategoryMap, ProductReview } from 'src/product/model/product.entity';
+import { Product, ProductCategoryMap } from 'src/product/model/product.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { UserProductLike } from 'src/user/model/user.entity';
-import { getConnection, Repository } from 'typeorm';
+import { getConnection, LessThanOrEqual, Repository } from 'typeorm';
 import { Order, OrderItem } from './../payment/model/order.entity';
 import { ProductCreateDto, ProductManageDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 import { ProductStatus } from './model/product.interface';
+var moment = require('moment')
 
 @Injectable()
 export class ProductService {
@@ -21,7 +23,7 @@ export class ProductService {
     @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
-    @InjectRepository(ProductReview) private productReviewRepository: Repository<ProductReview>
+    @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>
   ) { }
 
   async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
@@ -70,7 +72,7 @@ export class ProductService {
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0005', '상품 등록에 오류가 발생하였습니다.', e));
     } finally {
       await queryRunner.release();
     }
@@ -149,7 +151,7 @@ export class ProductService {
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0006', '상품 수정에 오류가 발생하였습니다.', e));
     } finally {
       await queryRunner.release();
     }
@@ -334,7 +336,7 @@ export class ProductService {
       .orderBy('product.createdAt', 'DESC')
       .getOne();
 
-    if (!product) throw new NotFoundException();
+    if (!product) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0033', '존재하지 않습니다.'))
     const hashtags = product.productHashtagMap.map(map => map.hashtag);
     const categories = product.productCategoryMap.map(map => map.category);
     const likes = await this.userProductLikeRepository.count({ where: { productId: id } })
@@ -347,7 +349,23 @@ export class ProductService {
     }
     delete product.productHashtagMap;
     delete product.productCategoryMap;
+
+    await this.deleteOldProductOptions(product);
+
     return product;
+  }
+
+  async deleteOldProductOptions(product: Product) {
+    const now = new Date();
+    const oldProductOptions = await this.productOptionRepository.find({
+      product,
+      date: LessThanOrEqual(now),
+      isOld: false
+    });
+    oldProductOptions.forEach(async (option) => {
+      option.isOld = true;
+      await this.productOptionRepository.save(option);
+    })
   }
 
   async deleteOne(id: number): Promise<any> {

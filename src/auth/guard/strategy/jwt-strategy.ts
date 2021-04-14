@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ErrorInfo } from 'src/shared/model/error-info';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -27,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             done(null, payload);
         }
         catch (err) {
-            throw new UnauthorizedException('unauthorized', err.message);
+            throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0026', '이메일로 로그인 실패'))
         }
     }
 }

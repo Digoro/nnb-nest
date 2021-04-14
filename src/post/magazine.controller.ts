@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Roles } from 'src/auth/decorator/roles.decorator';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Role } from 'src/user/model/user.interface';
 import { RolesGuard } from '../auth/guard/roles-guard';
 import { MagazineService } from './magazine.service';
@@ -32,7 +33,7 @@ export class MagazineController {
     @Get(':id')
     async findOne(@Param('id') id: number) {
         const magazine = await this.magazineService.findById(id);
-        if (!magazine) throw new NotFoundException()
+        if (!magazine) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0010', '존재하지 않습니다.'))
         return magazine;
     }
 

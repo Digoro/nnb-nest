@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ErrorInfo } from 'src/shared/model/error-info';
 const nodemailer = require('nodemailer')
 
 @Injectable()
@@ -34,7 +35,7 @@ export class MailService {
             await naverTransport.sendMail(options);
             naverTransport.close();
         } catch (e) {
-            throw new InternalServerErrorException('fail send email');
+            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0004', '메일 전송에 오류가 발생하였습니다.', e));
         }
     }
 }

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { MagazineCreateDto, MagazineSearchDto, MagazineUpdateDto } from './model/magazine.dto';
 import { Magazine } from './model/magazine.entity';
@@ -31,7 +32,7 @@ export class MagazineService {
 
     async updateOne(id: number, magazineDto: MagazineUpdateDto): Promise<any> {
         const magazine = await this.findById(id);
-        if (!magazine) throw new BadRequestException()
+        if (!magazine) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0030', '존재하지 않습니다.'))
         return await this.magazineRepository.save(Object.assign(magazine, magazineDto))
     }
 

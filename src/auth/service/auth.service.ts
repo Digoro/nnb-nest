@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as FormData from 'form-data';
-import { Error } from 'src/shared/model/error';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { UserCreateDto, UserLoginDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { Coupon, User } from 'src/user/model/user.entity';
 import { getConnection, MoreThan, Repository } from 'typeorm';
@@ -47,9 +47,9 @@ export class AuthService {
 
 	async create(userDto: UserCreateDto): Promise<User> {
 		const findEmail = await this.findByEmail(userDto.email);
-		if (findEmail) throw new BadRequestException(new Error('WUSER1005', '이미 해당 이메일이 존재합니다.'));
+		if (findEmail) throw new BadRequestException(new ErrorInfo('NE001', 'NEI0015', '이미 해당 이메일이 존재합니다.'));
 		const findPhone = await this.userRepository.findOne({ phoneNumber: userDto.phoneNumber });
-		if (findPhone) throw new BadRequestException(new Error('WUSER1006', '이미 해당 휴대폰 번호가 존재합니다.'));
+		if (findPhone) throw new BadRequestException(new ErrorInfo('NE001', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
 		this.setCoupon(user);
 		return await this.findById(user.id)
@@ -65,9 +65,9 @@ export class AuthService {
 
 	async login(userDto: UserLoginDto): Promise<string> {
 		const user = await this.findByEmail(userDto.email);
-		if (!user) throw new UnauthorizedException();
+		if (!user) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0017', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
 		const match = await this.comparePassword(userDto.password, user.password);
-		if (!match) throw new UnauthorizedException();
+		if (!match) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0018', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
 		return await this.generateJWT(user);
 	}
 
@@ -166,14 +166,14 @@ export class AuthService {
 		form.append('receiver', phoneNumber)
 		const result = await this.http.post(this.SMS_URL, form, { headers: form.getHeaders() }).toPromise();
 		if (result.data.result_code === -101) {
-			throw new InternalServerErrorException();
+			throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0019', '인증번호 문자 전송에 오류가 발생하였습니다.', result.data));
 		}
 		return true;
 	}
 
 	async checkAuthSms(phoneNumber: string, authNumber: string): Promise<boolean> {
 		const find = await this.userRepository.findOne({ phoneNumber });
-		if (find) throw new BadRequestException(new Error('WUSER1006', '이미 해당 휴대폰 번호가 존재합니다.'));
+		if (find) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const time = moment().subtract(5, 'minute').format('YYYY-MM-DD HH:mm:ss')
 		const authSms = await this.authSmsRepository.findOne({ phoneNumber, authNumber, updatedAt: MoreThan(time) });
 		return !!authSms;
@@ -186,10 +186,10 @@ export class AuthService {
 			const manager = queryRunner.manager;
 			const user = await this.userRepository.findOne({ email });
 			if (!user) {
-				throw new BadRequestException(new Error('WUSER1007', '해당 이메일로 가입한 정보가 없습니다.'));
+				throw new BadRequestException(new ErrorInfo('NE003', 'NEI0021', '해당 이메일로 가입한 정보가 없습니다.'));
 			}
 			if (user.provider) {
-				throw new BadRequestException(new Error('WUSER1008', '이메일로 가입한 경우에만 비밀번호 재설정이 가능합니다.'));
+				throw new BadRequestException(new ErrorInfo('NE003', 'NEI0022', '이메일로 가입한 경우에만 비밀번호 재설정이 가능합니다.'));
 			}
 			const code = this.gernateRandomString(16);
 			const expirationAt = moment().add(15, 'minutes').toDate();
@@ -574,7 +574,7 @@ export class AuthService {
 	async resetPassword(validationCode: string, password: string) {
 		const time = moment().subtract(15, 'minute').format('YYYY-MM-DD HH:mm:ss')
 		const findPassword = await this.findPasswordRepository.findOne({ validationCode, expirationAt: MoreThan(time) });
-		if (!findPassword) throw new BadRequestException(new Error('WUSER1009', '유효한 코드가 아닙니다.'));
+		if (!findPassword) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0023', '유효한 코드가 아닙니다.'));
 		const user = await this.userRepository.findOne({ email: findPassword.email });
 		user.password = await bcrypt.hash(password, 12);
 		const update = await this.update(user.id, user);

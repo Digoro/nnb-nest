@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService, OAuthProvider } from 'src/auth/service/auth.service';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { UserLoginDto } from 'src/user/model/user.dto';
 import { User } from 'src/user/model/user.entity';
 import { UserIsUserGuard } from './guard/user-is-user-guard';
@@ -22,7 +23,7 @@ export class AuthController {
             const jwt = await this.authService.login(user);
             return { access_token: jwt }
         } catch {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0014', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
         }
     }
 

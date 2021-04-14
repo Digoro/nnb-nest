@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -8,6 +8,7 @@ import { UserIsUserGuard } from 'src/auth/guard/user-is-user-guard';
 import { AuthService } from 'src/auth/service/auth.service';
 import { UserCreateDto, UserLikeDto, UserUpdateDto, UserUpdateRoleDto } from 'src/user/model/user.dto';
 import { User } from 'src/user/model/user.entity';
+import { ErrorInfo as ErrorInfo } from '../shared/model/error-info';
 import { Role } from './model/user.interface';
 import { UserService } from './user.service';
 
@@ -41,7 +42,7 @@ export class UserController {
     @Get(':id')
     async findOne(@Param('id') id: number): Promise<User> {
         const user = await this.authService.findById(id);
-        if (!user) throw new NotFoundException()
+        if (!user) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0002', '존재하지 않습니다.'))
         return user;
     }
 
@@ -50,7 +51,7 @@ export class UserController {
     async getCurrentUser(@Request() request): Promise<User> {
         const userId = request.user.id;
         const user = await this.authService.findById(userId);
-        if (!user) throw new NotFoundException()
+        if (!user) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0003', '존재하지 않습니다.'))
         return user;
     }
 
@@ -73,11 +74,7 @@ export class UserController {
     @UseGuards(AuthGuard('jwt'), UserIsUserGuard)
     @Put(':id')
     updateOne(@Param('id') id: number, @Body() user: UserUpdateDto): Promise<any> {
-        try {
-            return this.authService.updateOne(id, user);
-        } catch {
-            throw new InternalServerErrorException();
-        }
+        return this.authService.updateOne(id, user);
     }
 
     @Roles(Role.ADMIN)

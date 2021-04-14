@@ -2,9 +2,10 @@ import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Que
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { ProductReview } from 'src/product/model/product.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto } from './model/product.dto';
 import { ProductReviewService } from './product-review.service';
-import { UserIsReviewAuthorGuard } from './user-is-review-author-guard copy';
+import { UserIsReviewAuthorGuard } from './user-is-review-author-guard';
 
 @ApiTags('reviews')
 @Controller('api/reviews/products')
@@ -28,7 +29,7 @@ export class ProductReviewController {
   @Get(':id')
   async findReviewOne(@Param('id') id: number) {
     const review = await this.productReviewService.findOne(id);
-    if (!review) throw new NotFoundException()
+    if (!review) throw new NotFoundException(new ErrorInfo('NE001', 'NEI0007', '존재하지 않습니다.'))
     return review;
   }
 

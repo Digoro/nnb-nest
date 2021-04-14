@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-facebook';
 import { OAuthProvider } from 'src/auth/service/auth.service';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { AuthService } from './../../service/auth.service';
 
 @Injectable()
@@ -28,7 +29,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, OAuthProvider.F
         if (jwt) done(null, jwt);
         else {
             done(null, false);
-            throw new UnauthorizedException()
+            throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0028', '페이스북으로 로그인 실패'))
         }
     }
 }

@@ -5,6 +5,7 @@ import * as FormData from 'form-data';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
@@ -103,7 +104,7 @@ export class PaymentService {
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e));
         } finally {
             await queryRunner.release();
         }
@@ -141,7 +142,7 @@ export class PaymentService {
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e));
         } finally {
             await queryRunner.release();
         }
@@ -224,7 +225,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
         const code = response.data.code;
         if (code === -99) {
-            throw new InternalServerErrorException();
+            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0013', '결제 알림톡 전송에 오류가 발생하였습니다.', response.data));
         }
         return true;
     }
@@ -282,7 +283,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
 
     async updateOne(id: number, paymentDto: PaymentUpdateDto): Promise<any> {
         const payment = await this.findOneByOwner(id);
-        if (!payment) throw new BadRequestException()
+        if (!payment) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0029', '존재하지 않습니다.'))
         return this.paymentRepository.save(Object.assign(payment, paymentDto))
     }
 
