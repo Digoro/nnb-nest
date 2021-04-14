@@ -67,7 +67,7 @@ export class Product extends BasicEntity {
     @Max(9999)
     refundPolicy0: number;
 
-    @Column({ nullable: true, type: 'enum', enum: ProductStatus, default: ProductStatus.CREATED })
+    @Column({ nullable: true, type: 'enum', enum: ProductStatus, default: ProductStatus.DISABLED })
     status: ProductStatus;
 
     @Column({ nullable: true, name: 'sort_order' })

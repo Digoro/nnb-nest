@@ -1,12 +1,8 @@
 export enum ProductStatus {
     ALL = 'ALL',
-    CREATED = 'CREATED',
-    INSPACTED = 'INSPACTED',
+    TEST = 'TEST',
     ENTERED = 'ENTERED',
-    UPDATED = 'UPDATED',
     DISABLED = 'DISABLED',
-    COMPLETED = 'COMPLETED',
-    DELETED = 'DELETED',
 }
 
 export enum HashtagType {
