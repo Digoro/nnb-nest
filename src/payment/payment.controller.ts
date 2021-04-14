@@ -7,6 +7,7 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
+import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
 import { PaymentCreateDto, PaymentUpdateDto } from './model/payment.dto';
@@ -19,7 +20,8 @@ export class PaymentController {
 
     constructor(
         private paymentService: PaymentService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private slackService: SlackService
     ) { }
 
     /**
@@ -85,6 +87,7 @@ export class PaymentController {
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
+            await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
             try {
                 await this.paymentService.sendAlimtalk(payment);
                 if (this.configService.get('IS_SEND_ALIMTALK_TO_MANAGER') === 'true') {

@@ -1,6 +1,7 @@
-import { HttpModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { SharedModule } from 'src/shared/shared.module';
 import { BandController } from './band.controller';
 import { BandService } from './band.service';
 import { MagazineController } from './magazine.controller';
@@ -13,7 +14,7 @@ import { Magazine } from './model/magazine.entity';
             Magazine,
         ]),
         AuthModule,
-        HttpModule
+        SharedModule
     ],
     providers: [
         MagazineService,

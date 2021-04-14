@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './categoy.service';
@@ -31,7 +32,8 @@ import { ProductService } from './product.service';
       ProductHashtagMap,
       UserProductLike
     ]),
-    AuthModule
+    AuthModule,
+    SharedModule
   ],
   controllers: [
     ProductController,

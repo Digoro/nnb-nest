@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ErrorInfo } from 'src/shared/model/error-info';
+import { SlackService } from 'src/shared/service/slack.service';
+import { SlackMessageType } from './slack.service';
 const nodemailer = require('nodemailer')
 
 @Injectable()
@@ -12,7 +14,8 @@ export class MailService {
     private MAIL_SENDER: string;
 
     constructor(
-        private configService: ConfigService
+        private configService: ConfigService,
+        private slackService: SlackService
     ) {
         this.MAIL_HOST = configService.get('MAIL_HOST');
         this.MAIL_PORT = configService.get('MAIL_PORT');
@@ -35,7 +38,9 @@ export class MailService {
             await naverTransport.sendMail(options);
             naverTransport.close();
         } catch (e) {
-            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0004', '메일 전송에 오류가 발생하였습니다.', e));
+            const errorInfo = new ErrorInfo('NE002', 'NEI0004', '메일 전송에 오류가 발생하였습니다.', e)
+            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            throw new InternalServerErrorException(errorInfo);
         }
     }
 }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { Product } from 'src/product/model/product.entity';
+import { SharedModule } from 'src/shared/shared.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
 import { Coupon, User, UserCouponMap, UserProductLike, UserUserLike } from './model/user.entity';
@@ -18,7 +19,8 @@ import { UserService } from './user.service';
             UserCouponMap,
             Product
         ]),
-        AuthModule
+        AuthModule,
+        SharedModule
     ],
     providers: [
         UserService,

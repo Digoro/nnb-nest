@@ -9,6 +9,7 @@ import { Coupon, User } from 'src/user/model/user.entity';
 import { getConnection, MoreThan, Repository } from 'typeorm';
 import { Configuration } from './../../configuration/model/configuration.entity';
 import { MailService } from './../../shared/service/mail.service';
+import { SlackMessageType, SlackService } from './../../shared/service/slack.service';
 import { UserCouponMap } from './../../user/model/user.entity';
 import { AuthSms, FindPassword } from './../model/auth.entity';
 const bcrypt = require('bcrypt');
@@ -38,7 +39,8 @@ export class AuthService {
 		private jwtService: JwtService,
 		private http: HttpService,
 		private configService: ConfigService,
-		private mailService: MailService
+		private mailService: MailService,
+		private slackService: SlackService
 	) {
 		this.SMS_API_KEY = configService.get("SMS_API_KEY");
 		this.SMS_USER_ID = configService.get("SMS_USER_ID");
@@ -68,6 +70,7 @@ export class AuthService {
 		if (!user) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0017', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
 		const match = await this.comparePassword(userDto.password, user.password);
 		if (!match) throw new UnauthorizedException(new ErrorInfo('NE004', 'NEI0018', '로그인에 실패하였습니다. 입력 정보를 다시 확인해주세요.'));
+		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		return await this.generateJWT(user);
 	}
 
@@ -85,6 +88,7 @@ export class AuthService {
 			newUser.aggrementMarketing = true;
 			user = await this.userRepository.save(newUser);
 			this.setCoupon(user);
+			await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		}
 		return await this.generateJWT(user);
 	}
@@ -166,7 +170,9 @@ export class AuthService {
 		form.append('receiver', phoneNumber)
 		const result = await this.http.post(this.SMS_URL, form, { headers: form.getHeaders() }).toPromise();
 		if (result.data.result_code === -101) {
-			throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0019', '인증번호 문자 전송에 오류가 발생하였습니다.', result.data));
+			const errorInfo = new ErrorInfo('NE002', 'NEI0019', '인증번호 문자 전송에 오류가 발생하였습니다.', result.data)
+			await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+			throw new InternalServerErrorException(errorInfo);
 		}
 		return true;
 	}

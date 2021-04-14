@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { SharedModule } from 'src/shared/shared.module';
 import { ConfigurationController } from './configuration.controller';
 import { ConfigurationService } from './configuration.service';
 import { Configuration } from './model/configuration.entity';
@@ -10,7 +11,8 @@ import { Configuration } from './model/configuration.entity';
         TypeOrmModule.forFeature([
             Configuration
         ]),
-        AuthModule
+        AuthModule,
+        SharedModule
     ],
     providers: [
         ConfigurationService

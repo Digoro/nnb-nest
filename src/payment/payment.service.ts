@@ -6,6 +6,7 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
 import { ErrorInfo } from 'src/shared/model/error-info';
+import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
@@ -32,7 +33,8 @@ export class PaymentService {
         @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>,
         @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
         private configService: ConfigService,
-        private http: HttpService
+        private http: HttpService,
+        private slackService: SlackService
     ) {
         this.PAYPLE_CST_ID = configService.get('PAYPLPE_CST_ID');
         this.PAYPLE_CST_KEY = configService.get('PAYPLE_CST_KEY');
@@ -104,7 +106,9 @@ export class PaymentService {
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
-            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e));
+            const errorInfo = new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e);
+            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();
         }
@@ -142,7 +146,9 @@ export class PaymentService {
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
-            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e));
+            const errorInfo = new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e)
+            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();
         }
@@ -225,7 +231,9 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
         const code = response.data.code;
         if (code === -99) {
-            throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0013', '결제 알림톡 전송에 오류가 발생하였습니다.', response.data));
+            const errorInfo = new ErrorInfo('NE002', 'NEI0013', '결제 알림톡 전송에 오류가 발생하였습니다.', response.data)
+            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            throw new InternalServerErrorException(errorInfo);
         }
         return true;
     }

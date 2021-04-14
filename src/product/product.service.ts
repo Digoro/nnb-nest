@@ -4,6 +4,7 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Product, ProductCategoryMap } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
+import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { getConnection, LessThanOrEqual, Repository } from 'typeorm';
 import { Order, OrderItem } from './../payment/model/order.entity';
@@ -23,7 +24,8 @@ export class ProductService {
     @InjectRepository(UserProductLike) private userProductLikeRepository: Repository<UserProductLike>,
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
-    @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>
+    @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>,
+    private slackService: SlackService
   ) { }
 
   async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
@@ -72,7 +74,9 @@ export class ProductService {
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0005', '상품 등록에 오류가 발생하였습니다.', e));
+      const errorInfo = new ErrorInfo('NE002', 'NEI0005', '상품 등록에 오류가 발생하였습니다.', e)
+      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+      throw new InternalServerErrorException(errorInfo);
     } finally {
       await queryRunner.release();
     }
@@ -151,7 +155,9 @@ export class ProductService {
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(new ErrorInfo('NE002', 'NEI0006', '상품 수정에 오류가 발생하였습니다.', e));
+      const errorInfo = new ErrorInfo('NE002', 'NEI0006', '상품 수정에 오류가 발생하였습니다.', e)
+      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+      throw new InternalServerErrorException(errorInfo);
     } finally {
       await queryRunner.release();
     }

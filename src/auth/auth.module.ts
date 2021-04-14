@@ -1,10 +1,10 @@
-import { HttpModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SharedModule } from 'src/shared/shared.module';
 import { Coupon } from 'src/user/model/user.entity';
 import { Configuration } from './../configuration/model/configuration.entity';
-import { MailService } from './../shared/service/mail.service';
 import { User, UserCouponMap } from './../user/model/user.entity';
 import { AuthController } from './auth.controller';
 import { RolesGuard } from './guard/roles-guard';
@@ -27,7 +27,7 @@ import { AuthService } from './service/auth.service';
             UserCouponMap,
             Configuration
         ]),
-        HttpModule,
+        SharedModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -40,14 +40,12 @@ import { AuthService } from './service/auth.service';
     providers: [
         AuthService,
         RolesGuard,
-        AuthService,
         UserIsUserGuard,
         FacebookStrategy,
         GoogleStrategy,
         JwtStrategy,
         KakaoStrategy,
-        NaverStrategy,
-        MailService
+        NaverStrategy
     ],
     exports: [AuthService],
     controllers: [AuthController]

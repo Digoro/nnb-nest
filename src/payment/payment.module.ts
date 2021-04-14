@@ -1,8 +1,9 @@
-import { HttpModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { Payment } from 'src/payment/model/payment.entity';
 import { Product } from 'src/product/model/product.entity';
+import { SharedModule } from 'src/shared/shared.module';
 import { Coupon, User } from 'src/user/model/user.entity';
 import { ProductOption } from './../product/model/product.entity';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
@@ -21,8 +22,8 @@ import { PaymentService } from './payment.service';
             Product,
             ProductOption
         ]),
-        HttpModule,
-        AuthModule
+        AuthModule,
+        SharedModule
     ],
     providers: [
         PaymentService,
