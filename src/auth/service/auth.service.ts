@@ -551,7 +551,7 @@ export class AuthService {
 
 </html>`
 			await this.mailService.sendMail(email, '[노는법] 비밀번호 재설정 안내 메일입니다.', message);
-			queryRunner.commitTransaction();
+			await queryRunner.commitTransaction();
 			return result;
 		} catch (e) {
 			await queryRunner.rollbackTransaction();

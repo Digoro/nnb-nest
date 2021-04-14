@@ -66,7 +66,7 @@ export class ProductService {
         await manager.save(ProductOption, option);
       }
 
-      queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
@@ -145,7 +145,7 @@ export class ProductService {
           await manager.save(ProductHashtagMap, map);
         }
       }
-      queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();

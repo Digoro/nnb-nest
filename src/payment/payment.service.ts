@@ -99,7 +99,7 @@ export class PaymentService {
             payment.bankNum = paypleDto.PCD_PAY_BANKNUM;
 
             const result = await queryRunner.manager.save(Payment, payment);
-            queryRunner.commitTransaction();
+            await queryRunner.commitTransaction();
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
@@ -137,7 +137,7 @@ export class PaymentService {
 
             const payment = dto.toEntity(newOrder);
             const result = await this.paymentRepository.save(payment);
-            queryRunner.commitTransaction();
+            await queryRunner.commitTransaction();
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
