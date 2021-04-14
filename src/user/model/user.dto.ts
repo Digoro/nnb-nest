@@ -95,6 +95,10 @@ export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider',
     @IsString()
     @MaxLength(65535)
     profilePhoto: string;
+
+    @IsOptional()
+    @IsBoolean()
+    aggrementMarketing: boolean;
 }
 
 export class UserUpdateRoleDto {
