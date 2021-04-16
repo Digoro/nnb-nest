@@ -55,6 +55,8 @@ export class UserController {
         return user;
     }
 
+    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Get('')
     index(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Query('name') name: string): Promise<Pagination<User>> {
         limit = limit > 100 ? 100 : limit;
