@@ -87,10 +87,10 @@ export class PaymentController {
     async callbackPayment(@Body() paypleDto: any): Promise<any> {
         try {
             const payment = await this.paymentService.pay(paypleDto);
-            await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
             try {
                 await this.paymentService.sendAlimtalk(payment);
-                if (this.configService.get('IS_SEND_ALIMTALK_TO_MANAGER') === 'true') {
+                if (this.configService.get('IS_SEND_ALIM_TO_MANAGER') === 'true') {
+                    await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
                     await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_01'));
                     await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_02'));
                 }

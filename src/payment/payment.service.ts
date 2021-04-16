@@ -88,7 +88,7 @@ export class PaymentService {
             payment.order = newOrder;
             payment.pgName = PG.PAYPLE;
             payment.pgOrderId = paypleDto.PCD_PAY_OID;
-            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').toDate();
+            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').utc().toDate();
             payment.totalPrice = +paypleDto.PCD_PAY_TOTAL;
             payment.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
             payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
