@@ -53,6 +53,8 @@ export class PaymentService {
     }
 
     async pay(paypleDto: PaypleCreateDto): Promise<Payment> {
+        Logger.log("##paypleDto##");
+        Logger.log(JSON.stringify(paypleDto));
         const queryRunner = await getConnection().createQueryRunner();
 
         try {
@@ -88,7 +90,9 @@ export class PaymentService {
             payment.order = newOrder;
             payment.pgName = PG.PAYPLE;
             payment.pgOrderId = paypleDto.PCD_PAY_OID;
-            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').utc().toDate();
+            Logger.log("##moment payAt##");
+            Logger.log(moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').toDate());
+            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').toDate();
             payment.totalPrice = +paypleDto.PCD_PAY_TOTAL;
             payment.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
             payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
@@ -164,6 +168,8 @@ export class PaymentService {
     }
 
     async sendAlimtalk(payment: Payment, receiver?: string) {
+        Logger.log("##payment##");
+        Logger.log(payment);
         const receiverPhoneNumber = payment.order.user.phoneNumber;
         const receiverName = payment.order.user.name;
         const nickname = payment.order.user.nickname;
@@ -172,6 +178,8 @@ export class PaymentService {
         const payAt = moment(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
         const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
+        Logger.log("##orderItems##");
+        Logger.log(JSON.stringify(orderItems));
         let productOptions = orderItems.map(item => item.productOption.name).join(", ");
         let productOptionDate;
         if (orderItems.length > 0) productOptionDate = moment(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
@@ -179,6 +187,8 @@ export class PaymentService {
             productOptions = '홈 - 내모임에서 확인해주세요.'
             productOptionDate = '홈 - 내모임에서 확인해주세요.'
         }
+        Logger.log("##productOptionDate##");
+        Logger.log(JSON.stringify(productOptionDate));
         const productId = payment.order.product.id;
         const token = await this.getAlimtalkToken();
         const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
