@@ -175,7 +175,7 @@ export class PaymentService {
         const nickname = payment.order.user.nickname;
         const orderNumber = payment.id;
         const totalPrice = payment.totalPrice;
-        const payAt = moment(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
+        const payAt = moment(payment.payAt).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
         const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
         Logger.log("##orderItems##");
