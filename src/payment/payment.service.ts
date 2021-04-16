@@ -91,8 +91,8 @@ export class PaymentService {
             payment.pgName = PG.PAYPLE;
             payment.pgOrderId = paypleDto.PCD_PAY_OID;
             Logger.log("##moment payAt##");
-            Logger.log(moment.utc(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').toDate());
-            payment.payAt = moment.utc(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').toDate();
+            Logger.log(moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate());
+            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate();
             payment.totalPrice = +paypleDto.PCD_PAY_TOTAL;
             payment.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
             payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
@@ -175,18 +175,13 @@ export class PaymentService {
         const nickname = payment.order.user.nickname;
         const orderNumber = payment.id;
         const totalPrice = payment.totalPrice;
-        const payAt = moment.utc(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
+        const payAt = moment(payment.payAt).format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
         const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
         Logger.log("##orderItems##");
         Logger.log(JSON.stringify(orderItems));
         let productOptions = orderItems.map(item => item.productOption.name).join(", ");
-        let productOptionDate;
-        if (orderItems.length > 0) productOptionDate = moment.utc(orderItems[0].productOption.date).format('YYYY년MM월DD일 HH시mm분');
-        else {
-            productOptions = '홈 - 내모임에서 확인해주세요.'
-            productOptionDate = '홈 - 내모임에서 확인해주세요.'
-        }
+        const productOptionDate = moment(orderItems[0].productOption.date).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
         Logger.log("##productOptionDate##");
         Logger.log(JSON.stringify(productOptionDate));
         const productId = payment.order.product.id;

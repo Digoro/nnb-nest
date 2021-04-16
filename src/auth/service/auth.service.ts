@@ -100,7 +100,7 @@ export class AuthService {
 			coupon.name = '회원가입 이벤트';
 			coupon.contents = '회원가입 이벤트';
 			coupon.price = 3000;
-			coupon.expireDuration = moment.utc().endOf('year').toDate();
+			coupon.expireDuration = moment.endOf('year').toDate();
 			const newCoupon = await this.couponRepository.save(coupon);
 
 			const map = new UserCouponMap();
