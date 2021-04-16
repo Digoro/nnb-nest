@@ -35,7 +35,7 @@ export class SlackService {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment(user.createdAt).format('YYYY-MM-DD HH:mm:ss')}`
+                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment.utc(user.createdAt).format('YYYY-MM-DD HH:mm:ss')}`
                             },
                             "accessory": {
                                 "type": "image",
@@ -84,7 +84,7 @@ export class SlackService {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `• 상품명: ${payment.order.product.title}\n • 결제일: ${moment(payment.payAt).format('YYYY-MM-DD HH:mm:ss')}\n • 결제자: ${payment.order.user.name}(닉네임: ${payment.order.user.nickname})`
+                                "text": `• 상품명: ${payment.order.product.title}\n • 결제일: ${moment.utc(payment.payAt).format('YYYY-MM-DD HH:mm:ss')}\n • 결제자: ${payment.order.user.name}(닉네임: ${payment.order.user.nickname})`
                             }
                         }
                     ]
