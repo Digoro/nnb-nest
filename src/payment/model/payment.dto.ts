@@ -251,4 +251,7 @@ export class PaypleCreateDto {
     @IsOptional()
     @IsString()
     PCD_USER_DEFINE2: string;
+    @IsOptional()
+    @IsString()
+    PCD_HTTP_REFERER: string;
 }

@@ -99,7 +99,10 @@ export class PaymentController {
             }
             return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-success/${payment.id}` }
         } catch (e) {
-            return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail?errorCode=NEI0011` }
+            const status = e.getStatus();
+            const beforePage = e.getResponse().reason;
+            if (status === 400) return { url: beforePage }
+            else return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail?errorCode=NEI0011` }
         }
     }
 

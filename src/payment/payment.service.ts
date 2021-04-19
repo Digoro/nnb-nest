@@ -53,6 +53,10 @@ export class PaymentService {
     }
 
     async pay(paypleDto: PaypleCreateDto): Promise<Payment> {
+        if (paypleDto.PCD_PAY_RST === 'close') {
+            const errorInfo = new ErrorInfo('NE003', 'NEI0034', '결제를 취소하였습니다.', paypleDto.PCD_HTTP_REFERER);
+            throw new BadRequestException(errorInfo);
+        }
         Logger.log("##paypleDto##");
         Logger.log(JSON.stringify(paypleDto));
         const queryRunner = await getConnection().createQueryRunner();
