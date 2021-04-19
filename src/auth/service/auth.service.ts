@@ -49,9 +49,9 @@ export class AuthService {
 
 	async create(userDto: UserCreateDto): Promise<User> {
 		const findEmail = await this.findByEmail(userDto.email);
-		if (findEmail) throw new BadRequestException(new ErrorInfo('NE001', 'NEI0015', '이미 해당 이메일이 존재합니다.'));
+		if (findEmail) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0015', '이미 해당 이메일이 존재합니다.'));
 		const findPhone = await this.userRepository.findOne({ phoneNumber: userDto.phoneNumber });
-		if (findPhone) throw new BadRequestException(new ErrorInfo('NE001', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
+		if (findPhone) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
 		this.setCoupon(user);
 		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
@@ -178,8 +178,12 @@ export class AuthService {
 	}
 
 	async checkAuthSms(phoneNumber: string, authNumber: string): Promise<boolean> {
-		const find = await this.userRepository.findOne({ phoneNumber });
-		if (find) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', '이미 해당 휴대폰 번호가 존재합니다.'));
+		const user = await this.userRepository.findOne({ phoneNumber });
+		if (user) {
+			const email = user.email.replace(/(\w)(\w)/g, s => `*${s[1]}`);
+			if (!!user.provider) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', `이미 ${user.provider}(으)로 가입하신 계정에서 휴대폰 번호가 존재합니다.\n(계정 이메일: ${email})`));
+			else throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', `이미 ${email}로 가입하신 계정에서 해당 휴대폰 번호가 존재합니다.`));
+		}
 		const time = moment().subtract(5, 'minute').format('YYYY-MM-DD HH:mm:ss')
 		const authSms = await this.authSmsRepository.findOne({ phoneNumber, authNumber, updatedAt: MoreThan(time) });
 		return !!authSms;
