@@ -62,7 +62,7 @@ export class SlackService {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `• 서비스 응답 코드: ${errorInfo.code}\n • 오류 아이디: ${errorInfo.id}\n • 응답 메시지: ${errorInfo.message}\n • 원인: ${JSON.stringify(errorInfo.reason)}`
+                                "text": `• 서비스 응답 코드: ${errorInfo.code}\n • 오류 아이디: ${errorInfo.id}\n • 응답 메시지: ${errorInfo.message}\n • 원인: ${JSON.stringify(errorInfo.reason)}\n • 일시: ${moment().format('YYYY-MM-DD HH:mm:ss')}`
                             }
                         }
                     ]
