@@ -258,7 +258,7 @@ export class Event extends BasicEntity {
     @Column({ length: 30 })
     title: string;
 
-    @Column({ length: 50 })
+    @Column({ length: 100 })
     subtitle: string;
 
     @Column({ type: 'enum', enum: EventType, default: EventType.PROMOTION })
@@ -270,7 +270,7 @@ export class Event extends BasicEntity {
     @Column({ nullable: true, type: 'text' })
     photo: string;
 
-    @Column({ length: 500 })
+    @Column({ type: 'text' })
     contents: string;
 
     @Column({ name: 'comment_enable' })
@@ -281,6 +281,36 @@ export class Event extends BasicEntity {
 
     @Column({ name: 'end_at' })
     endAt: Date;
+
+    @OneToMany(() => EventReview, entity => entity.event)
+    eventReviews: EventReview[];
+}
+
+@Entity({ name: 'event_review' })
+export class EventReview extends BasicEntity {
+    @ManyToOne(() => User, entity => entity.eventReviews)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @ManyToOne(() => Event, entity => entity.eventReviews, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'event_id' })
+    event: Event;
+
+    @Column()
+    @Min(0)
+    score: number;
+
+    @Column({ length: 1000 })
+    comment: string;
+
+    @Column({ nullable: true, type: 'text' })
+    photo: string;
+
+    @ManyToOne(() => EventReview, entity => entity.children)
+    parent: EventReview;
+
+    @OneToMany(() => EventReview, entity => entity.parent)
+    children: EventReview[];
 }
 
 @Entity({ name: 'product_review' })

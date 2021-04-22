@@ -5,6 +5,7 @@ import { Event } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { EventCreateDto, EventSearchDto, EventUpdateDto } from './model/product.dto';
+import { EventStatus, EventType } from './model/product.interface';
 
 @Injectable()
 export class EventService {
@@ -20,7 +21,16 @@ export class EventService {
 
   async paginate(search: EventSearchDto): Promise<Pagination<Event>> {
     const options = { page: search.page, limit: search.limit }
-    return await paginate<Event>(this.eventRepository, options, { where: [{ status: search.status }, { type: search.type }] })
+    const query = this.eventRepository
+      .createQueryBuilder('event')
+    if (search.status !== EventStatus.ALL) {
+      query.where('event.status = :status', { status: search.status })
+    }
+    if (search.type !== EventType.ALL) {
+      query.where('event.type = :type', { type: search.type })
+    }
+    const events = await paginate<Event>(query, options)
+    return events;
   }
 
   async findById(id: number): Promise<Event> {
@@ -29,7 +39,7 @@ export class EventService {
 
   async updateOne(id: number, eventtDto: EventUpdateDto): Promise<any> {
     const event = await this.findById(id);
-    if (!event) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0031', '존재하지 않습니다.'))
+    if (!event) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0032', '존재하지 않습니다.'))
     return await this.eventRepository.save(Object.assign(event, eventtDto))
   }
 

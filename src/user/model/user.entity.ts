@@ -1,7 +1,7 @@
 import { Exclude } from "class-transformer";
 import { Min } from "class-validator";
 import { Order } from "src/payment/model/order.entity";
-import { Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
+import { EventReview, Product, ProductRequest, ProductReview } from "src/product/model/product.entity";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Magazine } from '../../post/model/magazine.entity';
 import { BasicEntity } from "../../shared/model/basic.entity";
@@ -84,6 +84,9 @@ export class User extends BasicEntity {
 
     @OneToMany(() => ProductReview, entity => entity.user)
     productReviews: ProductReview[];
+
+    @OneToMany(() => EventReview, entity => entity.user)
+    eventReviews: EventReview[];
 
     @OneToMany(() => Magazine, entity => entity.author)
     magazines: Magazine[];

@@ -13,7 +13,7 @@ export enum HashtagType {
 export enum EventType {
     ALL = 'ALL',
     PROMOTION = 'PROMOTION',
-    EXHIBITIONS = 'EXHIBITIONS',
+    SURVEY = 'SURVEY',
 }
 
 export enum EventStatus {

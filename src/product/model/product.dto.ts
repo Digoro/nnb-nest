@@ -1,7 +1,7 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
-import { Event, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { Event, EventReview, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
 import { PaginationSearchDto } from './../../shared/model/dto';
@@ -307,7 +307,7 @@ export class EventCreateDto implements Dto<Event> {
     title: string;
 
     @IsString()
-    @MaxLength(50)
+    @MaxLength(100)
     subtitle: string;
 
     @IsEnum(EventType)
@@ -316,13 +316,12 @@ export class EventCreateDto implements Dto<Event> {
     @IsEnum(EventStatus)
     status: EventStatus;
 
-    @IsOptional()
     @IsString()
     @MaxLength(65535)
     photo: string;
 
     @IsString()
-    @MaxLength(500)
+    @MaxLength(65535)
     contents: string;
 
     @IsBoolean()
@@ -352,13 +351,52 @@ export class EventCreateDto implements Dto<Event> {
 export class EventUpdateDto extends PartialType(EventCreateDto) { }
 
 export class EventSearchDto extends PaginationSearchDto {
-    @IsOptional()
     @IsEnum(EventStatus)
     status: EventStatus;
 
-    @IsOptional()
     @IsEnum(EventType)
     type: EventType;
+}
+
+export class EventReviewCreateDto implements Dto<EventReview> {
+    @IsInt()
+    eventId: number;
+
+    @IsInt()
+    @Min(0)
+    score: number;
+
+    @IsString()
+    @MaxLength(1000)
+    comment: string;
+
+    @IsOptional()
+    @IsInt()
+    parentId: number;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(65535)
+    photo: string;
+
+    toEntity(user: User, event: Event, parent?: EventReview): EventReview {
+        const review = new EventReview();
+        review.user = user;
+        review.event = event;
+        review.score = this.score;
+        review.comment = this.comment;
+        review.parent = parent;
+        review.photo = this.photo;
+        return review;
+    }
+}
+
+export class EventReviewUpdateDto extends PartialType(EventReviewCreateDto) { }
+
+export class EventReviewSearchDto extends PaginationSearchDto {
+    @IsOptional()
+    @IsNumberString()
+    event: number;
 }
 
 export class ProductReviewCreateDto implements Dto<ProductReview> {

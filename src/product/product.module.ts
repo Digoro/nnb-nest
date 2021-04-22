@@ -5,11 +5,13 @@ import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './categoy.service';
+import { EventReviewController } from './event-review.controller';
+import { EventReviewService } from './event-review.service';
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
-import { Category, Event, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
+import { Category, Event, EventReview, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductRequestController } from './product-request.controller';
 import { ProductRequestService } from './product-request.service';
 import { ProductReviewController } from './product-review.controller';
@@ -30,7 +32,8 @@ import { ProductService } from './product.service';
       ProductReview,
       ProductCategoryMap,
       ProductHashtagMap,
-      UserProductLike
+      UserProductLike,
+      EventReview
     ]),
     AuthModule,
     SharedModule
@@ -40,6 +43,7 @@ import { ProductService } from './product.service';
     EventController,
     CategoryController,
     ProductReviewController,
+    EventReviewController,
     HashtagController,
     ProductRequestController
   ],
@@ -48,6 +52,7 @@ import { ProductService } from './product.service';
     EventService,
     CategoryService,
     ProductReviewService,
+    EventReviewService,
     HashtagService,
     ProductRequestService,
   ]
