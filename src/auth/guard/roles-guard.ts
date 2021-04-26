@@ -1,31 +1,29 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { User } from "src/user/model/user.interface";
-import { ROLES_KEY } from "../decorator/roles.decorator";
-import { UserSecurityService } from "../service/user-security.service";
-
+import { User } from 'src/user/model/user.entity';
+import { ROLES_KEY } from '../decorator/roles.decorator';
+import { AuthService } from "../service/auth.service";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
-        private userSecurityService: UserSecurityService
+        private authService: AuthService
     ) { }
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-        const roles = this.reflector.get<string[]>(ROLES_KEY, context.getHandler());
-        if (!roles) {
-            return true;
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        try {
+            const roles = this.reflector.get<string[]>(ROLES_KEY, context.getHandler());
+            if (!roles) {
+                return true;
+            }
+            const request = context.switchToHttp().getRequest();
+            const requestUser: User = request.user;
+            const user = await this.authService.findById(requestUser.id);
+            const hasRole = roles.find(role => role === user.role);
+            return user && !!hasRole;
+        } catch {
+            return false;
         }
-        const request = context.switchToHttp().getRequest();
-        const user: User = request.user.user;
-        return this.userSecurityService.findById(user.id).pipe(
-            map((user: User) => {
-                const hasRole = roles.find(role => role === user.role);
-                return user && !!hasRole;
-            })
-        )
     }
 }

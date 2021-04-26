@@ -1,9 +1,13 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { ConfigurationModule } from './configuration/configuration.module';
+import { PaymentModule } from './payment/payment.module';
+import { MagazineModule } from './post/magazine.module';
+import { ProductModule } from './product/product.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -17,12 +21,22 @@ import { UserModule } from './user/user.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_DB,
       autoLoadEntities: true,
-      synchronize: true
+      synchronize: false,
+      charset: "utf8mb4"
     }),
     UserModule,
-    AuthModule
+    AuthModule,
+    ProductModule,
+    PaymentModule,
+    MagazineModule,
+    ConfigurationModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+  ],
 })
 export class AppModule { }
