@@ -45,6 +45,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CheckClientVersionMiddleware)
+      .exclude('auth/(.*)')
       .forRoutes('*')
   }
 }
