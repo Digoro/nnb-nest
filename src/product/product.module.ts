@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
+import { BlogController } from './blog.controller';
+import { BlogService } from './blog.service';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './categoy.service';
 import { EventReviewController } from './event-review.controller';
@@ -11,7 +13,7 @@ import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
-import { Category, Event, EventReview, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
+import { Blog, Category, Event, EventReview, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductRequestController } from './product-request.controller';
 import { ProductRequestService } from './product-request.service';
 import { ProductReviewController } from './product-review.controller';
@@ -29,6 +31,7 @@ import { ProductService } from './product.service';
       Hashtag,
       ProductRequest,
       Event,
+      Blog,
       ProductReview,
       ProductCategoryMap,
       ProductHashtagMap,
@@ -44,12 +47,14 @@ import { ProductService } from './product.service';
     CategoryController,
     ProductReviewController,
     EventReviewController,
+    BlogController,
     HashtagController,
     ProductRequestController
   ],
   providers: [
     ProductService,
     EventService,
+    BlogService,
     CategoryService,
     ProductReviewService,
     EventReviewService,

@@ -1,12 +1,12 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
-import { Event, EventReview, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { Blog, Event, EventReview, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
 import { PaginationSearchDto } from './../../shared/model/dto';
 import { ProductOption, ProductRepresentationPhoto } from './product.entity';
-import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
+import { BlogType, EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 export class ProductCreateDto implements Dto<Product>{
     @IsString()
@@ -442,4 +442,37 @@ export class ProductReviewSearchDto extends PaginationSearchDto {
     @IsOptional()
     @IsNumberString()
     user: number;
+}
+
+export class BlogCreateDto implements Dto<Blog> {
+    @IsString()
+    @MaxLength(30)
+    title: string;
+
+    @IsEnum(BlogType)
+    type: BlogType;
+
+    @IsString()
+    @MaxLength(65535)
+    photo: string;
+
+    @IsString()
+    @MaxLength(65535)
+    contents: string;
+
+    toEntity(): Blog {
+        const blog = new Blog();
+        blog.title = this.title;
+        blog.type = this.type;
+        blog.photo = this.photo;
+        blog.contents = this.contents;
+        return blog;
+    }
+}
+
+export class BlogUpdateDto extends PartialType(BlogCreateDto) { }
+
+export class BlogSearchDto extends PaginationSearchDto {
+    @IsEnum(BlogType)
+    type: BlogType;
 }

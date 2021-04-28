@@ -22,7 +22,9 @@ export class EventService {
 
   async paginate(search: EventSearchDto): Promise<Pagination<Event>> {
     const options = { page: search.page, limit: search.limit }
-    const query = this.eventRepository.createQueryBuilder('event')
+    const query = this.eventRepository
+      .createQueryBuilder('event')
+      .orderBy('event.createdAt', 'DESC')
     if (search.status !== EventStatus.ALL) {
       query.where('event.status = :status', { status: search.status })
     }

@@ -3,7 +3,7 @@ import { Order, OrderItem } from "src/payment/model/order.entity";
 import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
-import { EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
+import { BlogType, EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 @Entity({ name: 'product' })
 export class Product extends BasicEntity {
@@ -338,4 +338,19 @@ export class ProductReview extends BasicEntity {
 
     @OneToMany(() => ProductReview, entity => entity.parent)
     children: ProductReview[];
+}
+
+@Entity({ name: 'blog' })
+export class Blog extends BasicEntity {
+    @Column({ length: 30 })
+    title: string;
+
+    @Column({ type: 'enum', enum: BlogType, default: BlogType.INFO })
+    type: BlogType;
+
+    @Column({ nullable: true, type: 'text' })
+    photo: string;
+
+    @Column({ type: 'text' })
+    contents: string;
 }
