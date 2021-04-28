@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as moment from 'moment';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Event } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
@@ -21,16 +22,30 @@ export class EventService {
 
   async paginate(search: EventSearchDto): Promise<Pagination<Event>> {
     const options = { page: search.page, limit: search.limit }
-    const query = this.eventRepository
-      .createQueryBuilder('event')
+    const query = this.eventRepository.createQueryBuilder('event')
     if (search.status !== EventStatus.ALL) {
       query.where('event.status = :status', { status: search.status })
     }
     if (search.type !== EventType.ALL) {
       query.where('event.type = :type', { type: search.type })
     }
-    const events = await paginate<Event>(query, options)
-    return events;
+    const events = await paginate<Event>(query, options);
+    await events.items.forEach(async (event) => {
+      const now = moment();
+      const start = moment(event.startAt);
+      const end = moment(event.endAt);
+      if (now.isAfter(start) && now.isBefore(end)) {
+        const dto = new EventUpdateDto();
+        dto.status = EventStatus.RUNNING;
+        await this.updateOne(event.id, dto);
+      } else if (now.isAfter(end)) {
+        const dto = new EventUpdateDto();
+        dto.status = EventStatus.END;
+        await this.updateOne(event.id, dto);
+      }
+    })
+    const result = await paginate<Event>(query, options);
+    return result;
   }
 
   async findById(id: number): Promise<Event> {
