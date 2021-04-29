@@ -279,9 +279,9 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .where('user.id = :userId', { userId })
             .orderBy('payment.payAt', 'DESC');
         if (dto.isLast) {
-            query.where('productOption.date < :now', { now: new Date() })
+            query.andWhere('productOption.date < :now', { now: new Date() })
         } else {
-            query.where('productOption.date > :now', { now: new Date() })
+            query.andWhere('productOption.date > :now', { now: new Date() })
         }
         const products = await paginate<Payment>(query, options)
         return products;
