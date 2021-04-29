@@ -12,7 +12,7 @@ import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
-import { PaymentCreateDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
 const moment = require('moment');
 
@@ -265,9 +265,9 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
         return products;
     }
 
-    async paginateByUser(userId: number, search: PaginationSearchDto): Promise<Pagination<Payment>> {
-        const options = { page: search.page, limit: search.limit };
-        const products = await paginate<Payment>(this.paymentRepository
+    async paginateByUser(userId: number, dto: PaymentSearchDto): Promise<Pagination<Payment>> {
+        const options = { page: dto.page, limit: dto.limit };
+        const query = this.paymentRepository
             .createQueryBuilder('payment')
             .leftJoinAndSelect("payment.order", 'order')
             .leftJoinAndSelect("order.user", 'user')
@@ -277,7 +277,13 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .leftJoinAndSelect('order.orderItems', 'orderItems')
             .leftJoinAndSelect('orderItems.productOption', 'productOption')
             .where('user.id = :userId', { userId })
-            .orderBy('payment.payAt', 'DESC'), options)
+            .orderBy('payment.payAt', 'DESC');
+        if (dto.isLast) {
+            query.where('productOption.date < :now', { now: new Date() })
+        } else {
+            query.where('productOption.date > :now', { now: new Date() })
+        }
+        const products = await paginate<Payment>(query, options)
         return products;
     }
 

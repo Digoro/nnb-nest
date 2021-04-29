@@ -10,7 +10,7 @@ import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
-import { PaymentCreateDto, PaymentUpdateDto } from './model/payment.dto';
+import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @ApiTags('payments')
@@ -71,8 +71,8 @@ export class PaymentController {
      * 로그인 한 유저의 결제 목록 조회
      */
     @UseGuards(AuthGuard('jwt'))
-    @Get('owner/search')
-    getPurchasedProducts(@Query() search: PaginationSearchDto, @Request() request): Promise<any> {
+    @Post('owner/search')
+    getPurchasedProducts(@Body() search: PaymentSearchDto, @Request() request): Promise<any> {
         const userId = request.user.id;
         return this.paymentService.paginateByUser(userId, search);
     }
