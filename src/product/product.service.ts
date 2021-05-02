@@ -336,6 +336,7 @@ export class ProductService {
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
+      .leftJoinAndSelect('productRequests.uid', 'user')
       .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
@@ -368,7 +369,7 @@ export class ProductService {
       date: LessThanOrEqual(now),
       isOld: false
     });
-    oldProductOptions.forEach(async (option) => {
+    await oldProductOptions.forEach(async (option) => {
       option.isOld = true;
       await this.productOptionRepository.save(option);
     })
