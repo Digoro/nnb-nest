@@ -336,7 +336,6 @@ export class ProductService {
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
-      .leftJoinAndSelect('productRequests.userId', 'user')
       .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
