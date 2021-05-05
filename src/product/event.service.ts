@@ -6,7 +6,7 @@ import { Event, EventProductMap, Product } from 'src/product/model/product.entit
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { getConnection, Repository } from 'typeorm';
 import { EventCreateDto, EventSearchDto, EventUpdateDto } from './model/product.dto';
-import { EventStatus, EventType, ProductStatus } from './model/product.interface';
+import { EventStatus, EventType } from './model/product.interface';
 
 @Injectable()
 export class EventService {
@@ -79,13 +79,12 @@ export class EventService {
   async findById(id: number): Promise<Event> {
     const event = await this.eventRepository
       .createQueryBuilder('event')
-      .innerJoinAndSelect('event.eventProductMap', 'eventProductMap')
-      .innerJoinAndSelect('eventProductMap.product', 'product')
+      .leftJoinAndSelect('event.eventProductMap', 'eventProductMap')
+      .leftJoinAndSelect('eventProductMap.product', 'product')
       .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
       .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .where('event.id = :id', { id })
-      .andWhere('product.status = :status', { status: ProductStatus.ENTERED })
       .getOne()
 
     if (event?.eventProductMap) {

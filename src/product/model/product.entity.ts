@@ -285,7 +285,7 @@ export class Event extends BasicEntity {
     @Column({ name: 'end_at' })
     endAt: Date;
 
-    @Column({ type: 'text' })
+    @Column({ nullable: true, length: 30 })
     recommendTitle: string;
 
     @OneToMany(() => EventReview, entity => entity.event)
