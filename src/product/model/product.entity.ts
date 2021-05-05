@@ -108,6 +108,9 @@ export class Product extends BasicEntity {
     likes: number;
 
     isSetLike: boolean;
+
+    @OneToMany(() => EventProductMap, map => map.product)
+    eventProductMap: EventProductMap[];
 }
 
 @Entity({ name: 'hashtag' })
@@ -282,8 +285,34 @@ export class Event extends BasicEntity {
     @Column({ name: 'end_at' })
     endAt: Date;
 
+    @Column({ type: 'text' })
+    recommendTitle: string;
+
     @OneToMany(() => EventReview, entity => entity.event)
     eventReviews: EventReview[];
+
+    @OneToMany(() => EventProductMap, map => map.event)
+    eventProductMap: EventProductMap[];
+
+    products?: Product[]
+}
+
+@Entity({ name: 'event_product_map' })
+export class EventProductMap extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @PrimaryColumn()
+    eventId: number;
+    @ManyToOne(() => Event, event => event.eventProductMap, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'eventId' })
+    event: Event;
+
+    @PrimaryColumn()
+    productId: number;
+    @ManyToOne(() => Product, product => product.eventProductMap, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'productId' })
+    product: Product;
 }
 
 @Entity({ name: 'event_review' })

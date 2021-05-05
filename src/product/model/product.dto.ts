@@ -333,6 +333,15 @@ export class EventCreateDto implements Dto<Event> {
     @IsDateString()
     endAt: Date;
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(30)
+    recommendTitle: string;
+
+    @IsOptional()
+    @IsInt({ each: true })
+    products: number[];
+
     toEntity(): Event {
         const event = new Event();
         event.title = this.title;
@@ -343,6 +352,7 @@ export class EventCreateDto implements Dto<Event> {
         event.contents = this.contents;
         event.commentEnable = this.commentEnable;
         event.startAt = this.startAt;
+        event.recommendTitle = this.recommendTitle;
         event.endAt = this.endAt;
         return event;
     }
