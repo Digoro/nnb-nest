@@ -335,7 +335,7 @@ export class EventCreateDto implements Dto<Event> {
 
     @IsOptional()
     @IsString()
-    @MaxLength(30)
+    @MaxLength(45)
     recommendTitle: string;
 
     @IsOptional()
