@@ -1,4 +1,5 @@
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { Review } from "src/product/model/review.entity";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Order } from "./order.entity";
 import { PayMethod, PG } from "./payment.interface";
@@ -50,4 +51,7 @@ export class Payment extends BasicEntity {
 
     @Column({ nullable: true, name: 'bank_num', length: 254 })
     bankNum: string;
+
+    @OneToMany(() => Review, entity => entity.payment)
+    reviews: Review[];
 }

@@ -11,7 +11,6 @@ import { Order, OrderItem } from './../payment/model/order.entity';
 import { ProductCreateDto, ProductManageDto, ProductSearchDto, ProductUpdateDto } from './model/product.dto';
 import { Category, Hashtag, ProductHashtagMap, ProductOption, ProductRepresentationPhoto } from './model/product.entity';
 import { ProductStatus } from './model/product.interface';
-var moment = require('moment')
 
 @Injectable()
 export class ProductService {

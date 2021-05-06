@@ -35,7 +35,7 @@ export class SlackService {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment(user.createdAt).format('YYYY-MM-DD HH:mm:ss')}`
+                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment(user.createdAt).add(9, 'hours').format('YYYY-MM-DD HH:mm:ss')}`
                             },
                             "accessory": {
                                 "type": "image",

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
+import { Payment } from 'src/payment/model/payment.entity';
+import { Review } from 'src/product/model/review.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { BlogController } from './blog.controller';
@@ -20,11 +22,15 @@ import { ProductReviewController } from './product-review.controller';
 import { ProductReviewService } from './product-review.service';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
+import { ReviewController } from './review.controller';
+import { ReviewService } from './review.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Product,
+      Payment,
+      Review,
       ProductRepresentationPhoto,
       Category,
       ProductOption,
@@ -50,7 +56,8 @@ import { ProductService } from './product.service';
     EventReviewController,
     BlogController,
     HashtagController,
-    ProductRequestController
+    ProductRequestController,
+    ReviewController
   ],
   providers: [
     ProductService,
@@ -61,6 +68,7 @@ import { ProductService } from './product.service';
     EventReviewService,
     HashtagService,
     ProductRequestService,
+    ReviewService
   ]
 })
 export class ProductModule { }
