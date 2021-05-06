@@ -261,8 +261,8 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .leftJoinAndSelect('orderItems.productOption', 'productOption')
             .orderBy('payment.payAt', 'DESC')
         if (hostId) query = query.where('host.id = :hostId', { hostId })
-        const products = await paginate<Payment>(query, options)
-        return products;
+        const payments = await paginate<Payment>(query, options)
+        return payments;
     }
 
     async paginateByUser(userId: number, dto: PaymentSearchDto): Promise<Pagination<Payment>> {
@@ -276,15 +276,16 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .leftJoinAndSelect('product.representationPhotos', 'representationPhotos')
             .leftJoinAndSelect('order.orderItems', 'orderItems')
             .leftJoinAndSelect('orderItems.productOption', 'productOption')
+            .leftJoinAndSelect('payment.reviews', 'reviews')
             .where('user.id = :userId', { userId })
-            .orderBy('payment.payAt', 'DESC');
+            .orderBy('payment.payAt', 'DESC')
         if (dto.isLast) {
             query.andWhere('productOption.date < :now', { now: new Date() })
         } else {
             query.andWhere('productOption.date > :now', { now: new Date() })
         }
-        const products = await paginate<Payment>(query, options)
-        return products;
+        const payments = await paginate<Payment>(query, options)
+        return payments;
     }
 
     async findOneByProduct(productId: number, hostId: number): Promise<number> {

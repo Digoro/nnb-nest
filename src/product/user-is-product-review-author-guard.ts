@@ -6,7 +6,7 @@ import { ProductReviewService } from './product-review.service';
 
 
 @Injectable()
-export class UserIsReviewAuthorGuard implements CanActivate {
+export class UserIsProductReviewAuthorGuard implements CanActivate {
     constructor(
         private productReviewService: ProductReviewService,
         private userService: AuthService

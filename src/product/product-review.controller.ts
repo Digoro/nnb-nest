@@ -5,7 +5,7 @@ import { ProductReview } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { ProductReviewCreateDto, ProductReviewSearchDto, ProductReviewUpdateDto } from './model/product.dto';
 import { ProductReviewService } from './product-review.service';
-import { UserIsReviewAuthorGuard } from './user-is-review-author-guard';
+import { UserIsProductReviewAuthorGuard } from './user-is-product-review-author-guard';
 
 @ApiTags('reviews')
 @Controller('api/reviews/products')
@@ -33,13 +33,13 @@ export class ProductReviewController {
     return review;
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsReviewAuthorGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsProductReviewAuthorGuard)
   @Put(':id')
   updateReview(@Param('id') id: number, @Body() review: ProductReviewUpdateDto) {
     return this.productReviewService.update(id, review);
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsReviewAuthorGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsProductReviewAuthorGuard)
   @Delete(':id')
   removeReview(@Param('id') id: number) {
     return this.productReviewService.delete(id);
