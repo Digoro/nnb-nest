@@ -13,7 +13,7 @@ import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
-import { Blog, Category, Event, EventReview, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
+import { Blog, Category, Event, EventProductMap, EventReview, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductRequestController } from './product-request.controller';
 import { ProductRequestService } from './product-request.service';
 import { ProductReviewController } from './product-review.controller';
@@ -36,7 +36,8 @@ import { ProductService } from './product.service';
       ProductCategoryMap,
       ProductHashtagMap,
       UserProductLike,
-      EventReview
+      EventReview,
+      EventProductMap
     ]),
     AuthModule,
     SharedModule
