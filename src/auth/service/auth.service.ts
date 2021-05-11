@@ -53,9 +53,28 @@ export class AuthService {
 		const findPhone = await this.userRepository.findOne({ phoneNumber: userDto.phoneNumber });
 		if (findPhone) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
-		this.setCoupon(user);
+		await this.setCoupon(user);
 		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		return await this.findById(user.id)
+	}
+
+	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<string> {
+		let user = await this.findByEmail(email);
+		if (!user) {
+			const newUser = new User();
+			newUser.email = email;
+			newUser.provider = provider;
+			newUser.thirdpartyId = thirdPartyId;
+			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(11)}`;
+			newUser.profilePhoto = image;
+			newUser.aggrementTermsOfService = true;
+			newUser.aggrementCollectPersonal = true;
+			newUser.aggrementMarketing = true;
+			user = await this.userRepository.save(newUser);
+			await this.setCoupon(user);
+			await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
+		}
+		return await this.generateJWT(user);
 	}
 
 	async findById(id: number): Promise<User> {
@@ -74,33 +93,14 @@ export class AuthService {
 		return await this.generateJWT(user);
 	}
 
-	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<string> {
-		let user = await this.findByEmail(email);
-		if (!user) {
-			const newUser = new User();
-			newUser.email = email;
-			newUser.provider = provider;
-			newUser.thirdpartyId = thirdPartyId;
-			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(11)}`;
-			newUser.profilePhoto = image;
-			newUser.aggrementTermsOfService = true;
-			newUser.aggrementCollectPersonal = true;
-			newUser.aggrementMarketing = true;
-			user = await this.userRepository.save(newUser);
-			this.setCoupon(user);
-			await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
-		}
-		return await this.generateJWT(user);
-	}
-
 	async setCoupon(user: User) {
 		const event = await this.configurationRepository.findOne({ key: 'signupEvent' });
 		if (event && event.value === 'true') {
 			const coupon = new Coupon();
 			coupon.name = '회원가입 이벤트';
-			coupon.contents = '회원가입 이벤트';
+			coupon.contents = '회원가입 감사 이벤트 당첨!';
 			coupon.price = 3000;
-			coupon.expireDuration = moment.endOf('year').toDate();
+			coupon.expireDuration = moment().endOf('year').toDate();
 			const newCoupon = await this.couponRepository.save(coupon);
 
 			const map = new UserCouponMap();
