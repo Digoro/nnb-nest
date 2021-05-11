@@ -181,12 +181,22 @@ export class AuthService {
 		const user = await this.userRepository.findOne({ phoneNumber });
 		if (user) {
 			const email = user.email.replace(/(\w)(\w)/g, s => `*${s[1]}`);
-			if (!!user.provider) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', `이미 ${user.provider}(으)로 가입하신 계정에서 휴대폰 번호가 존재합니다.\n(계정 이메일: ${email})`));
+			if (!!user.provider) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020',
+				`해당 휴대폰 번호는 이미 ${this.getKrProvider(user.provider)}(으)로 가입하신 계정에 존재합니다.\n결제 진행 중이라면 ${this.getKrProvider(user.provider)}(으)로 로그인 해주세요.`));
 			else throw new BadRequestException(new ErrorInfo('NE003', 'NEI0020', `이미 ${email}로 가입하신 계정에서 해당 휴대폰 번호가 존재합니다.`));
 		}
 		const time = moment().subtract(5, 'minute').format('YYYY-MM-DD HH:mm:ss')
 		const authSms = await this.authSmsRepository.findOne({ phoneNumber, authNumber, updatedAt: MoreThan(time) });
 		return !!authSms;
+	}
+
+	private getKrProvider(provider: string): string {
+		switch (provider) {
+			case 'facebook': return '페이스북';
+			case 'google': return '구글';
+			case 'kakao': return '카카오톡';
+			case 'naver': return '네이버';
+		}
 	}
 
 	async sendFindPasswordMail(email: string): Promise<FindPassword> {
