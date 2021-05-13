@@ -51,14 +51,14 @@ export class User extends BasicEntity {
     @Column({ nullable: true, length: 1000 })
     introduction: string;
 
-    @Column({ name: 'aggrement_terms_of_service', default: true })
-    aggrementTermsOfService: boolean;
+    @Column({ name: 'agreement_terms_of_service', default: true })
+    agreementTermsOfService: boolean;
 
-    @Column({ name: 'aggrement_collect_personal', default: true })
-    aggrementCollectPersonal: boolean;
+    @Column({ name: 'agreement_collect_personal', default: true })
+    agreementCollectPersonal: boolean;
 
-    @Column({ name: 'aggrement_marketing', default: false })
-    aggrementMarketing: boolean;
+    @Column({ name: 'agreement_marketing', default: false })
+    agreementMarketing: boolean;
 
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;

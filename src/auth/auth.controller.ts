@@ -75,14 +75,21 @@ export class AuthController {
     async redirect(request, response) {
         try {
             const user = await request.user;
-            this.setCookie(user, response);
+            const jwt = user.jwt;
+            const isMember = user.isMember;
+            const host = this.configService.get('SITE_HOST');
+            this.setCookie(jwt, response);
+
             const prevPath = request.prevPath;
             if (prevPath) {
                 const splited = request.prevPath.split("/");
-                const previousUrl = decodeURIComponent(splited[splited.length - 1])
-                response.redirect(previousUrl);
+                const encodedUrl = splited[splited.length - 1];
+                const previousUrl = decodeURIComponent(encodedUrl)
+                if (isMember) response.redirect(previousUrl);
+                else response.redirect(`${this.configService.get('SITE_HOST')}/tabs/need-user-info/${encodedUrl}`);
             } else {
-                response.redirect(`${this.configService.get('SITE_HOST')}/tabs/home`);
+                if (isMember) response.redirect(`${host}/tabs/home`);
+                else response.redirect(`${host}/tabs/need-user-info/${encodeURIComponent(host)}`);
             }
         } catch (err) {
             response.redirect(`${this.configService.get('SITE_HOST')}/tabs/login`);

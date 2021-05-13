@@ -70,13 +70,13 @@ export class UserCreateDto {
     introduction: string;
 
     @IsBoolean()
-    aggrementTermsOfService: boolean;
+    agreementTermsOfService: boolean;
 
     @IsBoolean()
-    aggrementCollectPersonal: boolean;
+    agreementCollectPersonal: boolean;
 
     @IsBoolean()
-    aggrementMarketing: boolean;
+    agreementMarketing: boolean;
 }
 
 export class UserLoginDto extends PickType(UserCreateDto, ['email']) {
@@ -85,7 +85,7 @@ export class UserLoginDto extends PickType(UserCreateDto, ['email']) {
     password: string;
 }
 
-export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider', 'thirdpartyId', 'aggrementTermsOfService', 'aggrementCollectPersonal']) {
+export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider', 'thirdpartyId', 'agreementTermsOfService', 'agreementCollectPersonal']) {
     @IsOptional()
     @IsString()
     @MaxLength(20)
@@ -98,7 +98,7 @@ export class UserUpdateDto extends OmitType(UserCreateDto, ['email', 'provider',
 
     @IsOptional()
     @IsBoolean()
-    aggrementMarketing: boolean;
+    agreementMarketing: boolean;
 }
 
 export class UserUpdateRoleDto {

@@ -58,8 +58,9 @@ export class AuthService {
 		return await this.findById(user.id)
 	}
 
-	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<string> {
+	async oauthLogin(email: string, thirdPartyId: string, username: string, provider: OAuthProvider, image?: string): Promise<any> {
 		let user = await this.findByEmail(email);
+		const isMember = !!user;
 		if (!user) {
 			const newUser = new User();
 			newUser.email = email;
@@ -67,14 +68,15 @@ export class AuthService {
 			newUser.thirdpartyId = thirdPartyId;
 			newUser.nickname = username ? username : `nonunbub_${this.gernateRandomString(11)}`;
 			newUser.profilePhoto = image;
-			newUser.aggrementTermsOfService = true;
-			newUser.aggrementCollectPersonal = true;
-			newUser.aggrementMarketing = true;
+			newUser.agreementTermsOfService = true;
+			newUser.agreementCollectPersonal = true;
+			newUser.agreementMarketing = true;
 			user = await this.userRepository.save(newUser);
 			await this.setCoupon(user);
 			await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
 		}
-		return await this.generateJWT(user);
+		const jwt = await this.generateJWT(user);
+		return { isMember, jwt }
 	}
 
 	async findById(id: number): Promise<User> {
@@ -100,7 +102,7 @@ export class AuthService {
 			coupon.name = '회원가입 이벤트';
 			coupon.contents = '회원가입 감사 이벤트 당첨!';
 			coupon.price = 3000;
-			coupon.expireDuration = moment().endOf('year').toDate();
+			coupon.expireDuration = moment().endOf('year').subtract(9, 'hours').toDate();
 			const newCoupon = await this.couponRepository.save(coupon);
 
 			const map = new UserCouponMap();
