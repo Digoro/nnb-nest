@@ -5,7 +5,7 @@ import { EventReview } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { EventReviewService } from './event-review.service';
 import { EventReviewCreateDto, EventReviewSearchDto, EventReviewUpdateDto } from './model/product.dto';
-import { UserIsProductReviewAuthorGuard } from './user-is-product-review-author-guard';
+import { UserIsEventReviewAuthorGuard } from './user-is-event-review-author-guard';
 
 @ApiTags('reviews')
 @Controller('api/reviews/events')
@@ -34,13 +34,13 @@ export class EventReviewController {
     return review;
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsProductReviewAuthorGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsEventReviewAuthorGuard)
   @Put(':id')
   updateReview(@Param('id') id: number, @Body() review: EventReviewUpdateDto) {
     return this.eventReviewService.update(id, review);
   }
 
-  @UseGuards(AuthGuard('jwt'), UserIsProductReviewAuthorGuard)
+  @UseGuards(AuthGuard('jwt'), UserIsEventReviewAuthorGuard)
   @Delete(':id')
   removeReview(@Param('id') id: number) {
     return this.eventReviewService.delete(id);
