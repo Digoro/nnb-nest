@@ -35,6 +35,7 @@ export class ReviewCreateDto implements Dto<Review> {
         review.user = user;
         review.payment = payment;
         review.score = this.score;
+        review.photo = this.photo;
         review.comment = this.comment;
         review.parent = parent;
         return review;

@@ -41,8 +41,19 @@ export class Product extends BasicEntity {
     @Column({ length: 500, name: 'detail_address' })
     detailAddress: string;
 
+    @Column({ nullable: true, name: 'running_days', default: 0 })
+    @Min(0)
+    @Max(30)
+    runningDays: number;
+
+    @Column({ nullable: true, name: 'running_hours', default: 0 })
+    @Min(0)
+    @Max(23)
+    runningHours: number;
+
     @Column({ nullable: true, name: 'running_minutes', default: 0 })
     @Min(0)
+    @Max(50)
     runningMinutes: number;
 
     @Column({ nullable: true, length: 500 })

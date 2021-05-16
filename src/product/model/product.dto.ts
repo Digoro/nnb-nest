@@ -53,6 +53,19 @@ export class ProductCreateDto implements Dto<Product>{
     @IsOptional()
     @IsInt()
     @Min(0)
+    @Max(30)
+    runningDays: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    @Max(23)
+    runningHours: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    @Max(50)
     runningMinutes: number;
 
     @IsOptional()
@@ -124,6 +137,8 @@ export class ProductCreateDto implements Dto<Product>{
         product.lon = this.lon;
         product.address = this.address;
         product.detailAddress = this.detailAddress;
+        product.runningDays = this.runningDays;
+        product.runningHours = this.runningHours;
         product.runningMinutes = this.runningMinutes;
         product.notice = this.notice;
         product.checkList = this.checkList;
