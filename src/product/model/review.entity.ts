@@ -20,6 +20,9 @@ export class Review extends BasicEntity {
     @Min(0)
     score: number;
 
+    @Column({ type: 'text', nullable: true })
+    photo: string;
+
     @Column({ length: 1000 })
     comment: string;
 

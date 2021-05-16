@@ -17,6 +17,11 @@ export class ReviewCreateDto implements Dto<Review> {
     @Type(() => Number)
     score: number;
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(65535)
+    photo: string;
+
     @IsString()
     @MaxLength(1000)
     comment: string;
