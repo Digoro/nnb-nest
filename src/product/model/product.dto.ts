@@ -1,7 +1,7 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
-import { Blog, Event, EventReview, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
+import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { Blog, Event, EventComment, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
 import { PaginationSearchDto } from './../../shared/model/dto';
@@ -383,7 +383,7 @@ export class EventSearchDto extends PaginationSearchDto {
     type: EventType;
 }
 
-export class EventReviewCreateDto implements Dto<EventReview> {
+export class EventCommentCreateDto implements Dto<EventComment> {
     @IsInt()
     eventId: number;
 
@@ -404,8 +404,8 @@ export class EventReviewCreateDto implements Dto<EventReview> {
     @MaxLength(65535)
     photo: string;
 
-    toEntity(user: User, event: Event, parent?: EventReview): EventReview {
-        const review = new EventReview();
+    toEntity(user: User, event: Event, parent?: EventComment): EventComment {
+        const review = new EventComment();
         review.user = user;
         review.event = event;
         review.score = this.score;
@@ -416,11 +416,12 @@ export class EventReviewCreateDto implements Dto<EventReview> {
     }
 }
 
-export class EventReviewUpdateDto extends PartialType(EventReviewCreateDto) { }
+export class EventCommentUpdateDto extends PartialType(EventCommentCreateDto) { }
 
-export class EventReviewSearchDto extends PaginationSearchDto {
+export class EventCommentSearchDto extends PaginationSearchDto {
     @IsOptional()
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     event: number;
 }
 
@@ -461,11 +462,13 @@ export class ProductReviewUpdateDto extends PartialType(ProductReviewCreateDto) 
 
 export class ProductReviewSearchDto extends PaginationSearchDto {
     @IsOptional()
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     product: number;
 
     @IsOptional()
-    @IsNumberString()
+    @IsNumber()
+    @Type(() => Number)
     user: number;
 }
 

@@ -299,8 +299,8 @@ export class Event extends BasicEntity {
     @Column({ nullable: true, length: 45 })
     recommendTitle: string;
 
-    @OneToMany(() => EventReview, entity => entity.event)
-    eventReviews: EventReview[];
+    @OneToMany(() => EventComment, entity => entity.event)
+    eventComments: EventComment[];
 
     @OneToMany(() => EventProductMap, map => map.event)
     eventProductMap: EventProductMap[];
@@ -326,13 +326,13 @@ export class EventProductMap extends BaseEntity {
     product: Product;
 }
 
-@Entity({ name: 'event_review' })
-export class EventReview extends BasicEntity {
-    @ManyToOne(() => User, entity => entity.eventReviews)
+@Entity({ name: 'event_comment' })
+export class EventComment extends BasicEntity {
+    @ManyToOne(() => User, entity => entity.eventComments)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Event, entity => entity.eventReviews, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @ManyToOne(() => Event, entity => entity.eventComments, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'event_id' })
     event: Event;
 
@@ -346,11 +346,11 @@ export class EventReview extends BasicEntity {
     @Column({ nullable: true, type: 'text' })
     photo: string;
 
-    @ManyToOne(() => EventReview, entity => entity.children)
-    parent: EventReview;
+    @ManyToOne(() => EventComment, entity => entity.children)
+    parent: EventComment;
 
-    @OneToMany(() => EventReview, entity => entity.parent)
-    children: EventReview[];
+    @OneToMany(() => EventComment, entity => entity.parent)
+    children: EventComment[];
 }
 
 @Entity({ name: 'product_review' })

@@ -2,13 +2,13 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthService } from 'src/auth/service/auth.service';
 import { User } from 'src/user/model/user.entity';
 import { Role } from "src/user/model/user.interface";
-import { EventReviewService } from './event-review.service';
+import { EventCommentService } from './event-comment.service';
 
 
 @Injectable()
-export class UserIsEventReviewAuthorGuard implements CanActivate {
+export class UserIsEventCommentAuthorGuard implements CanActivate {
     constructor(
-        private eventReviewService: EventReviewService,
+        private eventCommentService: EventCommentService,
         private userService: AuthService
     ) { }
 
@@ -19,7 +19,7 @@ export class UserIsEventReviewAuthorGuard implements CanActivate {
             const requestUser: User = request.user;
             const user = await this.userService.findById(requestUser.id);
             if (user.role === Role.ADMIN) return true;
-            const review = await this.eventReviewService.findOne(reviewId);
+            const review = await this.eventCommentService.findOne(reviewId);
             let hasPermission = false;
             if (user.id === review.user.id) {
                 hasPermission = true
