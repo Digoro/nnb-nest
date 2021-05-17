@@ -1,7 +1,7 @@
 import { Min } from "class-validator";
 import { Payment } from 'src/payment/model/payment.entity';
 import { User } from "src/user/model/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { BasicEntity } from '../../shared/model/basic.entity';
 
 @Entity({ name: 'review' })
@@ -10,10 +10,8 @@ export class Review extends BasicEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @PrimaryColumn()
-    paymentId: number;
     @ManyToOne(() => Payment, entity => entity.reviews)
-    @JoinColumn({ name: 'paymentId' })
+    @JoinColumn({ name: 'payment_id' })
     payment: Payment;
 
     @Column()

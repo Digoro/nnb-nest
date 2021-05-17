@@ -12,7 +12,7 @@ export class ReviewCreateDto implements Dto<Review> {
     paymentId: number;
 
     @IsNumber()
-    @Min(1)
+    @Min(0)
     @Max(5)
     @Type(() => Number)
     score: number;
