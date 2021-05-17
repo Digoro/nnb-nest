@@ -25,6 +25,15 @@ export class ReviewController {
     return this.reviewService.paginate(search);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/by/host')
+  searchByHost(@Query() search: ReviewSearchDto, @Request() request): any {
+    let limit = +search.limit;
+    limit = limit > 100 ? 100 : limit;
+    const userId = request.user.id;
+    return this.reviewService.paginateByHost(search, userId);
+  }
+
   @Get('/best/productId/:productId')
   async getBestByProduct(@Param('productId') productId: number) {
     const review = await this.reviewService.getBestByProduct(productId);

@@ -7,6 +7,7 @@ import { Review } from 'src/product/model/review.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
+import { ProductService } from './product.service';
 
 @Injectable()
 export class ReviewService {
@@ -15,7 +16,8 @@ export class ReviewService {
   constructor(
     private authService: AuthService,
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
-    @InjectRepository(Review) private reviewRepository: Repository<Review>
+    @InjectRepository(Review) private reviewRepository: Repository<Review>,
+    private productService: ProductService
   ) { }
 
   async create(userId: number, reviewDto: ReviewCreateDto): Promise<Review> {
@@ -43,7 +45,29 @@ export class ReviewService {
       .where('product.id = :id', { id: search.productId })
       .andWhere('review.parentId is null')
       .orderBy('review.createdAt', 'DESC')
+    const result = await paginate<Review>(query, options);
+    return result;
+  }
 
+  async paginateByHost(search: ReviewSearchDto, host: number): Promise<Pagination<Review>> {
+    const options = { page: search.page, limit: search.limit }
+    delete search.page;
+    delete search.limit;
+
+    const hostedProducts = await this.productService.getHostedProducts(host);
+    const ids = hostedProducts.map(product => product.id);
+    const query = this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.payment', 'payment')
+      .leftJoinAndSelect('payment.order', 'order')
+      .leftJoinAndSelect('order.orderItems', 'orderItem')
+      .leftJoinAndSelect('orderItem.productOption', 'productOption')
+      .leftJoinAndSelect('order.product', 'product')
+      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .where('product.id IN (:ids)', { ids })
+      .andWhere('review.parentId is null')
+      .orderBy('review.createdAt', 'DESC')
     const result = await paginate<Review>(query, options);
     return result;
   }

@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { IsInt, IsNumber, IsNumberString, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { Payment } from 'src/payment/model/payment.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
@@ -45,10 +45,6 @@ export class ReviewCreateDto implements Dto<Review> {
 export class ReviewUpdateDto extends PartialType(ReviewCreateDto) { }
 
 export class ReviewSearchDto extends PaginationSearchDto {
-    @IsOptional()
-    @IsNumberString()
-    user: number;
-
     @IsOptional()
     @IsNumber()
     @Type(() => Number)
