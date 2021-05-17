@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Payment } from 'src/payment/model/payment.entity';
 import { Review } from 'src/product/model/review.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { ProductService } from './product.service';
@@ -67,30 +68,35 @@ export class ReviewService {
     delete search.limit;
 
     const hostedProducts = await this.productService.getHostedProducts(host);
-    const ids = hostedProducts.map(product => product.id);
-    const query = this.reviewRepository
-      .createQueryBuilder('review')
-      .leftJoinAndSelect('review.user', 'user')
-      .leftJoinAndSelect('review.payment', 'payment')
-      .leftJoinAndSelect('payment.order', 'order')
-      .leftJoinAndSelect('order.orderItems', 'orderItem')
-      .leftJoinAndSelect('orderItem.productOption', 'productOption')
-      .leftJoinAndSelect('order.product', 'product')
-      .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
-      .where('product.id IN (:ids)', { ids })
-      .andWhere('review.parentId is null')
-      .orderBy('review.createdAt', 'DESC')
-    const result = await paginate<Review>(query, options);
-    const items = result.items;
+    if (hostedProducts.length === 0) {
+      //todo
+      throw new BadRequestException(new ErrorInfo('NE003', 'NEI0021', '주최한 모임이 없습니다.'));
+    } else {
+      const ids = hostedProducts.map(product => product.id);
+      const query = this.reviewRepository
+        .createQueryBuilder('review')
+        .leftJoinAndSelect('review.user', 'user')
+        .leftJoinAndSelect('review.payment', 'payment')
+        .leftJoinAndSelect('payment.order', 'order')
+        .leftJoinAndSelect('order.orderItems', 'orderItem')
+        .leftJoinAndSelect('orderItem.productOption', 'productOption')
+        .leftJoinAndSelect('order.product', 'product')
+        .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+        .where('product.id IN (:ids)', { ids })
+        .andWhere('review.parentId is null')
+        .orderBy('review.createdAt', 'DESC')
+      const result = await paginate<Review>(query, options);
+      const items = result.items;
 
-    for (const parent of items) {
-      const children = await this.reviewRepository.findOne({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
-      if (children) items.push(children)
+      for (const parent of items) {
+        const children = await this.reviewRepository.findOne({ where: [{ parent: parent.id }], relations: ['user', 'parent'] });
+        if (children) items.push(children)
+      }
+      return {
+        items: items,
+        meta: { ...result.meta }
+      };
     }
-    return {
-      items: items,
-      meta: { ...result.meta }
-    };
   }
 
   async findOne(id: number): Promise<Review> {
