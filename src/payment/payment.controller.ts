@@ -10,7 +10,7 @@ import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
-import { PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
+import { PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @ApiTags('payments')
@@ -121,5 +121,12 @@ export class PaymentController {
     @Delete(':id')
     deleteOne(@Param('id') id: number): Promise<any> {
         return this.paymentService.deleteOne(id);
+    }
+
+    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Post('cancel')
+    cancel(@Body() dto: PaymentCancelDto): Promise<any> {
+        return this.paymentService.cancelPayple(dto);
     }
 }

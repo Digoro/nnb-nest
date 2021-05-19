@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
 import { Order } from './order.entity';
 import { Payment } from './payment.entity';
@@ -259,4 +259,27 @@ export class PaypleCreateDto {
 export class PaymentSearchDto extends PaginationSearchDto {
     @IsBoolean()
     isLast: boolean;
+}
+
+export class PaymentCancelDto {
+    @IsString()
+    @MaxLength(1000)
+    reason: string;
+
+    @IsNumber()
+    @Type(() => Number)
+    payment: number;
+
+    @IsNumber()
+    @Min(0)
+    @Type(() => Number)
+    refundPrice: number;
+
+    @IsBoolean()
+    @Type(() => Boolean)
+    refundCoupon: boolean;
+
+    @IsBoolean()
+    @Type(() => Boolean)
+    refundPoint: boolean;
 }

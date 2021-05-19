@@ -2,10 +2,15 @@ import { Review } from "src/product/model/review.entity";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { BasicEntity } from "../../shared/model/basic.entity";
 import { Order } from "./order.entity";
+import { PaymentCancel } from "./payment-cancel.entity";
 import { PayMethod, PG } from "./payment.interface";
 
 @Entity({ name: 'payment' })
 export class Payment extends BasicEntity {
+    @OneToOne(() => PaymentCancel, entity => entity.payment)
+    @JoinColumn({ name: 'payment_cancel' })
+    paymentCancel: PaymentCancel;
+
     @OneToOne(() => Order, order => order.payment)
     @JoinColumn({ name: 'order_id' })
     order: Order;
