@@ -23,7 +23,7 @@ export class PaymentService {
     private PAYPLE_CST_KEY: string;
     private PAYPLE_API_URL: string;
     private PAYPLE_REFUND_KEY: string;
-    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems', 'order.orderItems.productOption', 'order.user'];
+    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems', 'order.orderItems.productOption', 'order.user', 'order.nonMemberUser'];
     private readonly logger = new Logger();
 
     constructor(
@@ -175,7 +175,6 @@ export class PaymentService {
             const nonMemberUser = dto.order.nonMemberUser.toEntity();
             const newNonMemberUser = await queryRunner.manager.save(NonMemberUser, nonMemberUser);
             const product = await this.productRepository.findOne({ id: dto.order.productId });
-            order.user = null;
             order.nonMemberUser = newNonMemberUser;
             order.product = product;
             order.coupon = null;
@@ -194,6 +193,8 @@ export class PaymentService {
             const payment = dto.toEntity2(newOrder);
             const result = await queryRunner.manager.save(Payment, payment);
             await queryRunner.commitTransaction();
+            await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
+            await this.sendAlimtalk(result);
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
@@ -217,9 +218,18 @@ export class PaymentService {
     async sendAlimtalk(payment: Payment, receiver?: string) {
         Logger.log("##payment##");
         Logger.log(payment);
-        const receiverPhoneNumber = payment.order.user.phoneNumber;
-        const receiverName = payment.order.user.name;
-        const nickname = payment.order.user.nickname;
+        let receiverPhoneNumber: string;
+        let receiverName: string;
+        let nickname: string;
+        if (payment.order.user) {
+            receiverPhoneNumber = payment.order.user.phoneNumber;
+            receiverName = payment.order.user.name;
+            nickname = payment.order.user.nickname;
+        } else {
+            receiverPhoneNumber = payment.order.nonMemberUser.phoneNumber;
+            receiverName = payment.order.nonMemberUser.name;
+            nickname = payment.order.nonMemberUser.name;
+        }
         const orderNumber = payment.id;
         const totalPrice = payment.totalPrice;
         const payAt = moment(payment.payAt).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
