@@ -3,7 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
-import { Coupon } from './user.entity';
+import { Coupon, NonMemberUser } from './user.entity';
 import { Gender } from './user.interface';
 
 export class UserCreateDto {
@@ -170,4 +170,26 @@ export class CouponSearchDto extends PaginationSearchDto {
         else return value;
     })
     isUsed: boolean;
+}
+
+export class NonMemberUserCreateDto {
+    @IsEmail()
+    @MaxLength(254)
+    email: string;
+
+    @IsString()
+    @MaxLength(20)
+    name: string;
+
+    @IsString()
+    @MaxLength(15)
+    phoneNumber: string;
+
+    toEntity(): NonMemberUser {
+        const nonMemberUser = new NonMemberUser();
+        nonMemberUser.name = this.name;
+        nonMemberUser.phoneNumber = this.phoneNumber;
+        nonMemberUser.email = this.email;
+        return nonMemberUser;
+    }
 }

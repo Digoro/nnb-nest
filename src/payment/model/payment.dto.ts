@@ -1,7 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsBoolean, IsDate, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
+import { NonMemberUserCreateDto } from './../../user/model/user.dto';
 import { Order } from './order.entity';
 import { Payment } from './payment.entity';
 import { PayMethod, PG } from './payment.interface';
@@ -49,9 +50,11 @@ export class PaymentCreateDto implements Dto<Payment>{
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     pgOrderId: string;
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     payAt: Date;
 
     @IsInt()
@@ -70,29 +73,67 @@ export class PaymentCreateDto implements Dto<Payment>{
     result: boolean;
 
     @IsString()
+    @MaxLength(500)
     resultMessage: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     cardName: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     cardNum: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(65535)
     cardReceipt: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     bankName: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     bankNum: string;
 
     toEntity(order: Order): Payment {
+        const payment = new Payment();
+        payment.order = order;
+        payment.pgName = this.pgName;
+        payment.pgOrderId = this.pgOrderId;
+        payment.payAt = this.payAt;
+        payment.totalPrice = this.totalPrice;
+        payment.payMethod = this.payMethod;
+        payment.payPrice = this.payPrice;
+        payment.payCommissionPrice = this.payCommissionPrice;
+        payment.result = this.result;
+        payment.resultMessage = this.resultMessage;
+        payment.cardName = this.cardName;
+        payment.cardNum = this.cardNum;
+        payment.cardReceipt = this.cardReceipt;
+        payment.bankName = this.bankName;
+        payment.bankNum = this.bankNum;
+        return payment;
+    }
+}
+
+export class NonMemberUserOrderCreateDto extends OmitType(OrderCreateDto, ['userId', 'couponId', 'point']) {
+    @ValidateNested({ each: true })
+    @Type(() => NonMemberUserCreateDto)
+    nonMemberUser: NonMemberUserCreateDto;
+}
+
+export class NonMemberUserPaymentCreateDto extends OmitType(PaymentCreateDto, ['order']) {
+    @ValidateNested({ each: true })
+    @Type(() => NonMemberUserOrderCreateDto)
+    order: NonMemberUserOrderCreateDto;
+
+    toEntity2(order: Order): Payment {
         const payment = new Payment();
         payment.order = order;
         payment.pgName = this.pgName;

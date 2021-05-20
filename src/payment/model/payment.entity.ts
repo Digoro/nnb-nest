@@ -18,19 +18,19 @@ export class Payment extends BasicEntity {
     @Column({ nullable: true, name: 'pg_name', type: 'enum', enum: PG })
     pgName: PG;
 
-    @Column({ nullable: true, name: 'pg_order_id', length: 254 })
+    @Column({ nullable: true, name: 'pg_order_id', length: 500 })
     pgOrderId: string;
 
     @Column({ name: 'pay_at' })
     payAt: Date;
 
-    @Column({ name: 'total_price' })
+    @Column({ name: 'total_price', comment: '상품 구매옵션의 총 금액' })
     totalPrice: number;
 
     @Column({ name: 'pay_method', type: 'enum', enum: PayMethod })
     payMethod: PayMethod;
 
-    @Column({ name: 'pay_price' })
+    @Column({ name: 'pay_price', comment: '결제 금액(totalPrice - discountPrice)' })
     payPrice: number;
 
     @Column({ name: 'pay_commission_price' })
@@ -39,22 +39,22 @@ export class Payment extends BasicEntity {
     @Column({ name: 'result' })
     result: boolean;
 
-    @Column({ name: 'result_message', length: 254 })
+    @Column({ name: 'result_message', length: 500 })
     resultMessage: string;
 
-    @Column({ nullable: true, name: 'card_name', length: 254 })
+    @Column({ nullable: true, name: 'card_name', length: 500 })
     cardName: string;
 
-    @Column({ nullable: true, name: 'card_num', length: 254 })
+    @Column({ nullable: true, name: 'card_num', length: 500 })
     cardNum: string;
 
-    @Column({ nullable: true, name: 'card_receipt', length: 254 })
+    @Column({ nullable: true, name: 'card_receipt', type: 'text' })
     cardReceipt: string;
 
-    @Column({ nullable: true, name: 'bank_name', length: 254 })
+    @Column({ nullable: true, name: 'bank_name', length: 500 })
     bankName: string;
 
-    @Column({ nullable: true, name: 'bank_num', length: 254 })
+    @Column({ nullable: true, name: 'bank_num', length: 500 })
     bankNum: string;
 
     @OneToMany(() => Review, entity => entity.payment)

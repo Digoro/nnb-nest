@@ -5,7 +5,7 @@ import { Product } from 'src/product/model/product.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
-import { Coupon, User, UserCouponMap, UserProductLike, UserUserLike } from './model/user.entity';
+import { Coupon, NonMemberUser, User, UserCouponMap, UserProductLike, UserUserLike } from './model/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -13,6 +13,7 @@ import { UserService } from './user.service';
     imports: [
         TypeOrmModule.forFeature([
             User,
+            NonMemberUser,
             Coupon,
             UserProductLike,
             UserUserLike,

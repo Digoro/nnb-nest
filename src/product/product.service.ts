@@ -228,6 +228,7 @@ export class ProductService {
       .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .leftJoinAndSelect('product.options', 'productOptions')
       .orderBy('product.sortOrder', 'ASC')
     if (search.status !== ProductStatus.ALL) {
       query.where('product.status = :status', { status: search.status })

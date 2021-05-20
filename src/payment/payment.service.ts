@@ -6,14 +6,14 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
-import { User } from 'src/user/model/user.entity';
+import { NonMemberUser, User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { ErrorInfo } from './../shared/model/error-info';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCancel } from './model/payment-cancel.entity';
-import { PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { NonMemberUserPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
 const moment = require('moment');
 
@@ -167,6 +167,44 @@ export class PaymentService {
         }
     }
 
+    async payNonMemberUser(dto: NonMemberUserPaymentCreateDto) {
+        const queryRunner = await getConnection().createQueryRunner();
+        try {
+            await queryRunner.startTransaction();
+            const order = new Order();
+            const nonMemberUser = dto.order.nonMemberUser.toEntity();
+            const newNonMemberUser = await queryRunner.manager.save(NonMemberUser, nonMemberUser);
+            const product = await this.productRepository.findOne({ id: dto.order.productId });
+            order.user = null;
+            order.nonMemberUser = newNonMemberUser;
+            order.product = product;
+            order.coupon = null;
+            order.point = 0;
+            order.orderAt = dto.order.orderAt;
+            const newOrder = await queryRunner.manager.save(Order, order);
+
+            for (const item of dto.order.orderItems) {
+                const orderItem = new OrderItem();
+                orderItem.order = newOrder;
+                const productOption = await this.productOptionRepository.findOne({ id: item.productOptionId });
+                orderItem.productOption = productOption;
+                orderItem.count = item.count;
+                await queryRunner.manager.save(OrderItem, orderItem);
+            }
+            const payment = dto.toEntity2(newOrder);
+            const result = await queryRunner.manager.save(Payment, payment);
+            await queryRunner.commitTransaction();
+            return result;
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            const errorInfo = new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e)
+            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            throw new InternalServerErrorException(errorInfo);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
     async getAlimtalkToken() {
         const url = "https://kakaoapi.aligo.in/akv10/token/create/30/s/"
         const form = new FormData();
@@ -258,6 +296,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .createQueryBuilder('payment')
             .leftJoinAndSelect("payment.order", 'order')
             .leftJoinAndSelect("order.user", 'user')
+            .leftJoinAndSelect("order.nonMemberUser", 'nonMemberUser')
             .leftJoinAndSelect('order.product', 'product')
             .leftJoin('product.host', 'host')
             .leftJoinAndSelect('order.coupon', 'coupon')

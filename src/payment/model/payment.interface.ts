@@ -6,10 +6,10 @@ export enum PG {
 
 export enum PayMethod {
     BANKBOOK = "BANKBOOK",
-    POINT = "POINT",
     CARD = "CARD",
     TRANSFER = "TRANSFER",
-    DIRECT = "DIRECT",
+    DIRECT_CARD = "DIRECT_CARD",
+    DIRECT_TRANSFER = "DIRECT_TRANSFER",
     FREE = "FREE"
 }
 
