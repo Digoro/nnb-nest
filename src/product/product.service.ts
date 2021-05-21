@@ -337,6 +337,7 @@ export class ProductService {
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
       .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
+      .leftJoinAndSelect('productOptions.orderItems', 'orderItem')
       .leftJoinAndSelect('product.host', 'user')
       .where('product.id = :id', { id })
       .orderBy('product.createdAt', 'DESC')

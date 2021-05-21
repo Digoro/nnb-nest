@@ -23,19 +23,18 @@ export class PaymentService {
     private PAYPLE_CST_KEY: string;
     private PAYPLE_API_URL: string;
     private PAYPLE_REFUND_KEY: string;
-    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems', 'order.orderItems.productOption', 'order.user', 'order.nonMemberUser'];
+    relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems',
+        'order.orderItems.productOption', 'order.user', 'order.nonMemberUser'];
     private readonly logger = new Logger();
 
     constructor(
         @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
-        @InjectRepository(PaymentCancel) private cancelRepository: Repository<PaymentCancel>,
         @InjectRepository(Order) private orderRepository: Repository<Order>,
         @InjectRepository(OrderItem) private orderItemRepository: Repository<OrderItem>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>,
         @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
-        @InjectRepository(UserCouponMap) private userCouponMap: Repository<UserCouponMap>,
         private configService: ConfigService,
         private http: HttpService,
         private slackService: SlackService
