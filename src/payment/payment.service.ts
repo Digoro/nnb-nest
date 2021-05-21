@@ -6,14 +6,14 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
-import { NonMemberUser, User } from 'src/user/model/user.entity';
+import { NonMember, User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { ErrorInfo } from './../shared/model/error-info';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCancel } from './model/payment-cancel.entity';
-import { NonMemberUserPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { NonMemberPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
 const moment = require('moment');
 
@@ -24,7 +24,7 @@ export class PaymentService {
     private PAYPLE_API_URL: string;
     private PAYPLE_REFUND_KEY: string;
     relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems',
-        'order.orderItems.productOption', 'order.user', 'order.nonMemberUser'];
+        'order.orderItems.productOption', 'order.user', 'order.nonMember'];
     private readonly logger = new Logger();
 
     constructor(
@@ -166,15 +166,15 @@ export class PaymentService {
         }
     }
 
-    async payNonMemberUser(dto: NonMemberUserPaymentCreateDto) {
+    async payNonMember(dto: NonMemberPaymentCreateDto) {
         const queryRunner = await getConnection().createQueryRunner();
         try {
             await queryRunner.startTransaction();
             const order = new Order();
-            const nonMemberUser = dto.order.nonMemberUser.toEntity();
-            const newNonMemberUser = await queryRunner.manager.save(NonMemberUser, nonMemberUser);
+            const nonMember = dto.order.nonMember.toEntity();
+            const newNonMember = await queryRunner.manager.save(NonMember, nonMember);
             const product = await this.productRepository.findOne({ id: dto.order.productId });
-            order.nonMemberUser = newNonMemberUser;
+            order.nonMember = newNonMember;
             order.product = product;
             order.coupon = null;
             order.point = 0;
@@ -225,9 +225,9 @@ export class PaymentService {
             receiverName = payment.order.user.name;
             nickname = payment.order.user.nickname;
         } else {
-            receiverPhoneNumber = payment.order.nonMemberUser.phoneNumber;
-            receiverName = payment.order.nonMemberUser.name;
-            nickname = payment.order.nonMemberUser.name;
+            receiverPhoneNumber = payment.order.nonMember.phoneNumber;
+            receiverName = payment.order.nonMember.name;
+            nickname = payment.order.nonMember.name;
         }
         const orderNumber = payment.id;
         const totalPrice = payment.totalPrice;
@@ -305,7 +305,7 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             .createQueryBuilder('payment')
             .leftJoinAndSelect("payment.order", 'order')
             .leftJoinAndSelect("order.user", 'user')
-            .leftJoinAndSelect("order.nonMemberUser", 'nonMemberUser')
+            .leftJoinAndSelect("order.nonMember", 'nonMember')
             .leftJoinAndSelect('order.product', 'product')
             .leftJoin('product.host', 'host')
             .leftJoinAndSelect('order.coupon', 'coupon')
@@ -370,33 +370,38 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
     }
 
     async cancelPayple(dto: PaymentCancelDto): Promise<any> {
-        const payment = await this.paymentRepository.findOne(dto.payment, { relations: ['order', 'order.user', 'order.coupon'] });
-        const auth = await this.authPayple('PCD_PAYCANCEL_FLAG');
-        const authKey = auth.AuthKey;
-        const cstId = auth.cst_id;
-        const custKey = auth.custKey;
-        const host = auth.PCD_PAY_HOST;
-        const url = auth.PCD_PAY_URL;
-        const data = {
-            PCD_CST_ID: cstId,
-            PCD_CUST_KEY: custKey,
-            PCD_AUTH_KEY: authKey,
-            PCD_REFUND_KEY: this.PAYPLE_REFUND_KEY,
-            PCD_PAYCANCEL_FLAG: 'Y',
-            PCD_PAY_OID: payment.pgOrderId,
-            PCD_PAY_DATE: moment().format('YYYYMMDD'),
-            PCD_REFUND_TOTAL: dto.refundPrice
-        }
-        const headers = { referer: this.configService.get('SITE_HOST') }
-        const result = await this.http.post(`${host}${url}`, data, { headers }
-        ).toPromise();
+        const payment = await this.paymentRepository.findOne(dto.payment, { relations: ['order', 'order.user', 'order.nonMember', 'order.coupon'] });
+        if (payment.order.user) {
+            const auth = await this.authPayple('PCD_PAYCANCEL_FLAG');
+            const authKey = auth.AuthKey;
+            const cstId = auth.cst_id;
+            const custKey = auth.custKey;
+            const host = auth.PCD_PAY_HOST;
+            const url = auth.PCD_PAY_URL;
+            const data = {
+                PCD_CST_ID: cstId,
+                PCD_CUST_KEY: custKey,
+                PCD_AUTH_KEY: authKey,
+                PCD_REFUND_KEY: this.PAYPLE_REFUND_KEY,
+                PCD_PAYCANCEL_FLAG: 'Y',
+                PCD_PAY_OID: payment.pgOrderId,
+                PCD_PAY_DATE: moment().format('YYYYMMDD'),
+                PCD_REFUND_TOTAL: dto.refundPrice
+            }
+            const headers = { referer: this.configService.get('SITE_HOST') }
+            const result = await this.http.post(`${host}${url}`, data, { headers }
+            ).toPromise();
 
-        if (result.data.PCD_PAY_RST === 'success') {
-            const cancel = await this.cancel(dto, result.data.PCD_REFUND_TOTAL, payment);
-            return cancel;
+            if (result.data.PCD_PAY_RST === 'success') {
+                const cancel = await this.cancel(dto, result.data.PCD_REFUND_TOTAL, payment);
+                return cancel;
+            } else {
+                const errorInfo = new ErrorInfo('NE002', 'NEI0006', '결제 취소가 실패하였습니다.', result.data.PCD_PAY_MSG)
+                throw new BadRequestException(errorInfo);
+            }
         } else {
-            const errorInfo = new ErrorInfo('NE002', 'NEI0006', '결제 취소가 실패하였습니다.', result.data.PCD_PAY_MSG)
-            throw new BadRequestException(errorInfo);
+            const cancel = await this.cancel(dto, dto.refundPrice, payment);
+            return cancel;
         }
     }
 
@@ -412,18 +417,20 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             cancel.refundPoint = dto.refundPoint;
             cancel.payment = payment;
             const newCancel = await queryRunner.manager.save(PaymentCancel, cancel);
-            if (dto.refundCoupon) {
-                const coupon = payment.order.coupon;
-                const user = payment.order.user;
-                const map = await queryRunner.manager.findOne(UserCouponMap, { user, coupon, isUsed: true });
-                map.isUsed = false
-                await queryRunner.manager.save(UserCouponMap, map);
-            }
-            if (dto.refundPoint) {
-                const point = payment.order.point;
-                const user = payment.order.user;
-                user.point = user.point + point;
-                await queryRunner.manager.save(User, user);
+            if (payment.order.user) {
+                if (dto.refundCoupon) {
+                    const coupon = payment.order.coupon;
+                    const user = payment.order.user;
+                    const map = await queryRunner.manager.findOne(UserCouponMap, { user, coupon, isUsed: true });
+                    map.isUsed = false
+                    await queryRunner.manager.save(UserCouponMap, map);
+                }
+                if (dto.refundPoint) {
+                    const point = payment.order.point;
+                    const user = payment.order.user;
+                    user.point = user.point + point;
+                    await queryRunner.manager.save(User, user);
+                }
             }
             await queryRunner.commitTransaction();
             return newCancel;

@@ -10,7 +10,7 @@ import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
-import { NonMemberUserPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
+import { NonMemberPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
 @ApiTags('payments')
@@ -112,8 +112,8 @@ export class PaymentController {
     }
 
     @Post('nonMember')
-    nonMemberCreate(@Body() paymentDto: NonMemberUserPaymentCreateDto): Promise<any> {
-        return this.paymentService.payNonMemberUser(paymentDto);
+    nonMemberCreate(@Body() paymentDto: NonMemberPaymentCreateDto): Promise<any> {
+        return this.paymentService.payNonMember(paymentDto);
     }
 
     @UseGuards(AuthGuard('jwt'))

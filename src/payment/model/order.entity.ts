@@ -1,7 +1,7 @@
 import { Coupon, User } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Product, ProductOption } from './../../product/model/product.entity';
-import { NonMemberUser } from './../../user/model/user.entity';
+import { NonMember } from './../../user/model/user.entity';
 import { Payment } from "./payment.entity";
 
 @Entity({ name: 'order' })
@@ -13,9 +13,9 @@ export class Order extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => NonMemberUser, entity => entity.orders)
-    @JoinColumn({ name: 'non_member_user' })
-    nonMemberUser: NonMemberUser;
+    @ManyToOne(() => NonMember, entity => entity.orders)
+    @JoinColumn({ name: 'non_member_id' })
+    nonMember: NonMember;
 
     @ManyToOne(() => Product, entity => entity.orders)
     @JoinColumn({ name: 'product_id' })

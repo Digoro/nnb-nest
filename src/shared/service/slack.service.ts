@@ -73,7 +73,7 @@ export class SlackService {
                 const payment = data as Payment;
                 const userMessage = payment.order.user ?
                     `결제자: ${payment.order.user.name}(닉네임: ${payment.order.user.nickname})` :
-                    `결제자: ${payment.order.nonMemberUser.name}(비회원)`;
+                    `결제자: ${payment.order.nonMember.name}(비회원)`;
                 await this.http.post(this.configService.get('SLACK_PAYMENT_WEBHOOK_URL'), {
                     "blocks": [
                         {

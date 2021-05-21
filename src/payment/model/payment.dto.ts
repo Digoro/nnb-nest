@@ -2,7 +2,7 @@ import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsDate, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
-import { NonMemberUserCreateDto } from './../../user/model/user.dto';
+import { NonMemberCreateDto } from './../../user/model/user.dto';
 import { Order } from './order.entity';
 import { Payment } from './payment.entity';
 import { PayMethod, PG } from './payment.interface';
@@ -122,16 +122,16 @@ export class PaymentCreateDto implements Dto<Payment>{
     }
 }
 
-export class NonMemberUserOrderCreateDto extends OmitType(OrderCreateDto, ['userId', 'couponId', 'point']) {
+export class NonMemberOrderCreateDto extends OmitType(OrderCreateDto, ['userId', 'couponId', 'point']) {
     @ValidateNested({ each: true })
-    @Type(() => NonMemberUserCreateDto)
-    nonMemberUser: NonMemberUserCreateDto;
+    @Type(() => NonMemberCreateDto)
+    nonMember: NonMemberCreateDto;
 }
 
-export class NonMemberUserPaymentCreateDto extends OmitType(PaymentCreateDto, ['order']) {
+export class NonMemberPaymentCreateDto extends OmitType(PaymentCreateDto, ['order']) {
     @ValidateNested({ each: true })
-    @Type(() => NonMemberUserOrderCreateDto)
-    order: NonMemberUserOrderCreateDto;
+    @Type(() => NonMemberOrderCreateDto)
+    order: NonMemberOrderCreateDto;
 
     toEntity2(order: Order): Payment {
         const payment = new Payment();

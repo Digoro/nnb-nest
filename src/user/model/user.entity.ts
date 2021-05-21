@@ -177,8 +177,8 @@ export class UserProductLike extends BasicEntity {
     product: Product;
 }
 
-@Entity({ name: 'non_member_user' })
-export class NonMemberUser extends BasicEntity {
+@Entity({ name: 'non_member' })
+export class NonMember extends BasicEntity {
     @Column({ length: 254 })
     email: string;
 
@@ -188,6 +188,6 @@ export class NonMemberUser extends BasicEntity {
     @Column({ length: 15, name: 'phone_number' })
     phoneNumber: string;
 
-    @OneToMany(() => Order, entity => entity.nonMemberUser)
+    @OneToMany(() => Order, entity => entity.nonMember)
     orders: Order[];
 }
