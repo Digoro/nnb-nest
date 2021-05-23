@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { Coupon } from 'src/user/model/user.entity';
 import { CouponService } from './coupon.service';
-import { CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
+import { CouponAddByCodeDto, CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
 import { Role } from './model/user.interface';
 
 @ApiTags('coupons')
@@ -45,6 +45,13 @@ export class CouponController {
     @Post('/user')
     addCouponToUser(@Body() dto: CouponAddToUserDto): Promise<any> {
         return this.couponService.addCouponToUser(dto);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/code')
+    addCouponByCode(@Body() dto: CouponAddByCodeDto, @Request() request): Promise<any> {
+        const userId = request.user.id;
+        return this.couponService.addCouponByCode(userId, dto);
     }
 
     @Roles(Role.ADMIN)

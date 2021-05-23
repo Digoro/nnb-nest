@@ -151,6 +151,12 @@ export class CouponAddToUserDto {
     couponId: number;
 }
 
+export class CouponAddByCodeDto {
+    @IsString()
+    @MaxLength(20)
+    code: string;
+}
+
 export class CouponSearchDto extends PaginationSearchDto {
     @IsOptional()
     @Type(() => Number)

@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
-import { CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
-import { Coupon, UserCouponMap } from './model/user.entity';
+import { CouponAddByCodeDto, CouponAddToUserDto, CouponCreateDto, CouponSearchDto, CouponUpdateDto } from './model/user.dto';
+import { Coupon, User, UserCouponMap } from './model/user.entity';
+const moment = require('moment')
 
 @Injectable()
 export class CouponService {
     constructor(
         @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
+        @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(UserCouponMap) private userCouponMapRepository: Repository<UserCouponMap>
     ) { }
 
@@ -75,6 +78,29 @@ export class CouponService {
 
     async addCouponToUser(dto: CouponAddToUserDto): Promise<any> {
         return await this.userCouponMapRepository.save(dto);
+    }
+
+    async addCouponByCode(userId: number, dto: CouponAddByCodeDto): Promise<any> {
+        if (dto.code === 'NNBGIFT') {
+            // 300: 기프트 쿠폰
+            const coupon = await this.findById(300);
+            const isExist = await this.userCouponMapRepository.findOne({ userId, couponId: coupon.id });
+            if (!isExist) {
+                const map = new UserCouponMap();
+                const user = await this.userRepository.findOne(userId);
+                map.user = user;
+                map.userId = userId;
+                map.coupon = coupon;
+                map.couponId = coupon.id;
+                await this.userCouponMapRepository.save(map);
+            } else {
+                //todo
+                throw new BadRequestException(new ErrorInfo('NE003', 'NEI0015', '이미 등록된 쿠폰입니다.'));
+            }
+        } else {
+            //todo
+            throw new BadRequestException(new ErrorInfo('NE003', 'NEI0015', '해당 쿠폰이 존재하지 않습니다.'));
+        }
     }
 
     async deleteOne(id: number): Promise<any> {
