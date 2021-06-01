@@ -29,10 +29,10 @@ export class Product extends BasicEntity {
     @Column({ select: false, type: 'text' })
     description: string;
 
-    @Column({ type: 'float' })
+    @Column({ type: 'double' })
     lat: number;
 
-    @Column({ type: 'float' })
+    @Column({ type: 'double' })
     lon: number;
 
     @Column({ type: 'text' })

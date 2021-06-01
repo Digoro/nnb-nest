@@ -1,6 +1,6 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsBoolean, IsDate, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Blog, Event, EventComment, Hashtag, Product, ProductRequest, ProductReview } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { Dto } from '../../shared/model/dto';
@@ -197,11 +197,13 @@ export class ProductSearchDto extends PaginationSearchDto {
     hashtag: string;
 
     @IsOptional()
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     from: Date;
 
     @IsOptional()
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     to: Date;
 }
 
@@ -224,7 +226,8 @@ export class ProductOptionCreateDto implements Dto<ProductOption> {
     @MaxLength(100)
     name: string;
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     date: Date;
 
     @IsOptional()
@@ -307,7 +310,8 @@ export class ProductRequestCreateDto implements Dto<ProductRequest> {
     isChecked: boolean;
 
     @IsOptional()
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     checkedAt: Date;
 
     toEntity(user: User, product: Product): ProductRequest {
@@ -348,10 +352,12 @@ export class EventCreateDto implements Dto<Event> {
     @IsBoolean()
     commentEnable: boolean;
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     startAt: Date;
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     endAt: Date;
 
     @IsOptional()

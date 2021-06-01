@@ -1,6 +1,6 @@
 import { OmitType, PartialType, PickType } from '@nestjs/mapped-types';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDateString, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsDate, IsEmail, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 import { Role } from 'src/user/model/user.interface';
 import { Dto, PaginationSearchDto } from './../../shared/model/dto';
 import { Coupon, NonMember } from './user.entity';
@@ -43,7 +43,8 @@ export class UserCreateDto {
     points: number;
 
     @IsOptional()
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     birthday: Date;
 
     @IsString()
