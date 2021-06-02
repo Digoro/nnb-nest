@@ -418,14 +418,14 @@ ${nickname}님의 노는법 참여 예약이 완료되었습니다.
             cancel.payment = payment;
             const newCancel = await queryRunner.manager.save(PaymentCancel, cancel);
             if (payment.order.user) {
-                if (dto.refundCoupon) {
+                if (dto.refundCoupon && payment.order.coupon) {
                     const coupon = payment.order.coupon;
                     const user = payment.order.user;
                     const map = await queryRunner.manager.findOne(UserCouponMap, { user, coupon, isUsed: true });
                     map.isUsed = false
                     await queryRunner.manager.save(UserCouponMap, map);
                 }
-                if (dto.refundPoint) {
+                if (dto.refundPoint && payment.order.point) {
                     const point = payment.order.point;
                     const user = payment.order.user;
                     user.point = user.point + point;
