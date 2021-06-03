@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Payment } from 'src/payment/model/payment.entity';
 import { Review } from 'src/product/model/review.entity';
-import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { ProductService } from './product.service';
@@ -69,8 +68,16 @@ export class ReviewService {
 
     const hostedProducts = await this.productService.getHostedProducts(host);
     if (hostedProducts.length === 0) {
-      //todo
-      throw new BadRequestException(new ErrorInfo('NE003', 'NEI0021', '주최한 모임이 없습니다.'));
+      return {
+        items: [],
+        meta: {
+          itemCount: 0,
+          totalItems: 0,
+          itemsPerPage: 1,
+          totalPages: 1,
+          currentPage: 1,
+        }
+      };
     } else {
       const ids = hostedProducts.map(product => product.id);
       const query = this.reviewRepository
