@@ -233,6 +233,7 @@ export class PaymentService {
         const totalPrice = payment.totalPrice;
         const payAt = moment(payment.payAt).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
         const productTitle = payment.order.product.title;
+        const productAddress = `${payment.order.product.address} (상세주소:${payment.order.product.detailAddress})`;
         const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
         Logger.log("##orderItems##");
         Logger.log(JSON.stringify(orderItems));
