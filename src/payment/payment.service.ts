@@ -243,26 +243,28 @@ export class PaymentService {
         const productId = payment.order.product.id;
         const token = await this.getAlimtalkToken();
         const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
-        const temp = "TD_0323"
+        const temp = "TE_5377"
         const subject = "노는법 예약확인 메시지"
-        const message = `[노는법 참여 확정]
-${nickname}님의 노는법 참여 예약이 완료되었습니다.
+        const message = `${nickname}님의 예약이 완료되었습니다.
 
-▶결제정보◀
-주문 번호: ${orderNumber}
-결제 금액: ${totalPrice}
-결제일: ${payAt}
+[상품정보]
+- 상품이름: ${productTitle}
+- 참여일시: ${productOptionDate}
+- 옵션이름: ${productOptions}
+- 주소: ${productAddress}
 
-▶예약정보◀
-상품명: ${productTitle}
-옵션명: ${productOptions}
-참여일: ${productOptionDate}
+[예약정보]
+- 주문번호: ${orderNumber}
+- 결제금액: ${totalPrice}원
+- 결제일시: ${payAt}
 
-* 유의사항과 준비물을 꼭 확인하세요!
-* 예약 취소시 환불 규정에 따라 수수료가 부과될 수 있습니다.
-* 문의하실 내용이 있으시면 노는법 담당자에게 연락바랍니다.
-* 고객님의 오늘 가장 젊은 순간을, 노는법이 함께 하겠습니다.
-* 담당자 연락처: 010-6687-1917`
+[주의사항]
+- 유의사항과 준비물을 꼭 확인하세요!
+- 예약 취소시 환불 규정에 따라 수수료가 부과될 수 있습니다.
+
+[문의하기]
+- 문의하실 내용이 있으시면 노는법 담당자에게 연락바랍니다.
+- 담당자 연락처: 010-6687-1917`
         const sender = this.configService.get('ALIMTALK_SENDER_PHONE')
         const button = {
             button: [{
