@@ -26,11 +26,11 @@ export class ReviewController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/by/host')
-  searchByHost(@Query() search: ReviewSearchDto, @Request() request): any {
+  @Get('/by/host/:hostId')
+  searchByHost(@Query() search: ReviewSearchDto, @Request() request, @Param('hostId') hostId: number): any {
     let limit = +search.limit;
     limit = limit > 100 ? 100 : limit;
-    const userId = request.user.id;
+    const userId = hostId ? hostId : request.user.id;
     return this.reviewService.paginateByHost(search, userId);
   }
 
