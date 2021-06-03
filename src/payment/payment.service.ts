@@ -24,7 +24,7 @@ export class PaymentService {
     private PAYPLE_API_URL: string;
     private PAYPLE_REFUND_KEY: string;
     relations = ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems',
-        'order.orderItems.productOption', 'order.user', 'order.nonMember'];
+        'order.orderItems.productOption', 'order.user', 'order.nonMember', 'paymentCancel'];
     private readonly logger = new Logger();
 
     constructor(
@@ -334,6 +334,7 @@ export class PaymentService {
             .leftJoinAndSelect('order.orderItems', 'orderItems')
             .leftJoinAndSelect('orderItems.productOption', 'productOption')
             .leftJoinAndSelect('payment.reviews', 'reviews')
+            .leftJoinAndSelect('payment.paymentCancel', 'paymentCancel')
             .where('user.id = :userId', { userId })
             .orderBy('payment.payAt', 'DESC')
         if (dto.isLast) {
