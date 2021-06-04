@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Redirect, Request, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -16,8 +16,6 @@ import { PaymentService } from './payment.service';
 @ApiTags('payments')
 @Controller('api/payments')
 export class PaymentController {
-    private readonly logger = new Logger(PaymentController.name);
-
     constructor(
         private paymentService: PaymentService,
         private configService: ConfigService,
