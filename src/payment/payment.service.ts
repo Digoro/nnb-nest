@@ -69,6 +69,7 @@ export class PaymentService {
             const user = await this.userRepository.findOne({ id: userDefine.userId })
             const product = await this.productRepository.findOne({ id: userDefine.mid })
             const coupon = await this.couponRepository.findOne({ id: userDefine.couponId })
+            const alliance = userDefine.alliance;
             order.user = user;
             order.product = product;
             order.coupon = coupon;
@@ -101,7 +102,7 @@ export class PaymentService {
             payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
             payment.payCommissionPrice = 0;
             payment.result = paypleDto.PCD_PAY_RST === 'success';
-            payment.resultMessage = paypleDto.PCD_PAY_MSG;
+            payment.resultMessage = alliance ? `${paypleDto.PCD_PAY_MSG}(${alliance} 제휴 할인)` : paypleDto.PCD_PAY_MSG;
             payment.cardName = paypleDto.PCD_PAY_CARDNAME;
             payment.cardNum = paypleDto.PCD_PAY_CARDNUM;
             payment.cardReceipt = paypleDto.PCD_PAY_CARDRECEIPT;

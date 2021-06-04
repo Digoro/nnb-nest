@@ -18,5 +18,6 @@ export interface PaypleUserDefine {
     userId: number,
     mid: number,
     couponId: number,
-    options: { id: number, name: string, price: number, count: number, date: string }[]
+    options: { id: number, name: string, price: number, count: number, date: string }[],
+    alliance: string
 }

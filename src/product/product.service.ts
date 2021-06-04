@@ -311,6 +311,8 @@ export class ProductService {
         .leftJoin(ProductCategoryMap, 'map', 'map.productId = product.id')
         .leftJoinAndSelect("product.productHashtagMap", 'productHashtagMap')
         .leftJoinAndSelect("productHashtagMap.hashtag", 'hashtag')
+        .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
+        .leftJoinAndSelect("productCategoryMap.category", 'category')
         .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
         .where('product.status = :status', { status: search.status })
         .andWhere('map.categoryId = :categoryId', { categoryId: search.categoryId })
@@ -319,8 +321,11 @@ export class ProductService {
     )
     const items = products.items.map(product => {
       const hashtags = product.productHashtagMap.map(map => map.hashtag);
+      const categories = product.productCategoryMap.map(map => map.category);
       product.hashtags = hashtags;
+      product.categories = categories;
       delete product.productHashtagMap;
+      delete product.productCategoryMap;
       return product;
     })
     return { items, meta: products.meta };

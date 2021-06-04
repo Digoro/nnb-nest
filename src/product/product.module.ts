@@ -5,6 +5,8 @@ import { Payment } from 'src/payment/model/payment.entity';
 import { Review } from 'src/product/model/review.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
+import { AllianceController } from './alliance.controller';
+import { AllianceService } from './alliance.service';
 import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
 import { CategoryController } from './category.controller';
@@ -15,6 +17,7 @@ import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
+import { Alliance } from './model/alliance';
 import { Blog, Category, Event, EventComment, EventProductMap, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductRequestController } from './product-request.controller';
 import { ProductRequestService } from './product-request.service';
@@ -43,7 +46,8 @@ import { ReviewService } from './review.service';
       ProductHashtagMap,
       UserProductLike,
       EventComment,
-      EventProductMap
+      EventProductMap,
+      Alliance
     ]),
     AuthModule,
     SharedModule
@@ -57,7 +61,8 @@ import { ReviewService } from './review.service';
     BlogController,
     HashtagController,
     ProductRequestController,
-    ReviewController
+    ReviewController,
+    AllianceController
   ],
   providers: [
     ProductService,
@@ -68,7 +73,8 @@ import { ReviewService } from './review.service';
     EventCommentService,
     HashtagService,
     ProductRequestService,
-    ReviewService
+    ReviewService,
+    AllianceService
   ]
 })
 export class ProductModule { }
