@@ -57,6 +57,9 @@ export class Payment extends BasicEntity {
     @Column({ nullable: true, name: 'bank_num', length: 500 })
     bankNum: string;
 
+    @Column({ name: 'is_request_review', default: false })
+    isRequestReview: boolean;
+
     @OneToMany(() => Review, entity => entity.payment)
     reviews: Review[];
 }

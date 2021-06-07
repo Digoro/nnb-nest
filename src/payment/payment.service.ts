@@ -10,6 +10,7 @@ import { NonMember, User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { ErrorInfo } from './../shared/model/error-info';
+import { KakaotalkService } from './../shared/service/kakaotalk.service';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCancel } from './model/payment-cancel.entity';
@@ -36,7 +37,8 @@ export class PaymentService {
         @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
         private configService: ConfigService,
         private http: HttpService,
-        private slackService: SlackService
+        private slackService: SlackService,
+        private kakaotalkService: KakaotalkService
     ) {
         this.PAYPLE_CST_ID = configService.get('PAYPLPE_CST_ID');
         this.PAYPLE_CST_KEY = configService.get('PAYPLE_CST_KEY');
@@ -201,15 +203,6 @@ export class PaymentService {
         }
     }
 
-    async getAlimtalkToken() {
-        const url = "https://kakaoapi.aligo.in/akv10/token/create/30/s/"
-        const form = new FormData();
-        form.append('apikey', this.configService.get('ALIMTALK_API_KEY'))
-        form.append('userid', this.configService.get('ALIMTALK_USER_ID'))
-        const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise()
-        return response.data.token;
-    }
-
     async sendAlimtalk(payment: Payment, receiver?: string) {
         let receiverPhoneNumber: string;
         let receiverName: string;
@@ -232,7 +225,7 @@ export class PaymentService {
         let productOptions = orderItems.map(item => item.productOption.name).join(", ");
         const productOptionDate = moment(orderItems[0].productOption.date).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
         const productId = payment.order.product.id;
-        const token = await this.getAlimtalkToken();
+        const token = await this.kakaotalkService.getAlimtalkToken();
         const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
         const temp = "TE_5377"
         const subject = "노는법 예약확인 메시지"

@@ -1,5 +1,6 @@
 import { HttpModule, Module } from '@nestjs/common';
 import { SlackService } from 'src/shared/service/slack.service';
+import { KakaotalkService } from './service/kakaotalk.service';
 import { MailService } from './service/mail.service';
 
 @Module({
@@ -8,11 +9,13 @@ import { MailService } from './service/mail.service';
     ],
     providers: [
         SlackService,
+        KakaotalkService,
         MailService
     ],
     exports: [
         HttpModule,
         SlackService,
+        KakaotalkService,
         MailService
     ]
 })

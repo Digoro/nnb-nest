@@ -101,6 +101,10 @@ export class PaymentCreateDto implements Dto<Payment>{
     @MaxLength(500)
     bankNum: string;
 
+    @IsOptional()
+    @IsBoolean()
+    isRequestReview: boolean;
+
     toEntity(order: Order): Payment {
         const payment = new Payment();
         payment.order = order;
@@ -118,6 +122,7 @@ export class PaymentCreateDto implements Dto<Payment>{
         payment.cardReceipt = this.cardReceipt;
         payment.bankName = this.bankName;
         payment.bankNum = this.bankNum;
+        payment.isRequestReview = this.isRequestReview;
         return payment;
     }
 }
@@ -150,6 +155,7 @@ export class NonMemberPaymentCreateDto extends OmitType(PaymentCreateDto, ['orde
         payment.cardReceipt = this.cardReceipt;
         payment.bankName = this.bankName;
         payment.bankNum = this.bankNum;
+        payment.isRequestReview = this.isRequestReview;
         return payment;
     }
 }

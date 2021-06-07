@@ -1,7 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { UserIsPaymentOwnerGuard } from 'src/payment/guard/user-is-payment-owner.guard';
+import { Role } from 'src/user/model/user.interface';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { Review } from './model/review.entity';
 import { ReviewService } from './review.service';
@@ -63,5 +66,12 @@ export class ReviewController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.reviewService.delete(id);
+  }
+
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('request')
+  async requestReview(@Body() body: any) {
+    return this.reviewService.requestReview(body.paymentId)
   }
 }

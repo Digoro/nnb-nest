@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Payment } from 'src/payment/model/payment.entity';
 import { Review } from 'src/product/model/review.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
+import { KakaotalkMessageType, KakaotalkService } from './../shared/service/kakaotalk.service';
+import { SlackMessageType, SlackService } from './../shared/service/slack.service';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { ProductService } from './product.service';
 
@@ -16,7 +19,9 @@ export class ReviewService {
     private authService: AuthService,
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
-    private productService: ProductService
+    private productService: ProductService,
+    private kakaotalkService: KakaotalkService,
+    private slackService: SlackService
   ) { }
 
   async create(userId: number, reviewDto: ReviewCreateDto): Promise<Review> {
@@ -145,5 +150,23 @@ export class ReviewService {
 
   async delete(id: number): Promise<any> {
     return await this.reviewRepository.delete(id);
+  }
+
+  async requestReview(paymentId: number) {
+    const payment = await this.paymentRepository.findOne(paymentId, {
+      relations: ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems',
+        'order.orderItems.productOption', 'order.user', 'order.nonMember', 'paymentCancel']
+    });
+    const response = await this.kakaotalkService.send(KakaotalkMessageType.REQUEST_REVIEW, payment);
+    const code = response.data.code;
+    if (code === -99) {
+      //todo
+      const errorInfo = new ErrorInfo('NE002', 'NEI0013', '리뷰 요청 알림톡 전송에 오류가 발생하였습니다.', response.data)
+      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+      throw new InternalServerErrorException(errorInfo);
+    } else {
+      payment.isRequestReview = true;
+      return await this.paymentRepository.save(payment);
+    }
   }
 }
