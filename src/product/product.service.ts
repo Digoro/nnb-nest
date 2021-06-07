@@ -74,7 +74,7 @@ export class ProductService {
     } catch (e) {
       await queryRunner.rollbackTransaction();
       const errorInfo = new ErrorInfo('NE002', 'NEI0005', '상품 등록에 오류가 발생하였습니다.', e)
-      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+      await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
       throw new InternalServerErrorException(errorInfo);
     } finally {
       await queryRunner.release();
@@ -155,7 +155,7 @@ export class ProductService {
     } catch (e) {
       await queryRunner.rollbackTransaction();
       const errorInfo = new ErrorInfo('NE002', 'NEI0006', '상품 수정에 오류가 발생하였습니다.', e)
-      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+      await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
       throw new InternalServerErrorException(errorInfo);
     } finally {
       await queryRunner.release();

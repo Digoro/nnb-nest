@@ -39,7 +39,7 @@ export class MailService {
             naverTransport.close();
         } catch (e) {
             const errorInfo = new ErrorInfo('NE002', 'NEI0004', '메일 전송에 오류가 발생하였습니다.', e)
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
             throw new InternalServerErrorException(errorInfo);
         }
     }

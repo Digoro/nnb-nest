@@ -54,7 +54,7 @@ export class AuthService {
 		if (findPhone) throw new BadRequestException(new ErrorInfo('NE003', 'NEI0016', '이미 해당 휴대폰 번호가 존재합니다.'));
 		const user = await this.userRepository.save(this.userRepository.create(userDto));
 		await this.setCoupon(user);
-		await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
+		await this.slackService.send(SlackMessageType.SIGNUP, user)
 		return await this.findById(user.id)
 	}
 
@@ -173,7 +173,7 @@ export class AuthService {
 		const result = await this.http.post(this.SMS_URL, form, { headers: form.getHeaders() }).toPromise();
 		if (result.data.result_code === -101) {
 			const errorInfo = new ErrorInfo('NE002', 'NEI0019', '인증번호 문자 전송에 오류가 발생하였습니다.', result.data)
-			await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+			await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
 			throw new InternalServerErrorException(errorInfo);
 		}
 		return true;
@@ -374,7 +374,7 @@ export class AuthService {
 										<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:0px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
 											<!--<![endif]-->
 											<div class="img-container center fixedwidth" align="center" style="padding-right: 0px;padding-left: 0px;">
-												<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img class="center fixedwidth" align="center" border="0" src="https://nonunbub.com/static//assets/nnb_logo.png" alt="nnb" title="nnb" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 125px; display: block;" width="125">
+												<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img class="center fixedwidth" align="center" border="0" src="https://nonunbub.com/assets/nnb_logo.png" alt="nnb" title="nnb" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 125px; display: block;" width="125">
 												<div style="font-size:1px;line-height:10px">&nbsp;</div>
 												<!--[if mso]></td></tr></table><![endif]-->
 											</div>

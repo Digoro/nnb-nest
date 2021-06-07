@@ -7,6 +7,7 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { Payment } from 'src/payment/model/payment.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
+import { KakaotalkMessageType, KakaotalkService } from 'src/shared/service/kakaotalk.service';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
 import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
@@ -19,7 +20,8 @@ export class PaymentController {
     constructor(
         private paymentService: PaymentService,
         private configService: ConfigService,
-        private slackService: SlackService
+        private slackService: SlackService,
+        private kakaoService: KakaotalkService
     ) { }
 
     /**
@@ -86,11 +88,12 @@ export class PaymentController {
         try {
             const payment = await this.paymentService.pay(paypleDto);
             try {
-                await this.paymentService.sendAlimtalk(payment);
+                const orderItems = await this.paymentService.getOrderItems(payment.order.id);
+                await this.kakaoService.send(KakaotalkMessageType.PAYMENT, payment, { orderItems })
                 if (this.configService.get('IS_SEND_ALIM_TO_MANAGER') === 'true') {
-                    await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
-                    await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_01'));
-                    await this.paymentService.sendAlimtalk(payment, this.configService.get('MANAGER_PHONE_02'));
+                    await this.slackService.send(SlackMessageType.PAYMENT, payment);
+                    await this.kakaoService.send(KakaotalkMessageType.PAYMENT, payment, { orderItems, receiver: this.configService.get('MANAGER_PHONE_01') });
+                    await this.kakaoService.send(KakaotalkMessageType.PAYMENT, payment, { orderItems, receiver: this.configService.get('MANAGER_PHONE_02') });
                 }
             } catch (e) {
                 return { url: `${this.configService.get('SITE_HOST')}/tabs/payment-fail?errorCode=NEI0013` }

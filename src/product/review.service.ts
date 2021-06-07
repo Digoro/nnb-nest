@@ -1,14 +1,12 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Payment } from 'src/payment/model/payment.entity';
-import { Review } from 'src/product/model/review.entity';
-import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { KakaotalkMessageType, KakaotalkService } from './../shared/service/kakaotalk.service';
-import { SlackMessageType, SlackService } from './../shared/service/slack.service';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
+import { Review } from './model/review.entity';
 import { ProductService } from './product.service';
 
 @Injectable()
@@ -20,23 +18,30 @@ export class ReviewService {
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
     private productService: ProductService,
-    private kakaotalkService: KakaotalkService,
-    private slackService: SlackService
+    private kakaotalkService: KakaotalkService
   ) { }
 
   async create(userId: number, reviewDto: ReviewCreateDto): Promise<Review> {
     const user = await this.authService.findById(userId);
-    const payment = await this.paymentRepository.findOne(reviewDto.paymentId);
+    const payment = await this.paymentRepository.findOne(reviewDto.paymentId, {
+      relations: ['order', 'order.user', 'order.product', 'order.product.host']
+    });
     const parent = await this.reviewRepository.findOne({ id: reviewDto.parentId });
     const findReview = await this.reviewRepository.findOne({ user, payment, parent });
+    let review: Review;
     if (findReview) {
-      return this.update(findReview.id, reviewDto)
+      review = await this.update(findReview.id, reviewDto)
     }
     else {
-      const review = reviewDto.toEntity(user, payment, parent);
-      const newReview = await this.reviewRepository.save(review);
-      return newReview;
+      const newReview = reviewDto.toEntity(user, payment, parent);
+      review = await this.reviewRepository.save(newReview);
     }
+    if (!reviewDto.parentId && payment.order.product.host.phoneNumber) {
+      await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW, payment)
+    } else if (reviewDto.parentId && !findReview) {
+      await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW_COMMENT, payment)
+    }
+    return review;
   }
 
   async paginate(search: ReviewSearchDto): Promise<Pagination<Review>> {
@@ -154,19 +159,10 @@ export class ReviewService {
 
   async requestReview(paymentId: number) {
     const payment = await this.paymentRepository.findOne(paymentId, {
-      relations: ['order', 'order.product', 'order.product.representationPhotos', 'order.coupon', 'order.orderItems',
-        'order.orderItems.productOption', 'order.user', 'order.nonMember', 'paymentCancel']
+      relations: ['order', 'order.product', 'order.user']
     });
-    const response = await this.kakaotalkService.send(KakaotalkMessageType.REQUEST_REVIEW, payment);
-    const code = response.data.code;
-    if (code === -99) {
-      //todo
-      const errorInfo = new ErrorInfo('NE002', 'NEI0013', '리뷰 요청 알림톡 전송에 오류가 발생하였습니다.', response.data)
-      await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
-      throw new InternalServerErrorException(errorInfo);
-    } else {
-      payment.isRequestReview = true;
-      return await this.paymentRepository.save(payment);
-    }
+    await this.kakaotalkService.send(KakaotalkMessageType.REQUEST_REVIEW, payment);
+    payment.isRequestReview = true;
+    return await this.paymentRepository.save(payment);
   }
 }

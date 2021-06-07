@@ -10,7 +10,7 @@ import { NonMember, User } from 'src/user/model/user.entity';
 import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { ErrorInfo } from './../shared/model/error-info';
-import { KakaotalkService } from './../shared/service/kakaotalk.service';
+import { KakaotalkMessageType, KakaotalkService } from './../shared/service/kakaotalk.service';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCancel } from './model/payment-cancel.entity';
@@ -117,7 +117,7 @@ export class PaymentService {
         } catch (e) {
             await queryRunner.rollbackTransaction();
             const errorInfo = new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e);
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
             throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();
@@ -157,7 +157,7 @@ export class PaymentService {
         } catch (e) {
             await queryRunner.rollbackTransaction();
             const errorInfo = new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e)
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
             throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();
@@ -190,99 +190,23 @@ export class PaymentService {
             const payment = dto.toEntity2(newOrder);
             const result = await queryRunner.manager.save(Payment, payment);
             await queryRunner.commitTransaction();
-            await this.slackService.sendMessage(SlackMessageType.PAYMENT, payment)
-            await this.sendAlimtalk(result);
+            await this.slackService.send(SlackMessageType.PAYMENT, payment);
+            const orderItems = await this.getOrderItems(payment.order.id);
+            await this.kakaotalkService.send(KakaotalkMessageType.PAYMENT, payment, { orderItems })
             return result;
         } catch (e) {
             await queryRunner.rollbackTransaction();
             const errorInfo = new ErrorInfo('NE002', 'NEI0012', '결제정보를 저장하는데 오류가 발생하였습니다.', e)
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
             throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();
         }
     }
 
-    async sendAlimtalk(payment: Payment, receiver?: string) {
-        let receiverPhoneNumber: string;
-        let receiverName: string;
-        let nickname: string;
-        if (payment.order.user) {
-            receiverPhoneNumber = payment.order.user.phoneNumber;
-            receiverName = payment.order.user.name;
-            nickname = payment.order.user.nickname;
-        } else {
-            receiverPhoneNumber = payment.order.nonMember.phoneNumber;
-            receiverName = payment.order.nonMember.name;
-            nickname = payment.order.nonMember.name;
-        }
-        const orderNumber = payment.id;
-        const totalPrice = payment.totalPrice;
-        const payAt = moment(payment.payAt).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
-        const productTitle = payment.order.product.title;
-        const productAddress = `${payment.order.product.address} (상세주소:${payment.order.product.detailAddress})`;
-        const orderItems = await this.orderItemRepository.find({ where: [{ order: payment.order.id }], relations: ['productOption'] })
-        let productOptions = orderItems.map(item => item.productOption.name).join(", ");
-        const productOptionDate = moment(orderItems[0].productOption.date).add(9, 'hours').format('YYYY년MM월DD일 HH시mm분');
-        const productId = payment.order.product.id;
-        const token = await this.kakaotalkService.getAlimtalkToken();
-        const url = "https://kakaoapi.aligo.in/akv10/alimtalk/send/"
-        const temp = "TE_5377"
-        const subject = "노는법 예약확인 메시지"
-        const message = `${nickname}님의 예약이 완료되었습니다.
-
-[상품정보]
-- 상품이름: ${productTitle}
-- 참여일시: ${productOptionDate}
-- 옵션이름: ${productOptions}
-- 주소: ${productAddress}
-
-[예약정보]
-- 주문번호: ${orderNumber}
-- 결제금액: ${totalPrice}원
-- 결제일시: ${payAt}
-
-[주의사항]
-- 유의사항과 준비물을 꼭 확인하세요!
-- 예약 취소시 환불 규정에 따라 수수료가 부과될 수 있습니다.
-
-[문의하기]
-- 문의하실 내용이 있으시면 노는법 담당자에게 연락바랍니다.
-- 담당자 연락처: 010-6687-1917`
-        const sender = this.configService.get('ALIMTALK_SENDER_PHONE')
-        const button = {
-            button: [{
-                name: "예약한 상품 확인하기",
-                linkType: "WL",
-                linkTypeName: "웹링크",
-                linkMo: `https://nonunbub.com/tabs/meeting-detail/${productId}`,
-                linkPc: `https://nonunbub.com/tabs/meeting-detail/${productId}`
-            }]
-        };
-        const form = new FormData();
-        form.append('apikey', this.configService.get('ALIMTALK_API_KEY'));
-        form.append('userid', this.configService.get('ALIMTALK_USER_ID'));
-        form.append('token', token);
-        form.append('senderkey', this.configService.get('ALIMTALK_SENDER_KEY'));
-        form.append('tpl_code', temp);
-        form.append('sender', sender);
-        receiver ? form.append('receiver_1', receiver) : form.append('receiver_1', receiverPhoneNumber);
-        form.append('recvname_1', receiverName);
-        form.append('subject_1', subject);
-        form.append('message_1', message);
-        form.append('button_1', JSON.stringify(button));
-        form.append('failover', "Y");
-        form.append('fsubject_1', subject);
-        form.append('fmessage_1', message);
-        form.append('testMode', "N");
-        const response = await this.http.post(url, form, { headers: form.getHeaders() }).toPromise();
-        const code = response.data.code;
-        if (code === -99) {
-            const errorInfo = new ErrorInfo('NE002', 'NEI0013', '결제 알림톡 전송에 오류가 발생하였습니다.', response.data)
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
-            throw new InternalServerErrorException(errorInfo);
-        }
-        return true;
+    async getOrderItems(orderId: number) {
+        const orderItems = await this.orderItemRepository.find({ where: [{ order: orderId }], relations: ['productOption'] })
+        return orderItems;
     }
 
     async paginate(search: PaginationSearchDto, hostId?: number): Promise<Pagination<Payment>> {
@@ -425,7 +349,7 @@ export class PaymentService {
             await queryRunner.rollbackTransaction();
             //todo
             const errorInfo = new ErrorInfo('NE002', 'NEI0011', '결제 취소 데이터를 저장하는데 오류가 발생했습니다.', e);
-            await this.slackService.sendMessage(SlackMessageType.SERVICE_ERROR, errorInfo)
+            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
             throw new InternalServerErrorException(errorInfo);
         } finally {
             await queryRunner.release();

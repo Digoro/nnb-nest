@@ -18,7 +18,7 @@ export class SlackService {
         private configService: ConfigService
     ) { }
 
-    async sendMessage(type: SlackMessageType, data: User | Payment | ErrorInfo) {
+    async send(type: SlackMessageType, data: User | Payment | ErrorInfo) {
         switch (type) {
             case SlackMessageType.SIGNUP: {
                 const user = data as User;
