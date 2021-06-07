@@ -73,7 +73,7 @@ export class AuthService {
 			newUser.agreementMarketing = true;
 			user = await this.userRepository.save(newUser);
 			await this.setCoupon(user);
-			await this.slackService.sendMessage(SlackMessageType.SIGNUP, user)
+			await this.slackService.send(SlackMessageType.SIGNUP, user)
 		}
 		const jwt = await this.generateJWT(user);
 		return { isMember, jwt }
