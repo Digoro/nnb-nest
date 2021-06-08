@@ -23,7 +23,7 @@ export class ReviewCreateDto implements Dto<Review> {
     photo: string;
 
     @IsString()
-    @MaxLength(1000)
+    @MaxLength(2000)
     comment: string;
 
     @IsOptional()
