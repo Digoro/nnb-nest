@@ -296,7 +296,8 @@ export class PaymentService {
                 PCD_REFUND_KEY: this.PAYPLE_REFUND_KEY,
                 PCD_PAYCANCEL_FLAG: 'Y',
                 PCD_PAY_OID: payment.pgOrderId,
-                PCD_PAY_DATE: moment().format('YYYYMMDD'),
+                // PCD_PAY_DATE: moment().format('YYYYMMDD'),
+                PCD_PAY_DATE: moment(payment.payAt).format('YYYYMMDD'),
                 PCD_REFUND_TOTAL: dto.refundPrice
             }
             const headers = { referer: this.configService.get('SITE_HOST') }
