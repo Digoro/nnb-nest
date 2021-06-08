@@ -1,47 +1,87 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
 import { Payment } from 'src/payment/model/payment.entity';
-import { Repository } from 'typeorm';
+import { ReviewPhoto } from 'src/product/model/review.entity';
+import { ErrorInfo } from 'src/shared/model/error-info';
+import { getConnection, Repository } from 'typeorm';
 import { KakaotalkMessageType, KakaotalkService } from './../shared/service/kakaotalk.service';
+import { SlackMessageType, SlackService } from './../shared/service/slack.service';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { Review } from './model/review.entity';
 import { ProductService } from './product.service';
 
 @Injectable()
 export class ReviewService {
-  reviewRelations = ['user', 'payment'];
+  reviewRelations = ['user', 'payment', 'photos'];
 
   constructor(
     private authService: AuthService,
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
+    @InjectRepository(ReviewPhoto) private reviewPhotoRepository: Repository<ReviewPhoto>,
     private productService: ProductService,
-    private kakaotalkService: KakaotalkService
+    private kakaotalkService: KakaotalkService,
+    private slackService: SlackService
   ) { }
 
-  async create(userId: number, reviewDto: ReviewCreateDto): Promise<Review> {
-    const user = await this.authService.findById(userId);
-    const payment = await this.paymentRepository.findOne(reviewDto.paymentId, {
-      relations: ['order', 'order.user', 'order.product', 'order.product.host']
-    });
-    const parent = await this.reviewRepository.findOne({ id: reviewDto.parentId });
-    const findReview = await this.reviewRepository.findOne({ user, payment, parent });
-    let review: Review;
-    if (findReview) {
-      review = await this.update(findReview.id, reviewDto)
+  async create(userId: number, dto: ReviewCreateDto): Promise<Review> {
+    const queryRunner = await getConnection().createQueryRunner()
+    try {
+      await queryRunner.startTransaction();
+      const manager = queryRunner.manager;
+      const user = await this.authService.findById(userId);
+      const payment = await this.paymentRepository.findOne(dto.paymentId, {
+        relations: ['order', 'order.user', 'order.product', 'order.product.host']
+      });
+      const userReview = await this.reviewRepository.findOne({ id: dto.parentId });
+      const hostComment = await this.reviewRepository.findOne({ user, payment, parent: userReview });
+      let review: Review;
+      // 호스트 답글 수정
+      if (hostComment) {
+        review = await manager.save(Review, Object.assign(hostComment, dto));
+      }
+      // 사용자 리뷰 / 호스트 답글 추가
+      else {
+        const newReviewOrComment = dto.toEntity(user, payment, userReview);
+        review = await manager.save(Review, newReviewOrComment);
+        if (dto.photos) {
+          for (const photo of dto.photos) {
+            photo.review = review;
+            await manager.save(ReviewPhoto, photo);
+          }
+        }
+        if (!dto.parentId && payment.order.product.host.phoneNumber) {
+          await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW, payment)
+        } else if (dto.parentId && !hostComment) {
+          await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW_COMMENT, payment)
+        }
+      }
+      await queryRunner.commitTransaction();
+      return review;
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      const errorInfo = new ErrorInfo('NE002', 'NEI0005', '리뷰 등록에 오류가 발생했습니다..', e)
+      await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
+      throw new InternalServerErrorException(errorInfo);
+    } finally {
+      await queryRunner.release();
     }
-    else {
-      const newReview = reviewDto.toEntity(user, payment, parent);
-      review = await this.reviewRepository.save(newReview);
+  }
+
+  // 사용자 리뷰 수정
+  async update(id: number, dto: ReviewUpdateDto): Promise<any> {
+    const review = await this.findOne(id);
+    await this.reviewPhotoRepository.delete({ review });
+    await this.reviewRepository.save(Object.assign(review, dto))
+
+    const newReview = await this.findOne(id);
+    for (const photo of dto.photos) {
+      photo.review = newReview;
+      await this.reviewPhotoRepository.save(photo);
     }
-    if (!reviewDto.parentId && payment.order.product.host.phoneNumber) {
-      await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW, payment)
-    } else if (reviewDto.parentId && !findReview) {
-      await this.kakaotalkService.send(KakaotalkMessageType.ADD_REVIEW_COMMENT, payment)
-    }
-    return review;
+    return newReview;
   }
 
   async paginate(search: ReviewSearchDto): Promise<Pagination<Review>> {
@@ -52,6 +92,7 @@ export class ReviewService {
     const query = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.photos', 'reviewPhotos')
       .leftJoinAndSelect('review.payment', 'payment')
       .leftJoinAndSelect('payment.order', 'order')
       .leftJoinAndSelect('order.product', 'product')
@@ -93,6 +134,7 @@ export class ReviewService {
       const query = this.reviewRepository
         .createQueryBuilder('review')
         .leftJoinAndSelect('review.user', 'user')
+        .leftJoinAndSelect('review.photos', 'reviewPhotos')
         .leftJoinAndSelect('review.payment', 'payment')
         .leftJoinAndSelect('payment.order', 'order')
         .leftJoinAndSelect('order.orderItems', 'orderItem')
@@ -124,6 +166,7 @@ export class ReviewService {
     const result = await this.reviewRepository
       .createQueryBuilder('review')
       .innerJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.photos', 'reviewPhotos')
       .innerJoinAndSelect('review.payment', 'payment')
       .innerJoinAndSelect('payment.order', 'order')
       .innerJoinAndSelect('order.product', 'product')
@@ -138,6 +181,7 @@ export class ReviewService {
     return await this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.photos', 'reviewPhotos')
       .leftJoinAndSelect('review.payment', 'payment')
       .leftJoinAndSelect('payment.order', 'order')
       .leftJoinAndSelect('order.orderItems', 'orderItem')
@@ -146,11 +190,6 @@ export class ReviewService {
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
       .where('payment.id = :paymentId', { paymentId })
       .getOne()
-  }
-
-  async update(id: number, reviewDto: ReviewUpdateDto): Promise<any> {
-    const review = await this.findOne(id);
-    return await this.reviewRepository.save(Object.assign(review, reviewDto))
   }
 
   async delete(id: number): Promise<any> {

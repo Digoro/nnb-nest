@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { Payment } from 'src/payment/model/payment.entity';
-import { Review } from 'src/product/model/review.entity';
+import { Review, ReviewPhoto } from 'src/product/model/review.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserProductLike } from 'src/user/model/user.entity';
 import { AllianceController } from './alliance.controller';
@@ -34,6 +34,7 @@ import { ReviewService } from './review.service';
       Product,
       Payment,
       Review,
+      ReviewPhoto,
       ProductRepresentationPhoto,
       Category,
       ProductOption,

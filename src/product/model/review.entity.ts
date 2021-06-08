@@ -1,7 +1,7 @@
 import { Min } from "class-validator";
 import { Payment } from 'src/payment/model/payment.entity';
 import { User } from "src/user/model/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from '../../shared/model/basic.entity';
 
 @Entity({ name: 'review' })
@@ -18,9 +18,6 @@ export class Review extends BasicEntity {
     @Min(0)
     score: number;
 
-    @Column({ type: 'text', nullable: true })
-    photo: string;
-
     @Column({ length: 1000 })
     comment: string;
 
@@ -29,4 +26,20 @@ export class Review extends BasicEntity {
 
     @OneToMany(() => Review, entity => entity.parent)
     children: Review[];
+
+    @OneToMany(() => ReviewPhoto, entity => entity.review)
+    photos: ReviewPhoto[];
+}
+
+@Entity({ name: 'review_photo' })
+export class ReviewPhoto extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => Review, entity => entity.photos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+    @JoinColumn({ name: 'review_id' })
+    review: Review;
+
+    @Column({ type: 'text' })
+    photo: string;
 }

@@ -17,7 +17,7 @@ export class UserService {
     ) { }
 
     async paginateAll(options: IPaginationOptions): Promise<Pagination<User>> {
-        return await paginate<User>(this.userRepository, options)
+        return await paginate<User>(this.userRepository, options, { order: { 'createdAt': 'DESC' } })
     }
 
     async paginateByUsername(options: IPaginationOptions, name: string): Promise<Pagination<User>> {

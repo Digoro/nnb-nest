@@ -23,6 +23,7 @@ export class ProductRequestService {
       .leftJoinAndSelect('request.product', 'product')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhotos')
       .leftJoinAndSelect('request.user', 'user')
+      .orderBy('request.createdAt', 'DESC')
       , options)
     return requests
   }
