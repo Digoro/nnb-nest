@@ -1,13 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AuthService } from 'src/auth/service/auth.service';
-import { User } from 'src/user/model/user.entity';
-import { Role } from "src/user/model/user.interface";
+import { Payment } from "src/payment/model/payment.entity";
 import { Repository } from "typeorm";
-import { Payment } from "../model/payment.entity";
+import { User } from '../user/model/user.entity';
+import { Role } from '../user/model/user.interface';
 
 @Injectable()
-export class UserIsPaymentOwnerGuard implements CanActivate {
+export class HostIsProductHostGuard implements CanActivate {
     constructor(
         private userService: AuthService,
         @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
@@ -16,24 +16,16 @@ export class UserIsPaymentOwnerGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
             const request = context.switchToHttp().getRequest();
-            const method = request.method;
-            let paymentId: number;
-            if (method === 'POST' || method === 'PUT') {
-                paymentId = +request.body.paymentId;
-            } else {
-                paymentId = +request.params.id;
-            }
-            const requestUser: User = request.user;
-
+            const paymentId = +request.body.paymentId;
             const payment = await this.paymentRepository.findOne(paymentId, {
-                relations: ['order', 'order.user']
+                relations: ['order', 'order.product', 'order.product.host']
             });
-            const paymentUser = payment.order.user
-
+            const product = payment.order.product;
+            const requestUser: User = request.user;
             const user = await this.userService.findById(requestUser.id);
             if (user.role === Role.ADMIN) return true;
             let hasPermission = false;
-            if (user.id === paymentUser.id) {
+            if (user.id === product.host.id) {
                 hasPermission = true
             }
             return !!user && hasPermission;

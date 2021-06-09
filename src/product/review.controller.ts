@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles-guard';
 import { UserIsPaymentOwnerGuard } from 'src/payment/guard/user-is-payment-owner.guard';
+import { HostIsProductHostGuard } from 'src/product/host-is-product-host-guard';
 import { Role } from 'src/user/model/user.interface';
 import { ReviewCreateDto, ReviewSearchDto, ReviewUpdateDto } from './model/review.dto';
 import { Review } from './model/review.entity';
@@ -15,8 +16,15 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) { }
 
   @UseGuards(AuthGuard('jwt'), UserIsPaymentOwnerGuard)
-  @Post('')
-  create(@Body() review: ReviewCreateDto, @Request() request): Promise<Review> {
+  @Post('/by/user')
+  createByUser(@Body() review: ReviewCreateDto, @Request() request): Promise<Review> {
+    const userId = request.user.id;
+    return this.reviewService.create(userId, review);
+  }
+
+  @UseGuards(AuthGuard('jwt'), HostIsProductHostGuard)
+  @Post('/by/host')
+  createByHost(@Body() review: ReviewCreateDto, @Request() request): Promise<Review> {
     const userId = request.user.id;
     return this.reviewService.create(userId, review);
   }
