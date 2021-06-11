@@ -73,6 +73,11 @@ export class ProductCreateDto implements Dto<Product>{
     @Max(50)
     runningMinutes: number;
 
+    @IsInt()
+    @Min(6)
+    @Max(72)
+    reservationHours: number;
+
     @IsOptional()
     @IsString()
     @MaxLength(500)
@@ -146,6 +151,7 @@ export class ProductCreateDto implements Dto<Product>{
         product.runningDays = this.runningDays;
         product.runningHours = this.runningHours;
         product.runningMinutes = this.runningMinutes;
+        product.reservationHours = this.reservationHours;
         product.notice = this.notice;
         product.checkList = this.checkList;
         product.includeList = this.includeList;

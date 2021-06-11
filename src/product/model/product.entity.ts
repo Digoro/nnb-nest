@@ -59,6 +59,11 @@ export class Product extends BasicEntity {
     @Max(50)
     runningMinutes: number;
 
+    @Column({ name: 'reservation_hours', default: 24 })
+    @Min(6)
+    @Max(72)
+    reservationHours: number;
+
     @Column({ nullable: true, length: 500 })
     notice: string;
 
