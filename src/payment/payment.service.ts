@@ -11,10 +11,11 @@ import { getConnection, Repository } from 'typeorm';
 import { Product, ProductOption } from './../product/model/product.entity';
 import { ErrorInfo } from './../shared/model/error-info';
 import { KakaotalkMessageType, KakaotalkService } from './../shared/service/kakaotalk.service';
+import { NonMemberCreateDto } from './../user/model/user.dto';
 import { Coupon, UserCouponMap } from './../user/model/user.entity';
 import { Order, OrderItem } from './model/order.entity';
 import { PaymentCancel } from './model/payment-cancel.entity';
-import { NonMemberPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
+import { NonMemberOrderCreateDto, NonMemberPaymentCreateDto, OrderItemCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto, PaypleCreateDto } from './model/payment.dto';
 import { PayMethod, PaypleUserDefine, PG } from './model/payment.interface';
 const moment = require('moment');
 
@@ -62,66 +63,112 @@ export class PaymentService {
             const errorInfo = new ErrorInfo('NE003', 'NEI0034', '결제를 취소하였습니다.', paypleDto.PCD_HTTP_REFERER);
             throw new BadRequestException(errorInfo);
         }
-        const queryRunner = await getConnection().createQueryRunner();
+        const userDefine = JSON.parse(decodeURIComponent(paypleDto.PCD_USER_DEFINE1)) as PaypleUserDefine;
+        if (userDefine.userId) {
+            const queryRunner = await getConnection().createQueryRunner();
+            try {
+                await queryRunner.startTransaction();
+                const order = new Order();
+                const user = await this.userRepository.findOne({ id: userDefine.userId })
+                const product = await this.productRepository.findOne({ id: userDefine.mid })
+                const coupon = await this.couponRepository.findOne({ id: userDefine.couponId })
+                const alliance = userDefine.alliance;
+                order.user = user;
+                order.product = product;
+                order.coupon = coupon;
+                order.point = 0;
+                order.orderAt = new Date();
+                const newOrder = await queryRunner.manager.save(Order, order);
 
-        try {
-            await queryRunner.startTransaction();
-            const userDefine = JSON.parse(decodeURIComponent(paypleDto.PCD_USER_DEFINE1)) as PaypleUserDefine;
-            const order = new Order();
-            const user = await this.userRepository.findOne({ id: userDefine.userId })
-            const product = await this.productRepository.findOne({ id: userDefine.mid })
-            const coupon = await this.couponRepository.findOne({ id: userDefine.couponId })
-            const alliance = userDefine.alliance;
-            order.user = user;
-            order.product = product;
-            order.coupon = coupon;
-            order.point = 0;
-            order.orderAt = new Date();
-            const newOrder = await queryRunner.manager.save(Order, order);
+                if (coupon) {
+                    const userCoupon = await queryRunner.manager.findOne(UserCouponMap, { userId: user.id, couponId: coupon.id });
+                    userCoupon.isUsed = true;
+                    await queryRunner.manager.save(UserCouponMap, userCoupon);
+                }
 
-            if (coupon) {
-                const userCoupon = await queryRunner.manager.findOne(UserCouponMap, { userId: user.id, couponId: coupon.id });
-                userCoupon.isUsed = true;
-                await queryRunner.manager.save(UserCouponMap, userCoupon);
+                for (const option of userDefine.options) {
+                    const o = await this.productOptionRepository.findOne({ id: option.id })
+                    const orderItem = new OrderItem();
+                    orderItem.order = newOrder;
+                    orderItem.productOption = o;
+                    orderItem.count = option.count;
+                    await queryRunner.manager.save(OrderItem, orderItem);
+                }
+
+                const payment = new Payment();
+                payment.order = newOrder;
+                payment.pgName = PG.PAYPLE;
+                payment.pgOrderId = paypleDto.PCD_PAY_OID;
+                payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate();
+                payment.totalPrice = +paypleDto.PCD_PAY_TOTAL;
+                payment.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
+                payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
+                payment.payCommissionPrice = 0;
+                payment.result = paypleDto.PCD_PAY_RST === 'success';
+                payment.resultMessage = alliance ? `${paypleDto.PCD_PAY_MSG}(${alliance} 제휴 할인)` : paypleDto.PCD_PAY_MSG;
+                payment.cardName = paypleDto.PCD_PAY_CARDNAME;
+                payment.cardNum = paypleDto.PCD_PAY_CARDNUM;
+                payment.cardReceipt = paypleDto.PCD_PAY_CARDRECEIPT;
+                payment.bankName = paypleDto.PCD_PAY_BANKNAME;
+                payment.bankNum = paypleDto.PCD_PAY_BANKNUM;
+
+                const result = await queryRunner.manager.save(Payment, payment);
+                await queryRunner.commitTransaction();
+                return result;
+
+            } catch (e) {
+                await queryRunner.rollbackTransaction();
+                const errorInfo = new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e);
+                await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
+                throw new InternalServerErrorException(errorInfo);
+            } finally {
+                await queryRunner.release();
             }
-
-            for (const option of userDefine.options) {
-                const o = await this.productOptionRepository.findOne({ id: option.id })
-                const orderItem = new OrderItem();
-                orderItem.order = newOrder;
-                orderItem.productOption = o;
-                orderItem.count = option.count;
-                await queryRunner.manager.save(OrderItem, orderItem);
-            }
-
-            const payment = new Payment();
-            payment.order = newOrder;
-            payment.pgName = PG.PAYPLE;
-            payment.pgOrderId = paypleDto.PCD_PAY_OID;
-            payment.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate();
-            payment.totalPrice = +paypleDto.PCD_PAY_TOTAL;
-            payment.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
-            payment.payPrice = +paypleDto.PCD_PAY_TOTAL;
-            payment.payCommissionPrice = 0;
-            payment.result = paypleDto.PCD_PAY_RST === 'success';
-            payment.resultMessage = alliance ? `${paypleDto.PCD_PAY_MSG}(${alliance} 제휴 할인)` : paypleDto.PCD_PAY_MSG;
-            payment.cardName = paypleDto.PCD_PAY_CARDNAME;
-            payment.cardNum = paypleDto.PCD_PAY_CARDNUM;
-            payment.cardReceipt = paypleDto.PCD_PAY_CARDRECEIPT;
-            payment.bankName = paypleDto.PCD_PAY_BANKNAME;
-            payment.bankNum = paypleDto.PCD_PAY_BANKNUM;
-
-            const result = await queryRunner.manager.save(Payment, payment);
-            await queryRunner.commitTransaction();
-            return result;
-        } catch (e) {
-            await queryRunner.rollbackTransaction();
-            const errorInfo = new ErrorInfo('NE002', 'NEI0011', '결제정보를 저장하는데 오류가 발생하였습니다.', e);
-            await this.slackService.send(SlackMessageType.SERVICE_ERROR, errorInfo)
-            throw new InternalServerErrorException(errorInfo);
-        } finally {
-            await queryRunner.release();
+        } else {
+            const dto = this.convertPaypleDtoToNonmemberDto(paypleDto)
+            return await this.payNonMember(dto)
         }
+    }
+
+    convertPaypleDtoToNonmemberDto(paypleDto: PaypleCreateDto): NonMemberPaymentCreateDto {
+        const userDefine = JSON.parse(decodeURIComponent(paypleDto.PCD_USER_DEFINE1)) as PaypleUserDefine;
+
+        const nonMemberDto = new NonMemberCreateDto();
+        nonMemberDto.email = userDefine.userEmail;
+        nonMemberDto.name = userDefine.userName;
+        nonMemberDto.phoneNumber = userDefine.phoneNumber;
+
+        const orderItems = [];
+        for (const option of userDefine.options) {
+            const orderItemDto = new OrderItemCreateDto();
+            orderItemDto.count = option.count;
+            orderItemDto.productOptionId = option.id
+            orderItems.push(orderItemDto);
+        }
+
+        const orderDto = new NonMemberOrderCreateDto();
+        orderDto.nonMember = nonMemberDto;
+        orderDto.orderItems = orderItems;
+        orderDto.orderAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate();
+        orderDto.productId = userDefine.mid;
+
+        const dto = new NonMemberPaymentCreateDto();
+        dto.order = orderDto;
+        dto.pgName = PG.PAYPLE;
+        dto.pgOrderId = paypleDto.PCD_PAY_OID;
+        dto.payAt = moment(paypleDto.PCD_PAY_TIME, 'YYYYMMDDHHmmss').subtract(9, 'hours').toDate();
+        dto.totalPrice = +paypleDto.PCD_PAY_TOTAL;
+        dto.payMethod = this.getPayMethod(paypleDto.PCD_PAY_TYPE);
+        dto.payPrice = +paypleDto.PCD_PAY_TOTAL;
+        dto.payCommissionPrice = 0;
+        dto.result = true;
+        dto.resultMessage = '비회원 결제 성공';
+        dto.cardNum = paypleDto.PCD_PAY_CARDNUM;
+        dto.cardReceipt = paypleDto.PCD_PAY_CARDRECEIPT;
+        dto.bankName = paypleDto.PCD_PAY_BANKNAME;
+        dto.bankNum = paypleDto.PCD_PAY_BANKNUM;
+
+        return dto;
     }
 
     async join(dto: PaymentCreateDto) {
@@ -168,10 +215,10 @@ export class PaymentService {
         const queryRunner = await getConnection().createQueryRunner();
         try {
             await queryRunner.startTransaction();
-            const order = new Order();
             const nonMember = dto.order.nonMember.toEntity();
             const newNonMember = await queryRunner.manager.save(NonMember, nonMember);
             const product = await this.productRepository.findOne({ id: dto.order.productId });
+            const order = new Order();
             order.nonMember = newNonMember;
             order.product = product;
             order.coupon = null;
@@ -268,6 +315,20 @@ export class PaymentService {
         return await this.paymentRepository.findOne(id, {
             relations: this.relations
         });
+    }
+
+    async getNonMemberPayment(name: string, phoneNumber: string, orderId: string): Promise<Payment> {
+        return await this.paymentRepository.createQueryBuilder('payment')
+            .leftJoinAndSelect('payment.order', 'order')
+            .leftJoinAndSelect('order.product', 'product')
+            .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+            .leftJoinAndSelect('order.nonMember', 'nonMember')
+            .leftJoinAndSelect('order.orderItems', 'orderItem')
+            .leftJoinAndSelect('orderItem.productOption', 'productOption')
+            .where('nonMember.name = :name', { name })
+            .andWhere('nonMember.phoneNumber = :phoneNumber', { phoneNumber })
+            .andWhere('payment.id = :orderId', { orderId })
+            .getOne()
     }
 
     async updateOne(id: number, paymentDto: PaymentUpdateDto): Promise<any> {

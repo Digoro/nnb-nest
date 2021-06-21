@@ -10,7 +10,6 @@ import { PaginationSearchDto } from 'src/shared/model/dto';
 import { KakaotalkMessageType, KakaotalkService } from 'src/shared/service/kakaotalk.service';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { Role } from 'src/user/model/user.interface';
-import { UserIsPaymentOwnerGuard } from './guard/user-is-payment-owner.guard';
 import { NonMemberPaymentCreateDto, PaymentCancelDto, PaymentCreateDto, PaymentSearchDto, PaymentUpdateDto } from './model/payment.dto';
 import { PaymentService } from './payment.service';
 
@@ -61,7 +60,6 @@ export class PaymentController {
     /**
      * 로그인 한 유저의 개별 결제 조회
      */
-    @UseGuards(AuthGuard('jwt'), UserIsPaymentOwnerGuard)
     @Get('owner/id/:id')
     getPurchasedProduct(@Param('id') id: number): Promise<any> {
         return this.paymentService.findOneByOwner(id);
@@ -75,6 +73,14 @@ export class PaymentController {
     getPurchasedProducts(@Body() search: PaymentSearchDto, @Request() request): Promise<any> {
         const userId = request.user.id;
         return this.paymentService.paginateByUser(userId, search);
+    }
+
+    /**
+     * 비회원 예약 확인
+     */
+    @Get('nonMember')
+    getNonMemberPayment(@Query('name') name: string, @Query('phoneNumber') phoneNumber: string, @Query('orderId') orderId: string): Promise<Payment> {
+        return this.paymentService.getNonMemberPayment(name, phoneNumber, orderId);
     }
 
     @Post('pg/auth')

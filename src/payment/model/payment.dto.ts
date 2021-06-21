@@ -31,7 +31,7 @@ class OrderCreateDto {
     orderItems: OrderItemCreateDto[];
 }
 
-class OrderItemCreateDto {
+export class OrderItemCreateDto {
     @IsNumber()
     productOptionId: number;
 

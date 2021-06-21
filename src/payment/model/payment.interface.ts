@@ -16,6 +16,8 @@ export enum PayMethod {
 export interface PaypleUserDefine {
     phoneNumber: string,
     userId: number,
+    userEmail: string,
+    userName: string,
     mid: number,
     couponId: number,
     options: { id: number, name: string, price: number, count: number, date: string }[],
