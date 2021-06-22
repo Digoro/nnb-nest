@@ -1,6 +1,7 @@
 import { HttpService, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Payment } from 'src/payment/model/payment.entity';
+import { Product } from 'src/product/model/product.entity';
 import { User } from 'src/user/model/user.entity';
 import { ErrorInfo } from '../model/error-info';
 const moment = require('moment');
@@ -8,7 +9,8 @@ const moment = require('moment');
 export enum SlackMessageType {
     SIGNUP,
     SERVICE_ERROR,
-    PAYMENT
+    PAYMENT,
+    PRODUCT
 }
 
 @Injectable()
@@ -18,7 +20,7 @@ export class SlackService {
         private configService: ConfigService
     ) { }
 
-    async send(type: SlackMessageType, data: User | Payment | ErrorInfo) {
+    async send(type: SlackMessageType, data: User | Payment | ErrorInfo | Product, meta?: any) {
         switch (type) {
             case SlackMessageType.SIGNUP: {
                 const user = data as User;
@@ -91,6 +93,32 @@ export class SlackService {
                             }
                         }
                     ]
+                }).toPromise()
+                break;
+            }
+            case SlackMessageType.PRODUCT: {
+                const product = data as Product;
+
+                await this.http.post(this.configService.get('SLACK_PRODUCT_WEBHOOK_URL'), {
+                    "blocks": [{
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": `상품 관리 봇 👍 *[상품이 ${meta.action}되었습니다.]*`
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": `• 상품명: ${product.title}\n • 상품가격: ${product.price}`
+                        }
+                    },
+                    {
+                        "type": "image",
+                        "image_url": product.representationPhotos[0].photo,
+                        "alt_text": product.title
+                    }]
                 }).toPromise()
                 break;
             }

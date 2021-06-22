@@ -70,6 +70,10 @@ export class ProductService {
       }
 
       await queryRunner.commitTransaction();
+      const result = await this.productRepository.findOne(newProduct.id, {
+        relations: ['representationPhotos']
+      })
+      await this.slackService.send(SlackMessageType.PRODUCT, result, { action: '등록' })
       return newProduct;
     } catch (e) {
       await queryRunner.rollbackTransaction();
@@ -150,6 +154,10 @@ export class ProductService {
           await manager.save(ProductHashtagMap, map);
         }
       }
+      const result = await this.productRepository.findOne(newProduct.id, {
+        relations: ['representationPhotos']
+      })
+      await this.slackService.send(SlackMessageType.PRODUCT, result, { action: '수정' })
       await queryRunner.commitTransaction();
       return newProduct;
     } catch (e) {
