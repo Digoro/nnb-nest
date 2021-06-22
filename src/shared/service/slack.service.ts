@@ -37,7 +37,7 @@ export class SlackService {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment(user.createdAt).add(9, 'hours').format('YYYY-MM-DD HH:mm:ss')}`
+                                "text": `• 이름: ${user.name}\n • 닉네임: ${user.nickname}\n • 이메일: ${user.email}\n • Oauth: ${user.provider}\n • 가입일: ${moment(user.createdAt).add(9, 'hours').format('YYYY-MM-DD HH:mm:ss')}\n • 링크: https://nonunbub.com/tabs/profile/${user.id}`
                             }
                         },
                         {
@@ -111,7 +111,7 @@ export class SlackService {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": `• 상품명: ${product.title}\n • 상품가격: ${product.price}`
+                            "text": `• 상품명: ${product.title}\n • 상품가격: ${product.price}\n • 링크: https://nonunbub.com/tabs/meeting-detail/${product.id}`
                         }
                     },
                     {
