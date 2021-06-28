@@ -25,10 +25,10 @@ export class ProductRequestController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('isChecked/:productId')
-  isChecked(@Param('productId') productId: number, @Request() request): Promise<boolean> {
+  @Get('isRequest/:productId')
+  isRequest(@Param('productId') productId: number, @Request() request): Promise<boolean> {
     const userId = request.user.id;
-    return this.productRequestService.isChecked(productId, userId)
+    return this.productRequestService.isRequest(productId, userId)
   }
 
   @UseGuards(AuthGuard('jwt'))

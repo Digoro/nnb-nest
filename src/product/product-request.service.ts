@@ -28,8 +28,8 @@ export class ProductRequestService {
     return requests
   }
 
-  async isChecked(productId: number, userId: number): Promise<boolean> {
-    const count = await this.productRequestRepository.count({ productId: productId, userId: userId });
+  async isRequest(productId: number, userId: number): Promise<boolean> {
+    const count = await this.productRequestRepository.count({ productId: productId, userId: userId, isChecked: false });
     return count > 0;
   }
 
