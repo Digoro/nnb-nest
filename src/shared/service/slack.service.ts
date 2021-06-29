@@ -104,20 +104,20 @@ export class SlackService {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": `상품 관리 봇 👍 *[상품이 ${meta.action}되었습니다.]*`
+                            "text": `상품 관리 봇 👍 [상품 ${meta.action}]`
                         }
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": `• 상품명: ${product.title}\n • 상품가격: ${product.price}\n • 링크: https://nonunbub.com/tabs/meeting-detail/${product.id}`
+                            "text": `• 상품명: ${product.title}\n • 링크: https://nonunbub.com/tabs/meeting-detail/${product.id}`
+                        },
+                        "accessory": {
+                            "type": "image",
+                            "image_url": product.representationPhotos[0].photo,
+                            "alt_text": product.title
                         }
-                    },
-                    {
-                        "type": "image",
-                        "image_url": product.representationPhotos[0].photo,
-                        "alt_text": product.title
                     }]
                 }).toPromise()
                 break;

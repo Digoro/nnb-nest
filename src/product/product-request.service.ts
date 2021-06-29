@@ -6,7 +6,9 @@ import { Product, ProductRequest } from 'src/product/model/product.entity';
 import { ErrorInfo } from 'src/shared/model/error-info';
 import { Repository } from 'typeorm';
 import { PaginationSearchDto } from './../shared/model/dto';
+import { SlackMessageType, SlackService } from './../shared/service/slack.service';
 import { ProductRequestCreateDto } from './model/product.dto';
+import { ProductService } from './product.service';
 
 @Injectable()
 export class ProductRequestService {
@@ -14,6 +16,8 @@ export class ProductRequestService {
     private authService: AuthService,
     @InjectRepository(Product) private productRepository: Repository<Product>,
     @InjectRepository(ProductRequest) private productRequestRepository: Repository<ProductRequest>,
+    private slackService: SlackService,
+    private productService: ProductService
   ) { }
 
   async search(search: PaginationSearchDto): Promise<Pagination<ProductRequest>> {
@@ -38,7 +42,9 @@ export class ProductRequestService {
     const product = await this.productRepository.findOne(productRequestDto.productId);
     if (user && product) {
       const productRequest = productRequestDto.toEntity(user, product);
-      const newRequest = await this.productRequestRepository.save(productRequest)
+      const newRequest = await this.productRequestRepository.save(productRequest);
+      const p = await this.productService.findById(product.id);
+      await this.slackService.send(SlackMessageType.PRODUCT, p, { action: '신청' })
       return newRequest;
     } else {
       throw new BadRequestException(new ErrorInfo('NE003', 'NEI0008', '유효하지 않은 상품 신청 정보입니다.'))
