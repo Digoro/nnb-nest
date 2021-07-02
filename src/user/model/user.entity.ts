@@ -63,6 +63,15 @@ export class User extends BasicEntity {
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
 
+    @Column({ name: 'zip_code', nullable: true, length: 500 })
+    zipCode: string;
+
+    @Column({ nullable: true, type: 'text' })
+    address: string;
+
+    @Column({ nullable: true, length: 500, name: 'detail_address' })
+    detailAddress: string;
+
     @OneToMany(() => Product, productEntity => productEntity.host)
     products: Product[];
 

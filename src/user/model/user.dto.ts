@@ -70,6 +70,21 @@ export class UserCreateDto {
     @MaxLength(1000)
     introduction: string;
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    zipCode: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(65535)
+    address: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    detailAddress: string;
+
     @IsBoolean()
     agreementTermsOfService: boolean;
 
