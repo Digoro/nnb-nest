@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as FormData from 'form-data';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { Payment } from 'src/payment/model/payment.entity';
+import { Gift } from 'src/product/model/gift.entity';
 import { PaginationSearchDto } from 'src/shared/model/dto';
 import { SlackMessageType, SlackService } from 'src/shared/service/slack.service';
 import { NonMember, User } from 'src/user/model/user.entity';
@@ -36,6 +37,7 @@ export class PaymentService {
         @InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>,
         @InjectRepository(Coupon) private couponRepository: Repository<Coupon>,
+        @InjectRepository(Gift) private giftRepository: Repository<Gift>,
         private configService: ConfigService,
         private http: HttpService,
         private slackService: SlackService,
@@ -72,12 +74,14 @@ export class PaymentService {
                 const user = await this.userRepository.findOne({ id: userDefine.userId })
                 const product = await this.productRepository.findOne({ id: userDefine.mid })
                 const coupon = await this.couponRepository.findOne({ id: userDefine.couponId })
+                const gift = await this.giftRepository.findOne({ id: userDefine.giftId })
                 const alliance = userDefine.alliance;
                 order.user = user;
                 order.product = product;
                 order.coupon = coupon;
                 order.point = 0;
                 order.orderAt = new Date();
+                order.gift = gift;
                 const newOrder = await queryRunner.manager.save(Order, order);
 
                 if (coupon) {

@@ -3,6 +3,7 @@ import { Order, OrderItem } from "src/payment/model/order.entity";
 import { User, UserProductLike } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { BasicEntity } from './../../shared/model/basic.entity';
+import { Gift } from './gift.entity';
 import { BlogType, EventStatus, EventType, HashtagType, ProductStatus } from './product.interface';
 
 @Entity({ name: 'product' })
@@ -130,6 +131,10 @@ export class Product extends BasicEntity {
 
     @OneToMany(() => EventProductMap, map => map.product)
     eventProductMap: EventProductMap[];
+
+    @ManyToOne(() => Gift, entity => entity.products)
+    @JoinColumn({ name: 'gift_id' })
+    gift: Gift;
 }
 
 @Entity({ name: 'hashtag' })

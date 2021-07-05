@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { HttpService, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { AuthService } from 'src/auth/service/auth.service';
@@ -24,7 +24,8 @@ export class ProductService {
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
     @InjectRepository(Hashtag) private hashtagRepository: Repository<Hashtag>,
     @InjectRepository(ProductOption) private productOptionRepository: Repository<ProductOption>,
-    private slackService: SlackService
+    private slackService: SlackService,
+    private http: HttpService
   ) { }
 
   async create(userId: number, productDto: ProductCreateDto): Promise<Product> {
@@ -348,6 +349,7 @@ export class ProductService {
       .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
+      .leftJoinAndSelect("product.gift", 'gift')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
       .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
       .leftJoinAndSelect('productOptions.orderItems', 'orderItem')

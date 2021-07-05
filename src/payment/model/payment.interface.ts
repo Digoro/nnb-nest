@@ -21,5 +21,6 @@ export interface PaypleUserDefine {
     mid: number,
     couponId: number,
     options: { id: number, name: string, price: number, count: number, date: string }[],
+    giftId: number,
     alliance: string
 }

@@ -1,3 +1,4 @@
+import { Gift } from 'src/product/model/gift.entity';
 import { Coupon, User } from "src/user/model/user.entity";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Product, ProductOption } from './../../product/model/product.entity';
@@ -24,6 +25,10 @@ export class Order extends BaseEntity {
     @ManyToOne(() => Coupon, entity => entity.orders)
     @JoinColumn({ name: 'coupon_id' })
     coupon: Coupon;
+
+    @ManyToOne(() => Gift, entity => entity.orders)
+    @JoinColumn({ name: 'gift_id' })
+    gift: Gift;
 
     @Column({ nullable: true })
     point: number;

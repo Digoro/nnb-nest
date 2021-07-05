@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { Payment } from 'src/payment/model/payment.entity';
+import { Gift } from 'src/product/model/gift.entity';
 import { Product } from 'src/product/model/product.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { Coupon, User, UserCouponMap } from 'src/user/model/user.entity';
@@ -23,7 +24,8 @@ import { PaymentService } from './payment.service';
             Coupon,
             UserCouponMap,
             Product,
-            ProductOption
+            ProductOption,
+            Gift
         ]),
         AuthModule,
         SharedModule

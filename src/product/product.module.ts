@@ -18,6 +18,7 @@ import { EventService } from './event.service';
 import { HashtagController } from './hashtag.controller';
 import { HashtagService } from './hashtag.service';
 import { Alliance } from './model/alliance';
+import { Gift } from './model/gift.entity';
 import { Blog, Category, Event, EventComment, EventProductMap, Hashtag, Product, ProductCategoryMap, ProductHashtagMap, ProductOption, ProductRepresentationPhoto, ProductRequest, ProductReview } from './model/product.entity';
 import { ProductRequestController } from './product-request.controller';
 import { ProductRequestService } from './product-request.service';
@@ -48,7 +49,8 @@ import { ReviewService } from './review.service';
       UserProductLike,
       EventComment,
       EventProductMap,
-      Alliance
+      Alliance,
+      Gift,
     ]),
     AuthModule,
     SharedModule
