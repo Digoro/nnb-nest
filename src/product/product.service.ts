@@ -349,7 +349,7 @@ export class ProductService {
       .leftJoinAndSelect("product.productCategoryMap", 'productCategoryMap')
       .leftJoinAndSelect("productCategoryMap.category", 'category')
       .leftJoinAndSelect('product.representationPhotos', 'representationPhoto')
-      // .leftJoinAndSelect("product.gift", 'gift')
+      .leftJoinAndSelect("product.gift", 'gift')
       .leftJoinAndSelect('product.productRequests', 'productRequests')
       .leftJoinAndSelect('product.options', 'productOptions', 'productOptions.isOld = :isOld', { isOld: false })
       .leftJoinAndSelect('productOptions.orderItems', 'orderItem')
