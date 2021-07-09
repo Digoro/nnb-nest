@@ -7,6 +7,6 @@ export class LoggerService {
     ) { }
 
     async log(log) {
-        await this.http.post('http://3.36.180.230:9090', log).toPromise()
+        await this.http.post('http://localhost:9090', log).toPromise()
     }
 }
