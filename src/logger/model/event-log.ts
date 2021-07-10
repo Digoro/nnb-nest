@@ -6,6 +6,9 @@ export class EventLog extends BasicEntity {
   @Column({ name: 'user_id' })
   userId: number;
 
+  @Column({ name: 'client_ip' })
+  clientIp: string;
+
   @Column({ name: 'event_type' })
   eventType: string;
 

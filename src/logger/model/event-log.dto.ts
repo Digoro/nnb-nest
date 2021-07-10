@@ -7,6 +7,9 @@ export class EventLogCreateDto implements Dto<EventLog>{
     userId: number;
 
     @IsString()
+    clientIp: string;
+
+    @IsString()
     eventType: string;
 
     @IsString()
@@ -51,6 +54,7 @@ export class EventLogCreateDto implements Dto<EventLog>{
     toEntity(): EventLog {
         const eventLog = new EventLog();
         eventLog.userId = this.userId;
+        eventLog.clientIp = this.clientIp;
         eventLog.eventType = this.eventType;
         eventLog.eventName = this.eventName;
         eventLog.url = this.url;
