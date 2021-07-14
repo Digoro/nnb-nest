@@ -1,4 +1,4 @@
-import { Controller, Get, HttpService } from '@nestjs/common';
+import { Controller, Get, HttpService, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('util')
@@ -8,9 +8,9 @@ export class UtilController {
     private http: HttpService
   ) { }
 
+
   @Get('ip')
-  async getClientIp() {
-    const response = await this.http.get('https://api.ipify.org/?format=json').toPromise();
-    return response['data'];
+  getClientIp(@Req() request) {
+    return { ip: request.headers['x-forwarded-for'] }
   }
 }
