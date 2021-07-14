@@ -12,7 +12,7 @@ export class UtilController {
   getClientIp(@Req() request) {
     try {
       const ips = request.headers['x-forwarded-for'];
-      const ip = ips.split(', ');
+      const ip = ips.split(', ')[0];
       return { ip }
     } catch {
       return { ip: '' }
