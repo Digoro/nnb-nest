@@ -8,9 +8,13 @@ export class UtilController {
     private http: HttpService
   ) { }
 
-
   @Get('ip')
   getClientIp(@Req() request) {
-    return { ip: request.headers['x-forwarded-for'] }
+    return {
+      ip: request.headers['x-forwarded-for'],
+      host: request.headers['x-forwarded-host'],
+      port: request.headers['x-forwarded-port'],
+      realIp: request.headers['x-real-ip'],
+    }
   }
 }
