@@ -10,11 +10,12 @@ export class UtilController {
 
   @Get('ip')
   getClientIp(@Req() request) {
-    return {
-      ip: request.headers['x-forwarded-for'],
-      host: request.headers['x-forwarded-host'],
-      port: request.headers['x-forwarded-port'],
-      realIp: request.headers['x-real-ip'],
+    try {
+      const ips = request.headers['x-forwarded-for'];
+      const ip = ips.split(', ');
+      return { ip }
+    } catch {
+      return { ip: '' }
     }
   }
 }
