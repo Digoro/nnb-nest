@@ -1,10 +1,11 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigurationModule } from './configuration/configuration.module';
+import { UtilController } from './core/util.controller';
 import { LoggerModule } from './logger/logger.module';
 import { PaymentModule } from './payment/payment.module';
 import { MagazineModule } from './post/magazine.module';
@@ -31,9 +32,13 @@ import { UserModule } from './user/user.module';
     PaymentModule,
     MagazineModule,
     ConfigurationModule,
-    LoggerModule
+    LoggerModule,
+    HttpModule
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    UtilController
+  ],
   providers: [
     {
       provide: APP_INTERCEPTOR,

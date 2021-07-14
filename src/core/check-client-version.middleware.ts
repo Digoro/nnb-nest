@@ -7,9 +7,10 @@ export class CheckClientVersionMiddleware implements NestMiddleware {
   constructor(
     private configService: ConfigService
   ) { }
+
   use(req: Request, res: Response, next: NextFunction) {
     const clientVersion = req.get('X-Client-Version');
-    if (clientVersion === this.configService.get('CLIENT_VERSION')) {
+    if (!clientVersion || clientVersion === this.configService.get('CLIENT_VERSION')) {
       next();
     }
     else {
